@@ -1,4 +1,4 @@
 Flask
 gunicorn
-supabase-py
+supabase
 python-dotenv
