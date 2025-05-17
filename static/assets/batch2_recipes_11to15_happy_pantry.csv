@@ -1,0 +1,6 @@
+id,slug,title,description,image,ingredients,dressing,instructions,nutrition,created_at,category,diet_tags
+e57817ae-96aa-4afb-b434-19073b38b66c,mas-chicken-parm,Ma’s Chicken Parm,,default.jpg,[],[],[],{},2025-04-27T17:37:37.900605,Dinner,[]
+da476263-6e3f-4885-9c74-4f3259ec228e,quiche-florentine,Quiche Florentine,,default.jpg,[],[],[],{},2025-04-27T17:37:37.900605,Dinner,[]
+d94fbf6f-b211-4f7c-b2f7-cb7eb2dc1810,falafel-protein-bowl,Falafel Protein Bowl,,default.jpg,[],[],[],{},2025-04-27T17:37:37.900605,Dinner,[]
+e1d88ede-6230-43f4-ae43-2af6b89fb604,smokey-chipotle-inferno-joes,Smokey Chipotle Inferno Joes,,default.jpg,[],[],[],{},2025-04-27T17:37:37.900605,Dinner,[]
+5391583d-2c85-4b54-8503-b8152c76be6a,crisp-layer-supreme,Crisp Layer Supreme,,default.jpg,[],[],[],{},2025-04-27T17:37:37.900605,Dinner,[]

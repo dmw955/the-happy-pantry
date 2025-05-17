@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Login - The Happy Pantry">
+    <meta name="keywords" content="login, authentication, meal planning">
+    <meta name="author" content="The Happy Pantry Team">
+    <title>Login - The Happy Pantry</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Core theme CSS (includes Bootstrap) -->
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #008080; /* Teal Green */
+            --accent-color: #FFC72C;  /* Bright Gold */
+            --text-dark: #2E2E2E;
+            --text-light: #FFFFFF;
+        }
+    
+
+.navbar {
+    background-color: var(--background-light);
+    border-bottom: 2px solid var(--accent-color);
+    padding: 10px 0;
+}
+
+.navbar-brand img {
+    height: 50px;
+    width: auto;
+}
+
+.navbar-nav .nav-link {
+    color: var(--text-dark);
+    font-weight: bold;
+    transition: color 0.3s ease-in-out;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+.header-bg {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+.footer-bg {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    padding: 30px 0;
+    text-align: center;
+}
+
+.feature {
+    background-color: var(--primary-color);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+}
+
+.feature i {
+    font-size: 2rem;
+    color: var(--accent-color);
+    display: block;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* Centered Login Box */
+.login-container {
+    max-width: 400px;
+    margin: 80px auto;
+    padding: 30px;
+    background: hsla(53, 24%, 70%, 0.918); /* Glassmorphic Effect */
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.login-container h2 {
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    padding-left: 40px; /* Space for icon */
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: 0.3s ease-in-out;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 128, 128, 0.3);
+}
+
+.form-group i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 1.2rem;
+}
+
+.btn-login {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+    transition: background-color 0.3s ease-in-out, transform 0.2s;
+}
+
+.btn-login:hover {
+    background-color: #006666;
+    transform: scale(1.05);
+}
+
+.forgot-password {
+    display: block;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+        }
+        login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 40px; /* Space between image and login box */
+}
+
+/* Left Side Image */
+.login-image {
+    max-width: 400px; /* Adjust width as needed */
+    height: auto;
+    border-radius: 12px; /* Optional: rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Login Container */
+.login-container {
+    max-width: 400px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+/* Responsive: Stack on Mobile */
+@media (max-width: 768px) {
+    .login-wrapper {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .login-image {
+        max-width: 80%;
+        margin-bottom: 20px;
+    }
+}
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container px-5">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('login') }}">Login</a></li>
+                    <li class="nav-item"><a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('signup') }}">Sign Up</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Flash Messages (Display Errors) -->
+<div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+
+
+<!-- Login Form Section -->
+<div class="login-container">
+    <h2>Login to Your Account</h2>
+    <form method="POST" action="/login">
+        <div class="form-group">
+            <i class="bi bi-envelope"></i>
+            <input type="email" id="email" name="email" class="form-control" placeholder="Email Address" required>
+        </div>
+        <div class="form-group">
+            <i class="bi bi-lock"></i>
+            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+        </div>
+        <button type="submit" class="btn btn-login">Login</button>
+        <a href="{{ url_for('forgot_password') }}" class="forgot-password">Forgot Password?</a>
+    </form>
+</div>
+
+
+    <!-- Footer -->
+    <footer class="footer-bg">
+        <div class="container px-5">
+            <p class="m-0">Copyright &copy; The Happy Pantry 2025</p>
+        </div>
+    </footer>
+</body>
+</html>

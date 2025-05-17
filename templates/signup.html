@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Join The Happy Pantry - Sign up for easy meal planning and grocery lists.">
+    <meta name="keywords" content="signup, meal planning, recipes, grocery lists">
+    <meta name="author" content="The Happy Pantry Team">
+    <title>Sign Up - The Happy Pantry</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Core theme CSS -->
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #008080;
+            --accent-color: #FFC72C;
+            --text-dark: #2E2E2E;
+            --text-light: #FFFFFF;
+            --background-light: #FFFFFF;
+        }
+        body {
+            background: url("{{ url_for('static', filename='assets/signupbackground2.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: var(--background-light);
+            border-bottom: 2px solid var(--accent-color);
+            padding: 10px 0;
+        }
+        .navbar-brand img {
+            height: 50px;
+        }
+        .signup-container {
+            max-width: 500px;
+            margin: 120px auto 60px;
+            padding: 25px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9rem;
+            text-align: left;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container px-5">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('signup') }}">Sign Up</a>
+                    </li>
+                </ul>                               
+            </div>
+        </div>
+    </nav>
+
+    <div class="signup-container">
+        <h2 class="signup-title">Create Your Account</h2>
+        <p>Join The Happy Pantry and simplify your meal planning!</p>
+
+        <div id="error-message" class="alert alert-danger" style="display:none;"></div>
+
+        <form id="signupForm">
+            <div class="form-group mb-3 text-start">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" required>
+                <small id="emailError" class="error-message"></small>
+            </div>
+
+            <div class="form-group mb-3 text-start">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+                <small id="passwordRequirements" class="text-muted">
+                    ⚠️ Password must be at least <strong>6 characters long</strong>.
+                </small>
+            </div>
+            
+
+            <button type="submit" class="btn signup-btn btn-warning" id="signupBtn" disabled>
+                <span id="spinner" class="spinner-border spinner-border-sm" style="display:none;"></span>
+                Join Now
+            </button>
+            
+        </form>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

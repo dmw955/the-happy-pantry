@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopping List</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #008080;
+      --accent-color: #FFC72C;
+      --text-dark: #2E2E2E;
+      --text-light: #FFFFFF;
+      --background-light: #FFFFFF;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--background-light);
+    }
+    .navbar {
+      background-color: var(--background-light);
+      border-bottom: 2px solid var(--accent-color);
+      padding: 10px 0;
+    }
+    .navbar-brand img {
+      height: 50px;
+      width: auto;
+    }
+    .navbar-nav .nav-link {
+      color: var(--text-dark);
+      font-weight: bold;
+      transition: color 0.3s ease-in-out;
+    }
+    .navbar-nav .nav-link:hover {
+      color: var(--accent-color);
+      text-decoration: underline;
+    }
+    .bg-brand-teal {
+      background-color: var(--primary-color);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+
+  <!-- ✅ Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container px-5">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">My Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
+          <li class="nav-item">
+            <a class="logout-btn nav-link" href="{{ url_for('logout') }}">
+              <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ✅ Main Content -->
+  <div class="flex-grow">
+    <div class="max-w-3xl mx-auto p-6">
+      <h1 class="text-3xl font-bold text-teal-600 mb-6">🛒 Your Shopping List</h1>
+
+      <div id="listContainer" class="space-y-4">
+        <p class="text-gray-500 italic">Loading your list...</p>
+      </div>
+
+      <!-- ✅ Buttons -->
+      <div class="flex flex-wrap gap-4 mt-6">
+        <button id="clearListBtn"
+                class="px-5 py-2 bg-red-600 text-white font-semibold rounded hover:bg-red-700 transition">
+          🧹 Clear Shopping List
+        </button>
+        <button id="downloadPdfBtn"
+                class="px-5 py-2 bg-yellow-500 text-black font-semibold rounded hover:bg-yellow-600 transition">
+          📄 Download PDF
+        </button>
+      </div>
+
+      <a href="/recipes" class="inline-block mt-6 text-teal-700 hover:underline block">
+        ← Back to Recipes
+      </a>
+    </div>
+  </div>
+
+  <!-- ✅ Footer -->
+  <footer class="bg-brand-teal text-white p-4 text-center text-sm mt-10">
+    <div>The Happy Pantry © 2025</div>
+  </footer>
+
+  <!-- ✅ Scripts -->
+  <script src="{{ url_for('static', filename='js/shopping_list.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>

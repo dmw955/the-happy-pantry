@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: the-happy-pantry
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SUPABASE_URL
+        value: https://ulaaelkluixsmqozeaaa.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz...
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz...

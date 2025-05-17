@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Contact The Happy Pantry - Get in Touch">
+    <meta name="keywords" content="contact, support, help, The Happy Pantry">
+    <meta name="author" content="The Happy Pantry Team">
+    <title>Contact Us - The Happy Pantry</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Core theme CSS (includes Bootstrap) -->
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #008080; /* Teal Green */
+            --accent-color: #FFC72C;  /* Bright Gold */
+            --text-dark: #2E2E2E;
+            --text-light: #FFFFFF;
+            --background-light: #FFFFFF;
+        }
+
+        .navbar {
+            background-color: var(--background-light);
+            border-bottom: 2px solid var(--accent-color);
+            padding: 10px 0;
+        }
+
+        .navbar-brand img {
+            height: 50px;
+            width: auto;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--text-dark);
+            font-weight: bold;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        .header-bg {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 50px 0;
+            text-align: center;
+        }
+
+        .footer-bg {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 30px 0;
+            text-align: center;
+        }
+
+        .contact-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-container h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-submit {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+            width: 100%;
+        }
+
+        .btn-submit:hover {
+            background-color: #E6B800;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container px-5">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+
+    <!-- Banner -->
+    <header class="header-bg">
+        <div class="container px-5">
+            <h1>Contact The Happy Pantry</h1>
+            <p class="lead text-white-50 mt-3">Have a question? Reach out and we'll be happy to assist you!</p>
+        </div>
+    </header>
+
+    <!-- Contact Form Section -->
+    <section class="container">
+        <div class="contact-container">
+            <h2>Get in Touch</h2>
+            <form action="https://formsubmit.co/d.webstr@gmail.com" method="POST">
+                <input type="hidden" name="_subject" value="New Contact Form Submission">
+                <input type="hidden" name="_next" value="http://127.0.0.1:5000/thankyou">
+                
+                <div class="mb-3">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" name="name" required class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Your Email</label>
+                    <input type="email" name="email" required class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Your Message</label>
+                    <textarea name="message" required rows="4" class="form-control"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+<!-- Footer -->
+<footer class="footer-bg text-white text-xs">
+    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+      
+      <p class="m-0 leading-none">
+        &copy; 2025 The Happy Pantry
+      </p>
+      
+      <a href="https://facebook.com/yourpage" target="_blank" rel="noopener noreferrer"
+         class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
+        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
+      </a>
+  
+    </div>
+</footer>
+
+<style>
+/* Hover Effect for Facebook Icon */
+a:hover img {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+</style>
+
+    <!-- Bootstrap core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+</body>
+</html>
