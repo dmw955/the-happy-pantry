@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Border Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+    }
+  </style>
+</head>
+<body class="relative min-h-screen bg-white">
+
+  <!-- Left Border -->
+  <div class="absolute top-0 left-0 w-4 h-full bg-[#008080] border-r border-black z-50"></div>
+
+  <!-- Right Border -->
+  <div class="absolute top-0 right-0 w-4 h-full bg-[#FFC72C] border-l border-black z-50"></div>
+
+  <div class="relative z-10 px-6 py-10">
+    <h1 class="text-3xl font-bold text-[#008080] mb-4">Cold Mediterranean Tuna Orzo Salad</h1>
+    <p>This is a test page to verify that left and right borders are visible.</p>
+  </div>
+</body>
+</html>

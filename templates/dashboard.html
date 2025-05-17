@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Dashboard - The Happy Pantry">
+    <meta name="keywords" content="dashboard, meal planning, user panel">
+    <meta name="author" content="The Happy Pantry Team">
+    <title>Dashboard - The Happy Pantry</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Core Styles -->
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+
+    <style>
+        /* Global Color Variables */
+        :root {
+            --primary-color: #008080; /* Teal Green */
+            --accent-color: #FFC72C;  /* Bright Gold */
+            --text-dark: #2E2E2E;
+            --text-light: #FFFFFF;
+            --background-light: #FFFFFF;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: var(--background-light);
+            border-bottom: 2px solid var(--accent-color);
+            padding: 10px 0;
+        }
+
+        .navbar-brand img {
+            height: 50px;
+            width: auto;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--text-dark);
+            font-weight: bold;
+            transition: color 0.3s ease-in-out;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        /* ✅ Glassmorphism Background */
+        body {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px); /* Creates the frosted glass look */
+            -webkit-backdrop-filter: blur(15px); /* For Safari support */
+        }
+
+        .dashboard-container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 40px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+            border-radius: 15px;
+            backdrop-filter: blur(10px); /* Frosted Glass Effect */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background: var(--background-light);
+            padding: 25px;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ✅ Hero Section */
+        .hero {
+            text-align: center;
+            background: var(--primary-color);
+            color: var(--text-light);
+            padding: 40px 20px;
+            border-radius: 10px;
+            margin-bottom: 40px;
+        }
+
+        /* ✅ Modern Button Styles */
+        .btn-primary-custom {
+            background-color: #FFC72C; /* Muted Gold */
+            color: rgb(0, 0, 0);
+            font-size: 1.2rem;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            border: none;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #C9A000; /* Slightly darker gold on hover */
+        }
+
+        /* ✅ Centering the "My Recipes" Section */
+        .recipes-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+
+        .recipes-card {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.3); /* Slightly more opaque */
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px); /* Frosted glass look */
+        }
+
+        /* ✅ Footer */
+        .footer-bg {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            padding: 20px 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- ✅ Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container px-5">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">My Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
+                    <li class="nav-item">
+                        <a class="logout-btn nav-link" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>                                
+            </div>
+        </div>
+    </nav>
+
+    <!-- ✅ Hero Section -->
+    <div class="hero">
+        <h1>Welcome to Your Smart Kitchen</h1>
+        <p>Plan, shop, and cook effortlessly with The Happy Pantry.</p>
+    </div>
+
+    <!-- ✅ Centered My Recipes Section -->
+<div class="recipes-container">
+    <div class="card recipes-card">
+        <h5 class="card-title" style="color: #2E2E2E;">My Recipes</h5>
+        <p class="card-text">View and manage your saved recipes.</p>
+        <a href="{{ url_for('recipes') }}" class="btn btn-primary-custom">Go to Recipes</a>
+
+    </div>
+</div>
+
+
+    <!-- ✅ Steps Section (Modern Look) -->
+    <section class="steps-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-lg-3">
+                    <div class="step-card">
+                        <img src="{{ url_for('static', filename='assets/choose.jpg') }}" class="step-img">
+                        <h4>Choose</h4>
+                        <p class="step-text">Discover delicious recipes tailored to you.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="step-card">
+                        <img src="{{ url_for('static', filename='assets/shop.jpg') }}" class="step-img">
+                        <h4>Shop</h4>
+                        <p class="step-text">Get a smart shopping list for your meals.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="step-card">
+                        <img src="{{ url_for('static', filename='assets/cook.jpg') }}" class="step-img">
+                        <h4>Cook</h4>
+                        <p class="step-text">Follow step-by-step cooking instructions.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="step-card">
+                        <img src="{{ url_for('static', filename='assets/enjoy.jpg') }}" class="step-img">
+                        <h4>Enjoy</h4>
+                        <p class="step-text">Savor your meal & share your creations.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+       <!-- Footer -->
+       <footer class="footer-bg">
+        <div class="container px-5">
+            <p class="m-0">Copyright &copy; The Happy Pantry 2025</p>
+        </div>
+    </footer>
+</body>
+    <!-- ✅ Load Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ✅ Load Custom JavaScript (If You Have a script.js File) -->
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+
+    <!-- ✅ Optional: Fade-In Effect for Steps -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const fadeElements = document.querySelectorAll(".fade-in");
+
+            function fadeInOnScroll() {
+                fadeElements.forEach((element) => {
+                    const rect = element.getBoundingClientRect();
+                    if (rect.top < window.innerHeight * 0.9) {
+                        element.classList.add("visible");
+                    }
+                });
+            }
+
+            window.addEventListener("scroll", fadeInOnScroll);
+            fadeInOnScroll(); // Run once to check initial visibility
+        });
+    </script>
+</body>
+</html>

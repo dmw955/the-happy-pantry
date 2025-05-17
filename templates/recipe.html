@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ recipe.title }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+    }
+    html, body {
+      height: 100%;
+    }
+    .slide-in-left {
+      animation: slideLeft 0.8s ease-out forwards;
+    }
+    .slide-in-right {
+      animation: slideRight 0.8s ease-out forwards;
+    }
+    @keyframes slideLeft {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800 m-0 p-0 relative min-h-screen">
+
+  <!-- LEFT BORDER -->
+  <div class="fixed top-0 left-0 w-12 h-screen border-r-4 border-black rounded-r-2xl slide-in-left" style="background-color: gold; z-index: 9999;"></div>
+
+  <!-- RIGHT BORDER -->
+  <div class="fixed top-0 right-0 w-12 h-screen border-l-4 border-black rounded-l-2xl slide-in-right" style="background-color: teal; z-index: 9999;"></div>
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b border-gray-200 relative z-20">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center space-x-2">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="h-10 w-auto" />
+      </a>
+      <nav class="space-x-4 text-sm md:text-base">
+        <a href="/" class="text-gray-600 hover:text-teal-600">Home</a>
+        <a href="/dashboard" class="text-gray-600 hover:text-teal-600">Dashboard</a>
+        <a href="/recipes" class="text-gray-600 hover:text-teal-600 font-semibold">Recipes</a>
+        <a href="/shopping_list" class="text-gray-600 hover:text-teal-600">Shopping List</a>
+        <a href="/profile" class="text-gray-600 hover:text-teal-600">Profile</a>
+        <a href="/logout" class="text-gray-600 hover:text-red-500">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="flex w-full relative z-10">
+    <div class="w-12 flex-shrink-0"></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 px-4 sm:px-6 py-10 bg-white">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-teal-600 mb-2">{{ recipe.title }}</h1>
+        <p class="italic mb-6">{{ recipe.description }}</p>
+
+        {% if recipe.image_url %}
+        <div class="mb-6">
+          <img src="{{ url_for('static', filename='assets/' + recipe.image_url) }}" alt="{{ recipe.title }}" class="rounded-xl shadow w-full max-w-xl mx-auto" />
+        </div>
+        {% endif %}
+
+        {% if recipe.ingredients %}
+        <h2 class="text-2xl font-semibold text-yellow-400 mb-2">Ingredients</h2>
+        <ul class="list-disc pl-6 mb-6 space-y-1">
+          {% for ing in recipe.ingredients %}
+          <li>
+            {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
+            {% if ing.notes %} <em>({{ ing.notes }})</em>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if recipe.dressing %}
+        <h3 class="text-xl font-semibold text-yellow-400 mb-2">Dressing:</h3>
+        <ul class="list-disc pl-6 mb-6 space-y-1">
+          {% for ing in recipe.dressing %}
+          <li>
+            {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
+            {% if ing.notes %} <em>({{ ing.notes }})</em>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if recipe.instructions %}
+        <h2 class="text-2xl font-semibold text-teal-600 mb-2">Instructions</h2>
+        <ol class="list-decimal pl-6 mb-6 space-y-1">
+          {% for step in recipe.instructions %}
+          <li>{{ step }}</li>
+          {% endfor %}
+        </ol>
+        {% endif %}
+
+        {% if recipe.nutrition %}
+        <h2 class="text-2xl font-semibold text-yellow-400 mb-2">Nutrition Breakdown (Per Serving)</h2>
+        <table class="w-full border-collapse border border-gray-300 text-left">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="p-2 border border-gray-300">Nutrient</th>
+              <th class="p-2 border border-gray-300">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in recipe.nutrition.items() %}
+            <tr>
+              <td class="p-2 border border-gray-300">{{ key }}</td>
+              <td class="p-2 border border-gray-300">{{ value }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
+        <div class="mt-8 text-center">
+          <a href="{{ url_for('recipes') }}" class="text-teal-600 hover:underline text-lg">
+            ← Back to Recipes
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <div class="w-12 flex-shrink-0"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-100 border-t border-gray-300 text-center text-sm py-4 relative z-20">
+    <div class="container mx-auto px-5">
+      <p class="text-gray-600 m-0">&copy; 2025 The Happy Pantry</p>
+    </div>
+  </footer>
+</body>
+</html>
