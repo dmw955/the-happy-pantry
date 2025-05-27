@@ -86,6 +86,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setupCheckboxListeners();
     initializeTooltips();
+
+    // ✅ NEW: Pagination button handlers
+    nextPageBtn.onclick = () => {
+      currentPage++;
+      fetchRecipes();
+    };
+
+    prevPageBtn.onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchRecipes();
+      }
+    };
   }
 
   function initializeTooltips() {
