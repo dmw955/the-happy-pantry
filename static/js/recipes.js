@@ -63,13 +63,16 @@ document.addEventListener("DOMContentLoaded", () => {
       recipeContainer.innerHTML += `
         <div class="relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200">
           <input 
-            type="checkbox" 
-            class="recipe-select absolute top-2 right-2 w-5 h-5" 
-            data-id="${recipe.id}" 
-            ${isChecked ? "checked" : ""}
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Select this recipe to add it to your shopping list."
+  type="checkbox" 
+  class="recipe-select absolute top-2 right-2 w-7 h-7 p-2 rounded border border-gray-300 bg-white shadow-sm" 
+  style="z-index: 10;" 
+  data-id="${recipe.id}" 
+  ${isChecked ? "checked" : ""}
+  data-bs-toggle="tooltip"
+  data-bs-placement="top"
+  title="Select this recipe to add it to your shopping list."
+/>
+
           />
           <a href="/recipes/${recipe.slug}" class="block">
             <img src="${imagePath}" alt="${recipe.title}" class="mb-2 rounded-xl max-h-40 w-full object-cover" />

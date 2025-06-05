@@ -11034,5 +11034,33 @@ textarea.form-control-lg {
       background-size: cover;
   }
 }
+.step-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 30px;
+  height: 100%;
+}
+
+.step-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.step-img {
+  width: 100%;
+  max-width: 120px;
+  height: auto;
+  margin-bottom: 15px;
+  border-radius: 8px;
+}
+
+.step-text {
+  font-size: 0.95rem;
+  color: #555;
+}
 
 
