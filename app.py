@@ -152,6 +152,14 @@ def payment_processing():
 def success():
     return render_template('success.html')
 
+from flask import render_template
+
+@app.route("/auth-redirect.html")
+def auth_redirect():
+    return render_template("auth-redirect.html")
+
+
+
 # Route for Cancel Page
 @app.route('/cancel')
 def cancel():

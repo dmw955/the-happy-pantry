@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    // On load, redirect to /signup with access_token
+    window.onload = function () {
+      const fragment = window.location.hash;
+      if (fragment && fragment.includes('access_token')) {
+        window.location.href = '/signup' + fragment;
+      } else {
+        window.location.href = '/signup';
+      }
+    };
+  </script>
+</head>
+<body>
+  <p>Redirecting you to The Happy Pantry...</p>
+</body>
+</html>
