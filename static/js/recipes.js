@@ -72,8 +72,6 @@ document.addEventListener("DOMContentLoaded", () => {
   data-bs-placement="top"
   title="Select this recipe to add it to your shopping list."
 />
-
-          />
           <a href="/recipes/${recipe.slug}" class="block">
             <img src="${imagePath}" alt="${recipe.title}" class="mb-2 rounded-xl max-h-40 w-full object-cover" />
             <h3 class="text-xl font-semibold text-teal-700 mb-1">${recipe.title}</h3>
