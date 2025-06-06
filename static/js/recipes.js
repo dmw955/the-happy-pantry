@@ -62,16 +62,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
       recipeContainer.innerHTML += `
         <div class="relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200">
-          <input 
-  type="checkbox" 
-  class="recipe-select absolute top-2 right-2 w-7 h-7 p-2 rounded border border-gray-300 bg-white shadow-sm" 
-  style="z-index: 10;" 
-  data-id="${recipe.id}" 
-  ${isChecked ? "checked" : ""}
-  data-bs-toggle="tooltip"
-  data-bs-placement="top"
-  title="Select this recipe to add it to your shopping list."
-/>
+          <label class="absolute top-2 right-2 z-10 cursor-pointer" title="Select this recipe to add it to your shopping list.">
+  <input 
+    type="checkbox" 
+    class="recipe-select sr-only" 
+    data-id="${recipe.id}" 
+    ${isChecked ? "checked" : ""}
+  />
+  <div class="w-10 h-10 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+</label>
+
+
+
           <a href="/recipes/${recipe.slug}" class="block">
             <img src="${imagePath}" alt="${recipe.title}" class="mb-2 rounded-xl max-h-40 w-full object-cover" />
             <h3 class="text-xl font-semibold text-teal-700 mb-1">${recipe.title}</h3>
