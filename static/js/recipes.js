@@ -104,13 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <p class="text-sm text-gray-600">${recipe.description || ""}</p>
         </a>
 
-        <button 
-          class="absolute bottom-2 right-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded hide-btn shadow-sm"
-          data-recipe-id="${recipe.id}"
-        >
-          ${showHidden && isHidden ? "⏪ Unhide" : "🙈 Hide"}
-        </button>
-      `;
+          `;
 
       recipeContainer.appendChild(card);
     });
@@ -119,8 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     prevPageBtn.disabled = currentPage === 1;
 
     setupCheckboxListeners();
-    setupHideListeners(showHidden);
-  }
+      }
 
   function setupCheckboxListeners() {
     document.querySelectorAll(".recipe-select").forEach(checkbox => {
@@ -140,66 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  function setupHideListeners(showingHidden) {
-  document.querySelectorAll(".hide-btn").forEach(button => {
-    button.addEventListener("click", async () => {
-      const recipeId = button.getAttribute("data-recipe-id");
-
-      const {
-        data: sessionData,
-        error: sessionError
-      } = await supabaseClient.auth.getSession();
-
-      const user = sessionData?.session?.user;
-
-      if (!user) {
-        alert("You must be logged in to hide or unhide recipes.");
-        return;
-      }
-
-      const card = button.closest(".relative");
-
-      if (showingHidden) {
-        // UNHIDE
-        await supabaseClient
-          .from("hidden_recipes")
-          .delete()
-          .match({ user_id: user.id, recipe_id: recipeId });
-
-        fetchRecipes();
-      } else {
-        // HIDE with undo option
-        const undoNotice = document.createElement("div");
-        undoNotice.className = "mt-2 p-2 text-sm bg-yellow-100 text-yellow-800 rounded";
-        undoNotice.innerHTML = `
-          <span>Recipe will be hidden in 3 seconds...</span>
-          <button class="ml-4 text-blue-600 underline undo-btn">Undo</button>
-        `;
-        card.appendChild(undoNotice);
-
-        let undo = false;
-        undoNotice.querySelector(".undo-btn").addEventListener("click", () => {
-          undo = true;
-          undoNotice.remove();
-        });
-
-        setTimeout(async () => {
-          if (!undo) {
-            await supabaseClient
-              .from("hidden_recipes")
-              .insert([{ user_id: user.id, recipe_id: recipeId }]);
-            card.remove();
-          } else {
-            undoNotice.remove();
-          }
-        }, 3000);
-      }
-    });
-  });
-}
-
-
-  showHiddenToggle?.addEventListener("change", () => fetchRecipes());
+   showHiddenToggle?.addEventListener("change", () => fetchRecipes());
   nextPageBtn.onclick = () => { currentPage++; fetchRecipes(); };
   prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; fetchRecipes(); } };
 
