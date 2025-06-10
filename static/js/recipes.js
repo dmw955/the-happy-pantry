@@ -1,25 +1,49 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
   const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
   const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  console.log("📦 [recipes.js] Supabase client initialized");
+  // ✅ Wait for Supabase to restore session
+  const { data: sessionData, error } = await supabaseClient.auth.getSession();
+  if (!sessionData?.session) {
+    console.warn("No session found — user may not be fully logged in.");
+  } else {
+    console.log("✅ Session restored:", sessionData.session.user);
+  }
+
+  // now continue safely with the rest of your logic...
+
 
   const recipeContainer = document.getElementById("recipeContainer");
   const pageInfo = document.getElementById("pageInfo");
   const prevPageBtn = document.getElementById("prevPage");
   const nextPageBtn = document.getElementById("nextPage");
+  const showHiddenToggle = document.getElementById("showHiddenToggle");
 
   let currentPage = 1;
   const pageSize = 9;
 
   async function fetchRecipes() {
-    console.log("📡 Fetching recipes...");
-
     const searchTerm = document.getElementById("searchInput").value.trim();
     const category = document.getElementById("categoryFilter").value;
     const diet = document.getElementById("dietFilter").value;
     const sort = document.getElementById("sortFilter").value || "title.asc";
+    const showHidden = showHiddenToggle?.checked;
+
+    const { data: userData } = await supabaseClient.auth.getUser();
+    const user = userData?.user;
+    let hiddenIds = [];
+
+    if (user) {
+      const { data: hiddenData } = await supabaseClient
+        .from("hidden_recipes")
+        .select("recipe_id")
+        .eq("user_id", user.id);
+
+      if (hiddenData) {
+        hiddenIds = hiddenData.map(item => item.recipe_id);
+      }
+    }
 
     const from = (currentPage - 1) * pageSize;
     const to = from + pageSize - 1;
@@ -39,100 +63,67 @@ document.addEventListener("DOMContentLoaded", () => {
     recipeContainer.innerHTML = "";
     pageInfo.textContent = `Page ${currentPage}`;
 
-    if (error) {
-      console.error("❌ Supabase error:", error.message);
+    if (error || !data) {
+      console.error("🔥 Supabase error:", error);
       recipeContainer.innerHTML = '<p class="text-red-500">Failed to load recipes.</p>';
       return;
     }
 
-    console.log("✅ Recipes fetched:", data);
-    console.log("📊 Total matching recipes:", count);
-
-    if (!data || data.length === 0) {
-      recipeContainer.innerHTML = '<p class="text-gray-600">No recipes found.</p>';
-      nextPageBtn.disabled = true;
-      prevPageBtn.disabled = currentPage === 1;
-      return;
-    }
+    const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
 
     data.forEach((recipe) => {
+      const isHidden = hiddenIds.includes(recipe.id);
+      if (isHidden && !showHidden) return;
+
       const imagePath = `/static/assets/${recipe.image || "default.jpg"}`;
-      const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
       const isChecked = selectedIds.includes(recipe.id.toString());
 
-      recipeContainer.innerHTML += `
-        <div class="relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200">
-          <label class="absolute top-2 right-2 z-10 cursor-pointer" title="Select this recipe to add it to your shopping list.">
-  <input 
-    type="checkbox" 
-    class="recipe-select sr-only" 
-    data-id="${recipe.id}" 
-    ${isChecked ? "checked" : ""}
-  />
-  <div class="w-10 h-10 bg-white border border-gray-300 rounded shadow-sm flex items-center justify-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-    </svg>
-  </div>
-</label>
+      const card = document.createElement("div");
+      card.className = "relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200";
 
+      if (showHidden && isHidden) {
+        card.classList.add("opacity-50", "border-dashed");
+      }
 
-
-          <a href="/recipes/${recipe.slug}" class="block">
-            <img src="${imagePath}" alt="${recipe.title}" class="mb-2 rounded-xl max-h-40 w-full object-cover" />
-            <h3 class="text-xl font-semibold text-teal-700 mb-1">${recipe.title}</h3>
-            <p class="text-sm text-gray-600">${recipe.description || ""}</p>
-          </a>
+      card.innerHTML = `
+        <div class="absolute top-2 right-2 z-10">
+          <label class="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-xl shadow-md text-sm md:text-base text-gray-800 cursor-pointer" style="min-width: 150px;">
+            <input 
+              type="checkbox" 
+              class="recipe-select mr-2 scale-150" 
+              data-id="${recipe.id}" 
+              ${isChecked ? "checked" : ""}
+            />
+            <span class="select-none">Add to List</span>
+          </label>
         </div>
+
+        <a href="/recipes/${recipe.slug}" class="block">
+          <img src="${imagePath}" alt="${recipe.title}" class="mb-2 rounded-xl max-h-40 w-full object-cover" />
+          <h3 class="text-xl font-semibold text-teal-700 mb-1">${recipe.title}</h3>
+          <p class="text-sm text-gray-600">${recipe.description || ""}</p>
+        </a>
+
+        <button 
+          class="absolute bottom-2 right-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded hide-btn shadow-sm"
+          data-recipe-id="${recipe.id}"
+        >
+          ${showHidden && isHidden ? "⏪ Unhide" : "🙈 Hide"}
+        </button>
       `;
+
+      recipeContainer.appendChild(card);
     });
 
-    const totalPages = Math.ceil(count / pageSize);
-    nextPageBtn.disabled = currentPage >= totalPages;
+    nextPageBtn.disabled = currentPage >= Math.ceil(count / pageSize);
     prevPageBtn.disabled = currentPage === 1;
 
     setupCheckboxListeners();
-    initializeTooltips();
-
-    // ✅ NEW: Pagination button handlers
-    nextPageBtn.onclick = () => {
-      currentPage++;
-      fetchRecipes();
-    };
-
-    prevPageBtn.onclick = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        fetchRecipes();
-      }
-    };
-  }
-
-  function initializeTooltips() {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-
-    // ✅ Mobile Support for Long Press
-    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-      if ('ontouchstart' in window) {
-        tooltipTriggerEl.addEventListener('touchstart', (e) => {
-          e.preventDefault();
-          const tooltipInstance = bootstrap.Tooltip.getInstance(tooltipTriggerEl);
-          tooltipInstance.show();
-          setTimeout(() => tooltipInstance.hide(), 1500);
-        });
-      }
-    });
-
-    console.log("🛠️ Tooltips initialized for recipe checkboxes.");
+    setupHideListeners(showHidden);
   }
 
   function setupCheckboxListeners() {
-    const checkboxes = document.querySelectorAll(".recipe-select");
-
-    checkboxes.forEach(checkbox => {
+    document.querySelectorAll(".recipe-select").forEach(checkbox => {
       checkbox.addEventListener("change", () => {
         const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
         const recipeId = checkbox.getAttribute("data-id");
@@ -145,10 +136,72 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         localStorage.setItem("selectedRecipes", JSON.stringify(selectedIds));
-        console.log("✅ Selected Recipes:", selectedIds);
       });
     });
   }
+
+  function setupHideListeners(showingHidden) {
+  document.querySelectorAll(".hide-btn").forEach(button => {
+    button.addEventListener("click", async () => {
+      const recipeId = button.getAttribute("data-recipe-id");
+
+      const {
+        data: sessionData,
+        error: sessionError
+      } = await supabaseClient.auth.getSession();
+
+      const user = sessionData?.session?.user;
+
+      if (!user) {
+        alert("You must be logged in to hide or unhide recipes.");
+        return;
+      }
+
+      const card = button.closest(".relative");
+
+      if (showingHidden) {
+        // UNHIDE
+        await supabaseClient
+          .from("hidden_recipes")
+          .delete()
+          .match({ user_id: user.id, recipe_id: recipeId });
+
+        fetchRecipes();
+      } else {
+        // HIDE with undo option
+        const undoNotice = document.createElement("div");
+        undoNotice.className = "mt-2 p-2 text-sm bg-yellow-100 text-yellow-800 rounded";
+        undoNotice.innerHTML = `
+          <span>Recipe will be hidden in 3 seconds...</span>
+          <button class="ml-4 text-blue-600 underline undo-btn">Undo</button>
+        `;
+        card.appendChild(undoNotice);
+
+        let undo = false;
+        undoNotice.querySelector(".undo-btn").addEventListener("click", () => {
+          undo = true;
+          undoNotice.remove();
+        });
+
+        setTimeout(async () => {
+          if (!undo) {
+            await supabaseClient
+              .from("hidden_recipes")
+              .insert([{ user_id: user.id, recipe_id: recipeId }]);
+            card.remove();
+          } else {
+            undoNotice.remove();
+          }
+        }, 3000);
+      }
+    });
+  });
+}
+
+
+  showHiddenToggle?.addEventListener("change", () => fetchRecipes());
+  nextPageBtn.onclick = () => { currentPage++; fetchRecipes(); };
+  prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; fetchRecipes(); } };
 
   fetchRecipes();
 });
