@@ -3,14 +3,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
   const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
+  let user = null;
+
   const { data: sessionData } = await supabaseClient.auth.getSession();
-  const user = sessionData?.session?.user;
+  user = sessionData?.session?.user;
 
   const recipeContainer = document.getElementById("recipeContainer");
   const pageInfo = document.getElementById("pageInfo");
   const prevPageBtn = document.getElementById("prevPage");
   const nextPageBtn = document.getElementById("nextPage");
-  const showHiddenToggle = document.getElementById("showHiddenToggle");
+  const showFavoritesToggle = document.getElementById("showFavoritesToggle");
 
   let currentPage = 1;
   const pageSize = 9;
@@ -20,22 +22,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const category = document.getElementById("categoryFilter").value;
     const diet = document.getElementById("dietFilter").value;
     const sort = document.getElementById("sortFilter").value || "title.asc";
-    const showHidden = showHiddenToggle?.checked;
+    const showFavorites = showFavoritesToggle?.checked;
 
-    let hiddenIds = [], favoriteIds = [];
+    let favoriteIds = [];
 
     if (user) {
-      const { data: hiddenData } = await supabaseClient
-        .from("hidden_recipes")
-        .select("recipe_id")
-        .eq("user_id", user.id);
-
       const { data: favData } = await supabaseClient
         .from("favorite_recipes")
         .select("recipe_id")
         .eq("user_id", user.id);
-
-      hiddenIds = hiddenData?.map(item => item.recipe_id) || [];
       favoriteIds = favData?.map(item => item.recipe_id) || [];
     }
 
@@ -66,19 +61,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
 
     data.forEach((recipe) => {
-      const isHidden = hiddenIds.includes(recipe.id);
-      if (isHidden && !showHidden) return;
+      const isFavorited = favoriteIds.includes(recipe.id);
+      if (!showFavorites && isFavorited) return;
 
       const imagePath = `/static/assets/${recipe.image || "default.jpg"}`;
       const isChecked = selectedIds.includes(recipe.id.toString());
-      const isFavorited = favoriteIds.includes(recipe.id);
 
       const card = document.createElement("div");
       card.className = "relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200";
-
-      if (showHidden && isHidden) {
-        card.classList.add("opacity-50", "border-dashed");
-      }
 
       card.innerHTML = `
         <div class="absolute top-2 right-2 z-10 flex gap-2">
@@ -138,8 +128,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll(".favorite-btn").forEach(button => {
       button.addEventListener("click", async () => {
         const recipeId = button.getAttribute("data-recipe-id");
-        const { data: sessionData } = await supabaseClient.auth.getSession();
-        const user = sessionData?.session?.user;
 
         if (!user) {
           alert("You must be logged in to favorite recipes.");
@@ -162,11 +150,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           button.textContent = "❤️";
         }
+
+        fetchRecipes(); // Refresh after change
       });
     });
   }
 
-  showHiddenToggle?.addEventListener("change", () => fetchRecipes());
+  showFavoritesToggle?.addEventListener("change", () => fetchRecipes());
   nextPageBtn.onclick = () => { currentPage++; fetchRecipes(); };
   prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; fetchRecipes(); } };
 
