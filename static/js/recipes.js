@@ -8,6 +8,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const { data: sessionData } = await supabaseClient.auth.getSession();
   user = sessionData?.session?.user;
 
+  // ✅ Add this listener after the session call
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+  user = session?.user;
+  console.log("🔄 Supabase session updated via onAuthStateChange:", user);
+});
+
+
   const recipeContainer = document.getElementById("recipeContainer");
   const pageInfo = document.getElementById("pageInfo");
   const prevPageBtn = document.getElementById("prevPage");
