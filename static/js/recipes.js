@@ -129,6 +129,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       button.addEventListener("click", async () => {
         const recipeId = button.getAttribute("data-recipe-id");
 
+          console.log("Logged-in user at click time:", user);
+
         if (!user) {
           alert("You must be logged in to favorite recipes.");
           return;
