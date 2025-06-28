@@ -3,10 +3,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
   const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-  let user = null;
+let user = null;
 
-  const { data: sessionData } = await supabaseClient.auth.getSession();
-  user = sessionData?.session?.user;
+// Immediately get session on page load
+supabaseClient.auth.getSession().then(({ data: { session } }) => {
+  user = session?.user;
+  console.log("✅ Initial Supabase session loaded:", user);
+});
+
+// Subscribe to future auth state changes
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  user = session?.user;
+  console.log("🔄 Supabase session updated via onAuthStateChange:", user);
+});
+
 
   // ✅ Add this listener after the session call
 supabaseClient.auth.onAuthStateChange((_event, session) => {
