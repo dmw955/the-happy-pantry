@@ -1,21 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Redirecting...</title>
-  <script>
-    // On load, redirect to /signup with access_token
-    window.onload = function () {
-      const fragment = window.location.hash;
-      if (fragment && fragment.includes('access_token')) {
-        window.location.href = '/signup' + fragment;
-      } else {
-        window.location.href = '/signup';
-      }
-    };
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body>
-  <p>Redirecting you to The Happy Pantry...</p>
+  <p>Redirecting, please wait...</p>
+
+  <script>
+    const supabase = supabase.createClient(
+      'https://ulaaelkluixsmqozeaaa.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs'
+    );
+
+    supabase.auth.getSessionFromUrl().then(({ data, error }) => {
+      if (error) {
+        console.error("❌ Failed to restore session:", error.message);
+      } else if (data?.session) {
+        console.log("✅ Session restored:", data.session.user);
+
+        // Optional: redirect to dashboard or login success page
+        window.location.href = "/dashboard";
+      }
+    });
+  </script>
 </body>
 </html>
