@@ -1,35 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Redirecting...</title>
 </head>
 <body>
   <p>Redirecting, please wait...</p>
 
-  <!-- Load Supabase first -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.6/+esm"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const supabase = supabase.createClient(
-        "https://ulaaelkluixsmqozeaaa.supabase.co",
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs"
-      );
+    const supabaseUrl = 'https://ulaaelkluixsmqozeaaa.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-      const { data, error } = await supabase.auth.getSessionFromUrl();
+    async function handleRedirect() {
+      const hash = window.location.hash.substr(1);
+      const params = new URLSearchParams(hash);
 
-      if (error) {
-        console.error("❌ Error retrieving session:", error.message);
-      } else if (data?.session) {
-        console.log("✅ Session restored:", data.session);
-        window.location.href = "/dashboard"; // or wherever you'd like to send them
+      const access_token = params.get('access_token');
+      const refresh_token = params.get('refresh_token');
+
+      if (access_token && refresh_token) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token
+        });
+
+        if (error) {
+          console.error('Error setting session:', error.message);
+        } else {
+          console.log('✅ Supabase session set via redirect');
+          window.location.href = '/dashboard.html'; // 👈 Change this if needed
+        }
       } else {
-        console.warn("⚠️ No session found in redirect.");
-        window.location.href = "/login";
+        console.warn('⚠️ No access token found in redirect');
       }
-    });
+    }
+
+    handleRedirect();
   </script>
 </body>
 </html>
