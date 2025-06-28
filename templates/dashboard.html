@@ -17,8 +17,12 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Core Styles -->
-    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <!-- ✅ Load Supabase Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+
+<!-- ✅ Your Custom Script (After Supabase) -->
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 
     <style>
         /* Global Color Variables */
