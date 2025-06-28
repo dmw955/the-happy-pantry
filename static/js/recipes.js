@@ -1,28 +1,17 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
-  const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
-  const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+  const supabaseClient = window.supabaseClient; // Use the global instance
+  let user = null;
 
-let user = null;
-
-// Immediately get session on page load
-supabaseClient.auth.getSession().then(({ data: { session } }) => {
+  // ✅ Immediately get session on page load
+  const { data: { session } } = await supabaseClient.auth.getSession();
   user = session?.user;
   console.log("✅ Initial Supabase session loaded:", user);
-});
 
-// Subscribe to future auth state changes
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  user = session?.user;
-  console.log("🔄 Supabase session updated via onAuthStateChange:", user);
-});
-
-
-  // ✅ Add this listener after the session call
-supabaseClient.auth.onAuthStateChange((_event, session) => {
-  user = session?.user;
-  console.log("🔄 Supabase session updated via onAuthStateChange:", user);
-});
+  // ✅ Subscribe to future auth state changes
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    user = session?.user;
+    console.log("🔄 Supabase session updated via onAuthStateChange:", user);
+  });
 
 
   const recipeContainer = document.getElementById("recipeContainer");
