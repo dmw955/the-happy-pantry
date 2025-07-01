@@ -1,9 +1,9 @@
-// Ensure Supabase is loaded before using it
+// ✅ Ensure Supabase is loaded
 if (typeof supabase === 'undefined') {
   console.error("❌ Supabase library not loaded! Make sure the script order is correct in your HTML.");
 }
 
-// ✅ Initialize Supabase globally only once
+// ✅ Initialize Supabase client only once
 if (typeof window.supabaseClient === "undefined") {
   const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
@@ -11,40 +11,40 @@ if (typeof window.supabaseClient === "undefined") {
   console.log("✅ Supabase client created globally");
 }
 
-
 console.log("✅ Supabase Object:", supabaseClient);
 
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
-// 🔐 Handle password reset or magic link from URL hash
-const hash = window.location.hash;
+  // 🔐 Handle password reset/magic link
+  const hash = window.location.hash;
+  if (hash.includes("access_token")) {
+    const params = new URLSearchParams(hash.substring(1));
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
 
-if (hash.includes("access_token")) {
-  const params = new URLSearchParams(hash.substring(1));
-  const access_token = params.get("access_token");
-  const refresh_token = params.get("refresh_token");
+    if (access_token && refresh_token) {
+      console.log("🔑 Setting session with Supabase...");
+      const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
 
-  if (access_token && refresh_token) {
-    const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
-
-    if (error) {
-      console.error("❌ Session error:", error.message);
+      if (error) {
+        console.error("❌ Session error:", error.message);
+      } else {
+        console.log("✅ Supabase session set — waiting for hydration...");
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          if (session) {
+            console.log("🔁 onAuthStateChange confirmed session:", session);
+            const cleanedUrl = window.location.href.split('#')[0];
+            window.location.replace(cleanedUrl);
+          }
+        });
+      }
     } else {
-      console.log("✅ Supabase session set — waiting for hydration...");
-
-      supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-        if (session) {
-          console.log("🔁 onAuthStateChange confirmed session:", session);
-          const cleanedUrl = window.location.href.split('#')[0];
-          window.location.replace(cleanedUrl);
-        }
-      });
+      console.warn("⚠️ access_token or refresh_token missing from hash");
     }
   }
-}
 
-  // 📝 Signup form handling
+  // 📝 Signup form logic
   const signupForm = document.getElementById("signupForm");
   if (signupForm) {
     const emailInput = document.getElementById("email");
@@ -98,7 +98,7 @@ if (hash.includes("access_token")) {
     });
   }
 
-  // ✨ Scroll fade animation
+  // ✨ Fade-in scroll animation
   const fadeElements = document.querySelectorAll(".fade-in");
   function fadeInOnScroll() {
     fadeElements.forEach(el => {

@@ -176,6 +176,25 @@ waitForSupabaseClient((supabaseClient) => {
     nextPageBtn.onclick = () => { currentPage++; fetchRecipes(); };
     prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; fetchRecipes(); } };
 
-    fetchRecipes();
+    async function waitForUserAndFetchRecipes(retries = 10) {
+  for (let i = 0; i < retries; i++) {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    user = session?.user;
+    if (user) break;
+    await new Promise(resolve => setTimeout(resolve, 200)); // wait 200ms
+  }
+
+  if (!user) {
+    alert("You must be logged in to view this page.");
+    window.location.href = "/login";
+    return;
+  }
+
+  console.log("🔐 User after hydration wait:", user);
+  fetchRecipes();
+}
+
+waitForUserAndFetchRecipes();
+
   });
 });
