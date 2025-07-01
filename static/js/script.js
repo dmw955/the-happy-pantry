@@ -18,23 +18,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
   // 🔐 Handle password reset from URL hash
-  const hash = window.location.hash;
-  if (hash.includes("access_token")) {
-    const params = new URLSearchParams(hash.substring(1));
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
+  if (access_token && refresh_token) {
+  const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
 
-    if (access_token && refresh_token) {
-      const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
-      if (error) {
-        console.error("❌ Session error:", error.message);
-      } else {
-        console.log("✅ Supabase session set");
-        const cleanedUrl = window.location.href.split('#')[0];
-        window.location.replace(cleanedUrl);
-      }
-    }
+  if (error) {
+    console.error("❌ Session error:", error.message);
+  } else {
+    console.log("✅ Supabase session set");
+
+    // Optional confirmation
+    const { data } = await supabaseClient.auth.getSession();
+    console.log("🔍 Session after setSession():", data.session);
+
+    const cleanedUrl = window.location.href.split('#')[0];
+    window.location.replace(cleanedUrl);
   }
+}
+
 
   // 📝 Signup form handling
   const signupForm = document.getElementById("signupForm");
