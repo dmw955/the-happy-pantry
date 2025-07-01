@@ -17,8 +17,7 @@ console.log("✅ Supabase Object:", supabaseClient);
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
-  // 🔐 Handle password reset from URL hash
- // 🔐 Handle password reset or magic link from URL hash
+// 🔐 Handle password reset or magic link from URL hash
 const hash = window.location.hash;
 if (hash.includes("access_token")) {
   const params = new URLSearchParams(hash.substring(1));
@@ -33,15 +32,18 @@ if (hash.includes("access_token")) {
     } else {
       console.log("✅ Supabase session set");
 
-      // Optional: confirm session was updated
       const { data } = await supabaseClient.auth.getSession();
       console.log("🔍 Session after setSession():", data.session);
 
       const cleanedUrl = window.location.href.split('#')[0];
       window.location.replace(cleanedUrl);
     }
+  } else {
+    console.warn("⚠️ Missing token(s) in URL.");
   }
 }
+
+
 
 
 
