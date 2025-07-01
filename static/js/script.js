@@ -18,28 +18,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
 // 🔐 Handle password reset or magic link from URL hash
-if (access_token && refresh_token) {
-  const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
+const hash = window.location.hash;
 
-  if (error) {
-    console.error("❌ Session error:", error.message);
-  } else {
-    console.log("✅ Supabase session set — waiting for hydration...");
+if (hash.includes("access_token")) {
+  const params = new URLSearchParams(hash.substring(1));
+  const access_token = params.get("access_token");
+  const refresh_token = params.get("refresh_token");
 
-    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        console.log("🔁 onAuthStateChange confirmed session:", session);
-        const cleanedUrl = window.location.href.split('#')[0];
-        window.location.replace(cleanedUrl);
-      }
-    });
+  if (access_token && refresh_token) {
+    const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
+
+    if (error) {
+      console.error("❌ Session error:", error.message);
+    } else {
+      console.log("✅ Supabase session set — waiting for hydration...");
+
+      supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+        if (session) {
+          console.log("🔁 onAuthStateChange confirmed session:", session);
+          const cleanedUrl = window.location.href.split('#')[0];
+          window.location.replace(cleanedUrl);
+        }
+      });
+    }
   }
 }
-
-
-
-
-
 
   // 📝 Signup form handling
   const signupForm = document.getElementById("signupForm");
