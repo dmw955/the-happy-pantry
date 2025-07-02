@@ -16,34 +16,33 @@ console.log("✅ Supabase Object:", supabaseClient);
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
-  // 🔐 Handle magic link / password reset link
-  const hash = window.location.hash;
-  if (hash.includes("access_token")) {
-    const params = new URLSearchParams(hash.substring(1));
-    const access_token = params.get("access_token");
-    const refresh_token = params.get("refresh_token");
+// 🔐 Handle magic link / password reset link or hosted login redirect
+const hash = window.location.hash;
+if (hash.includes("access_token")) {
+  const params = new URLSearchParams(hash.substring(1));
+  const access_token = params.get("access_token");
+  const refresh_token = params.get("refresh_token");
 
-    if (access_token && refresh_token) {
-      console.log("🔑 Setting Supabase session from URL...");
-      const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
+  if (access_token && refresh_token) {
+    console.log("🔑 Setting Supabase session from URL fragment...");
+    const { error } = await supabaseClient.auth.setSession({
+      access_token,
+      refresh_token,
+    });
 
-      if (error) {
-        console.error("❌ Failed to set session:", error.message);
-      } else {
-        console.log("✅ Supabase session set successfully");
-        // Wait for hydration and clean URL
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-          if (session) {
-            console.log("🔁 Auth state change: session confirmed", session);
-            const cleanUrl = window.location.origin + window.location.pathname;
-            window.location.replace(cleanUrl);
-          }
-        });
-      }
+    if (error) {
+      console.error("❌ Failed to set session:", error.message);
     } else {
-      console.warn("⚠️ access_token or refresh_token not found in URL hash.");
+      console.log("✅ Supabase session set successfully");
+
+      // ✅ Reload to hydrate everything and clean up URL
+      const cleanUrl = window.location.origin + window.location.pathname;
+      window.location.replace(cleanUrl);
     }
+  } else {
+    console.warn("⚠️ access_token or refresh_token missing in URL fragment.");
   }
+}
 
   // ✅ Session logging for debugging
   const { data: { session } } = await supabaseClient.auth.getSession();
