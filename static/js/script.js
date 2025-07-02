@@ -1,12 +1,12 @@
 // ✅ Ensure Supabase is loaded
 if (typeof supabase === 'undefined') {
-  console.error("❌ Supabase library not loaded! Make sure the script order is correct in your HTML.");
+  console.error("❌ Supabase library not loaded! Check script tag order in your HTML.");
 }
 
-// ✅ Initialize Supabase client only once
+// ✅ Initialize Supabase client once globally
 if (typeof window.supabaseClient === "undefined") {
   const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzI...";
   window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
   console.log("✅ Supabase client created globally");
 }
@@ -16,7 +16,7 @@ console.log("✅ Supabase Object:", supabaseClient);
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
-  // 🔐 Handle password reset/magic link
+  // 🔐 Handle magic link / password reset link
   const hash = window.location.hash;
   if (hash.includes("access_token")) {
     const params = new URLSearchParams(hash.substring(1));
@@ -24,27 +24,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     const refresh_token = params.get("refresh_token");
 
     if (access_token && refresh_token) {
-      console.log("🔑 Setting session with Supabase...");
+      console.log("🔑 Setting Supabase session from URL...");
       const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
 
       if (error) {
-        console.error("❌ Session error:", error.message);
+        console.error("❌ Failed to set session:", error.message);
       } else {
-        console.log("✅ Supabase session set — waiting for hydration...");
+        console.log("✅ Supabase session set successfully");
+        // Wait for hydration and clean URL
         supabaseClient.auth.onAuthStateChange((_event, session) => {
           if (session) {
-            console.log("🔁 onAuthStateChange confirmed session:", session);
-            const cleanedUrl = window.location.href.split('#')[0];
-            window.location.replace(cleanedUrl);
+            console.log("🔁 Auth state change: session confirmed", session);
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.location.replace(cleanUrl);
           }
         });
       }
     } else {
-      console.warn("⚠️ access_token or refresh_token missing from hash");
+      console.warn("⚠️ access_token or refresh_token not found in URL hash.");
     }
   }
 
-  // 📝 Signup form logic
+  // ✅ Session logging for debugging
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session?.user) {
+    console.log("🟢 User is already logged in:", session.user);
+  } else {
+    console.log("🔴 No active session found at load.");
+  }
+
+  // 📝 Signup form behavior
   const signupForm = document.getElementById("signupForm");
   if (signupForm) {
     const emailInput = document.getElementById("email");
@@ -98,7 +107,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ✨ Fade-in scroll animation
+  // ✨ Scroll fade-in animation
   const fadeElements = document.querySelectorAll(".fade-in");
   function fadeInOnScroll() {
     fadeElements.forEach(el => {
@@ -108,6 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
+
   window.addEventListener("scroll", fadeInOnScroll);
   fadeInOnScroll();
 });
