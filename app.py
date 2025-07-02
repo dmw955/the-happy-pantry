@@ -181,11 +181,17 @@ def subscribe(plan_type):
 
 @app.route('/recipes')
 def recipes():
+    if "user_id" not in session:
+        flash("⚠️ You must be logged in to view recipes.", "warning")
+        return redirect(url_for("login"))
+
     return render_template(
         'recipes.html',
         SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
+        USER_ID=session["user_id"]
     )
+
 
 @app.route('/recipes/<slug>')
 def recipe_page(slug):

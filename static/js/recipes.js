@@ -3,7 +3,7 @@ function waitForSupabaseClient(callback) {
     callback(window.supabaseClient);
   } else {
     console.warn("⏳ Waiting for Supabase client...");
-    setTimeout(() => waitForSupabaseClient(callback), 100); // Retry after 100ms
+    setTimeout(() => waitForSupabaseClient(callback), 100);
   }
 }
 
@@ -11,12 +11,12 @@ waitForSupabaseClient((supabaseClient) => {
   document.addEventListener("DOMContentLoaded", async () => {
     let user = null;
 
-    // ✅ Immediately get session on page load
-    const { data: { session } } = await supabaseClient.auth.getSession();
+    const {
+      data: { session },
+    } = await supabaseClient.auth.getSession();
     user = session?.user;
     console.log("✅ Initial Supabase session loaded:", user);
 
-    // ✅ Subscribe to future auth state changes
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       user = session?.user;
       console.log("🔄 Supabase session updated via onAuthStateChange:", user);
@@ -32,10 +32,10 @@ waitForSupabaseClient((supabaseClient) => {
     const pageSize = 9;
 
     async function fetchRecipes() {
-      const searchTerm = document.getElementById("searchInput").value.trim();
-      const category = document.getElementById("categoryFilter").value;
-      const diet = document.getElementById("dietFilter").value;
-      const sort = document.getElementById("sortFilter").value || "title.asc";
+      const searchTerm = document.getElementById("searchInput")?.value.trim() || "";
+      const category = document.getElementById("categoryFilter")?.value || "";
+      const diet = document.getElementById("dietFilter")?.value || "";
+      const sort = document.getElementById("sortFilter")?.value || "title.asc";
       const showFavorites = showFavoritesToggle?.checked;
 
       let favoriteIds = [];
@@ -45,7 +45,7 @@ waitForSupabaseClient((supabaseClient) => {
           .from("favorite_recipes")
           .select("recipe_id")
           .eq("user_id", user.id);
-        favoriteIds = favData?.map(item => item.recipe_id) || [];
+        favoriteIds = favData?.map((item) => item.recipe_id) || [];
       }
 
       const from = (currentPage - 1) * pageSize;
@@ -82,7 +82,8 @@ waitForSupabaseClient((supabaseClient) => {
         const isChecked = selectedIds.includes(recipe.id.toString());
 
         const card = document.createElement("div");
-        card.className = "relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200";
+        card.className =
+          "relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200";
 
         card.innerHTML = `
           <div class="absolute top-2 right-2 z-10 flex gap-2">
@@ -121,7 +122,7 @@ waitForSupabaseClient((supabaseClient) => {
     }
 
     function setupCheckboxListeners() {
-      document.querySelectorAll(".recipe-select").forEach(checkbox => {
+      document.querySelectorAll(".recipe-select").forEach((checkbox) => {
         checkbox.addEventListener("change", () => {
           const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
           const recipeId = checkbox.getAttribute("data-id");
@@ -139,11 +140,11 @@ waitForSupabaseClient((supabaseClient) => {
     }
 
     function setupFavoriteListeners() {
-      document.querySelectorAll(".favorite-btn").forEach(button => {
+      document.querySelectorAll(".favorite-btn").forEach((button) => {
         button.addEventListener("click", async () => {
           const recipeId = button.getAttribute("data-recipe-id");
 
-          console.log("Logged-in user at click time:", user);
+          console.log("🧠 User at click:", user);
 
           if (!user) {
             alert("You must be logged in to favorite recipes.");
@@ -167,34 +168,43 @@ waitForSupabaseClient((supabaseClient) => {
             button.textContent = "❤️";
           }
 
-          fetchRecipes(); // Refresh after change
+          fetchRecipes();
         });
       });
     }
 
     showFavoritesToggle?.addEventListener("change", () => fetchRecipes());
-    nextPageBtn.onclick = () => { currentPage++; fetchRecipes(); };
-    prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; fetchRecipes(); } };
+    nextPageBtn.onclick = () => {
+      currentPage++;
+      fetchRecipes();
+    };
+    prevPageBtn.onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        fetchRecipes();
+      }
+    };
 
     async function waitForUserAndFetchRecipes(retries = 10) {
-  for (let i = 0; i < retries; i++) {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    user = session?.user;
-    if (user) break;
-    await new Promise(resolve => setTimeout(resolve, 200)); // wait 200ms
-  }
+      for (let i = 0; i < retries; i++) {
+        const {
+          data: { session },
+        } = await supabaseClient.auth.getSession();
+        user = session?.user;
+        if (user) break;
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
 
-  if (!user) {
-    alert("You must be logged in to view this page.");
-    window.location.href = "/login";
-    return;
-  }
+      if (!user) {
+        alert("You must be logged in to view this page.");
+        window.location.href = "/login";
+        return;
+      }
 
-  console.log("🔐 User after hydration wait:", user);
-  fetchRecipes();
-}
+      console.log("🔐 User after hydration wait:", user);
+      fetchRecipes();
+    }
 
-waitForUserAndFetchRecipes();
-
+    waitForUserAndFetchRecipes();
   });
 });
