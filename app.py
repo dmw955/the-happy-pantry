@@ -141,6 +141,11 @@ def shopping_list():
 def planselection():
     return render_template('planselection.html')
 
+@app.route('/pantrypost')
+def pantrypost():
+    return render_template('pantrypost.html')
+
+
 
 # Route for Payment Processing Page
 @app.route('/paymentprocessing')
