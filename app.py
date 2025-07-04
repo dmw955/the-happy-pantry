@@ -145,6 +145,11 @@ def planselection():
 def pantrypost():
     return render_template('pantry_post.html')
 
+@app.route('/whyitworks')
+def whyitworks():
+    return render_template('whyitworks.html')
+
+
 
 
 # Route for Payment Processing Page
