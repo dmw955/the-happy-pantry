@@ -143,7 +143,7 @@ def planselection():
 
 @app.route('/pantrypost')
 def pantrypost():
-    return render_template('pantrypost.html')
+    return render_template('pantry_post.html')
 
 
 
