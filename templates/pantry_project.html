@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Pantry Project | The Happy Pantry</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-color: #008080;
+      --accent-color: #FFC72C;
+      --text-dark: #2E2E2E;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      color: var(--text-dark);
+      background-color: #f9f9f9;
+    }
+    h1, h2, h3 {
+      color: var(--primary-color);
+    }
+    .btn-accent {
+      background-color: var(--accent-color);
+      color: black;
+    }
+    .btn-accent:hover {
+      background-color: #e6b800;
+      color: black;
+    }
+    .section-light {
+      background-color: #f4f4f4;
+    }
+    .section-white {
+      background-color: #ffffff;
+    }
+    .rounded-shadow {
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="py-5 text-center section-light">
+  <div class="container">
+    <h1 class="display-5 fw-bold">The Pantry Project</h1>
+    <p class="lead">A giving mission powered by The Happy Pantry community.</p>
+    <p class="fs-5">Every month, our members can choose to donate directly to a cause that delivers the most needed — and least donated — foods to local pantries.</p>
+  </div>
+</section>
+
+<!-- MISSION -->
+<section class="py-5 section-white border-top">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h2 class="fw-bold">Filling the Gaps Left Behind</h2>
+        <p class="fs-5">Canned goods are helpful, but they’re not enough. Fresh produce, meats, high-protein options, and culturally inclusive staples are what families actually need — but rarely receive.</p>
+        <p class="fs-5">The Pantry Project sources these exact items and partners directly with food pantries to distribute them where they’ll make the most impact.</p>
+      </div>
+      <div class="col-md-6">
+        <img src="{{ url_for('static', filename='assets/default.jpg') }}" class="img-fluid rounded-shadow" alt="Pantry Delivery">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="py-5 section-light border-top">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-5">How It Works</h2>
+    <div class="row text-center">
+      <div class="col-md-4 mb-4">
+        <div class="p-4 bg-white rounded-shadow h-100">
+          <h3 class="fs-4 fw-bold">Step 1</h3>
+          <p>When you sign up, you can optionally add $1, $3, $5, or more to your monthly subscription.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="p-4 bg-white rounded-shadow h-100">
+          <h3 class="fs-4 fw-bold">Step 2</h3>
+          <p>We use 100% of these donations to source essential foods — not snacks, but staples like fresh produce and proteins.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="p-4 bg-white rounded-shadow h-100">
+          <h3 class="fs-4 fw-bold">Step 3</h3>
+          <p>Each month, we deliver these items directly to community food pantries across the country.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="py-5 section-white border-top">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-3">See the Difference You Make</h2>
+    <p class="fs-5">Every month, we’ll share reports on where donations went — what foods were delivered, which pantries were served, and how your support created real change.</p>
+    <img src="{{ url_for('static', filename='assets/default.jpg') }}" class="img-fluid rounded-shadow mt-4" alt="Donation Impact">
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 text-center section-light border-top">
+  <div class="container">
+    <h2 class="fw-bold">Want to Help?</h2>
+    <p class="fs-5">The Pantry Project is exclusive to Happy Pantry members. When you subscribe, you’ll have the option to give monthly.</p>
+    <a href="{{ url_for('planselection') }}" class="btn btn-lg btn-accent mt-2">Join & Give Back</a>
+  </div>
+</section>
+<footer class="footer-bg text-white text-xs">
+    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <p class="m-0 leading-none">&copy; 2025 The Happy Pantry</p>
+        <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
+            <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
+        </a>
+    </div>
+</footer>
+</body>
+</html>

@@ -149,6 +149,10 @@ def pantrypost():
 def whyitworks():
     return render_template('whyitworks.html')
 
+@app.route('/pantry_project')
+def pantry_project():
+    return render_template('pantry_project.html')
+
 
 
 
