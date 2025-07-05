@@ -6,7 +6,7 @@ if (typeof supabase === 'undefined') {
 // ✅ Initialize Supabase client once globally
 if (typeof window.supabaseClient === "undefined") {
   const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzI...";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
   window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
   console.log("✅ Supabase client created globally");
 }
