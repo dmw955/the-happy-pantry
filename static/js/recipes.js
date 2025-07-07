@@ -11,15 +11,15 @@ waitForSupabaseClient((supabaseClient) => {
   document.addEventListener("DOMContentLoaded", async () => {
     let user = null;
 
-    const {
-      data: { session },
-    } = await supabaseClient.auth.getSession();
+    // Initial Supabase session load
+    const { data: { session } } = await supabaseClient.auth.getSession();
     user = session?.user;
     console.log("✅ Initial Supabase session loaded:", user);
 
-    supabaseClient.auth.onAuthStateChange((_event, session) => {
-      user = session?.user;
-      console.log("🔄 Supabase session updated via onAuthStateChange:", user);
+    // Listen for auth state changes
+    supabaseClient.auth.onAuthStateChange((_event, newSession) => {
+      user = newSession?.user;
+      console.log("🔄 Supabase session updated:", user);
     });
 
     const recipeContainer = document.getElementById("recipeContainer");
@@ -31,6 +31,7 @@ waitForSupabaseClient((supabaseClient) => {
     let currentPage = 1;
     const pageSize = 9;
 
+    // Fetch and render recipes
     async function fetchRecipes() {
       const searchTerm = document.getElementById("searchInput")?.value.trim() || "";
       const category = document.getElementById("categoryFilter")?.value || "";
@@ -39,13 +40,12 @@ waitForSupabaseClient((supabaseClient) => {
       const showFavorites = showFavoritesToggle?.checked;
 
       let favoriteIds = [];
-
       if (user) {
         const { data: favData } = await supabaseClient
           .from("favorite_recipes")
           .select("recipe_id")
           .eq("user_id", user.id);
-        favoriteIds = favData?.map((item) => item.recipe_id) || [];
+        favoriteIds = favData?.map(item => item.recipe_id) || [];
       }
 
       const from = (currentPage - 1) * pageSize;
@@ -62,7 +62,6 @@ waitForSupabaseClient((supabaseClient) => {
       if (diet) query = query.contains("diet_tags", [diet]);
 
       const { data, error, count } = await query;
-
       recipeContainer.innerHTML = "";
       pageInfo.textContent = `Page ${currentPage}`;
 
@@ -74,7 +73,7 @@ waitForSupabaseClient((supabaseClient) => {
 
       const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
 
-      data.forEach((recipe) => {
+      data.forEach(recipe => {
         const isFavorited = favoriteIds.includes(recipe.id);
         if (!showFavorites && isFavorited) return;
 
@@ -97,9 +96,8 @@ waitForSupabaseClient((supabaseClient) => {
               <span class="select-none">Add to List</span>
             </label>
             <button 
-              class="favorite-btn text-xl"
-              data-recipe-id="${recipe.id}"
-            >
+              class="favorite-btn text-xl" 
+              data-recipe-id="${recipe.id}">
               ${isFavorited ? "❤️" : "🤍"}
             </button>
           </div>
@@ -121,90 +119,62 @@ waitForSupabaseClient((supabaseClient) => {
       setupFavoriteListeners();
     }
 
+    // Checkbox listeners
     function setupCheckboxListeners() {
-      document.querySelectorAll(".recipe-select").forEach((checkbox) => {
+      document.querySelectorAll(".recipe-select").forEach(checkbox => {
         checkbox.addEventListener("change", () => {
-          const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
-          const recipeId = checkbox.getAttribute("data-id");
-          const index = selectedIds.indexOf(recipeId);
-
-          if (checkbox.checked && index === -1) {
-            selectedIds.push(recipeId);
-          } else if (!checkbox.checked && index !== -1) {
-            selectedIds.splice(index, 1);
-          }
-
-          localStorage.setItem("selectedRecipes", JSON.stringify(selectedIds));
+          const selected = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
+          const id = checkbox.getAttribute("data-id");
+          const idx = selected.indexOf(id);
+          if (checkbox.checked && idx === -1) selected.push(id);
+          else if (!checkbox.checked && idx !== -1) selected.splice(idx, 1);
+          localStorage.setItem("selectedRecipes", JSON.stringify(selected));
         });
       });
     }
 
+    // Favorite button listeners
     function setupFavoriteListeners() {
-      document.querySelectorAll(".favorite-btn").forEach((button) => {
+      document.querySelectorAll(".favorite-btn").forEach(button => {
         button.addEventListener("click", async () => {
-          const recipeId = button.getAttribute("data-recipe-id");
+          // Fetch fresh session at click
+          const { data: { session: clickSession } } = await supabaseClient.auth.getSession();
+          const currentUser = clickSession?.user;
+          console.log("❤️ User at click time:", currentUser);
 
-          console.log("🧠 User at click:", user);
-
-          if (!user) {
+          if (!currentUser) {
             alert("You must be logged in to favorite recipes.");
             return;
           }
 
-          const isFavorited = button.textContent === "❤️";
+          const recipeId = button.getAttribute("data-recipe-id");
+          const isFav = button.textContent === "❤️";
 
-          if (isFavorited) {
+          if (isFav) {
             await supabaseClient
               .from("favorite_recipes")
               .delete()
-              .match({ user_id: user.id, recipe_id: recipeId });
-
+              .match({ user_id: currentUser.id, recipe_id: recipeId });
             button.textContent = "🤍";
           } else {
             await supabaseClient
               .from("favorite_recipes")
-              .insert([{ user_id: user.id, recipe_id: recipeId }]);
-
+              .insert([{ user_id: currentUser.id, recipe_id: recipeId }]);
             button.textContent = "❤️";
           }
 
-          fetchRecipes();
+          // Refresh list if not filtering to favorites only
+          if (!showFavoritesToggle?.checked) fetchRecipes();
         });
       });
     }
 
-    showFavoritesToggle?.addEventListener("change", () => fetchRecipes());
-    nextPageBtn.onclick = () => {
-      currentPage++;
-      fetchRecipes();
-    };
-    prevPageBtn.onclick = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        fetchRecipes();
-      }
-    };
+    // Pagination and toggle events
+    showFavoritesToggle?.addEventListener("change", fetchRecipes);
+    nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
+    prevPageBtn.addEventListener("click", () => { if (currentPage > 1) { currentPage--; fetchRecipes(); } });
 
-    async function waitForUserAndFetchRecipes(retries = 10) {
-      for (let i = 0; i < retries; i++) {
-        const {
-          data: { session },
-        } = await supabaseClient.auth.getSession();
-        user = session?.user;
-        if (user) break;
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-
-      if (!user) {
-        alert("You must be logged in to view this page.");
-        window.location.href = "/login";
-        return;
-      }
-
-      console.log("🔐 User after hydration wait:", user);
-      fetchRecipes();
-    }
-
-    waitForUserAndFetchRecipes();
+    // Load recipes on page load
+    fetchRecipes();
   });
 });
