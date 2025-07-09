@@ -119,4 +119,35 @@ if (hash.includes("access_token")) {
 
   window.addEventListener("scroll", fadeInOnScroll);
   fadeInOnScroll();
+
+    // CLIENT-SIDE LOGIN WITH SUPABASE JS
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    const emailInput    = document.getElementById("loginEmail");
+    const passwordInput = document.getElementById("loginPassword");
+    const loginBtn      = document.querySelector("#loginForm button[type=submit]");
+    const loginError    = document.getElementById("loginError");
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      loginBtn.disabled = true;
+      loginError.style.display = "none";
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email:    emailInput.value.trim(),
+        password: passwordInput.value,
+      });
+
+      if (error) {
+        loginError.textContent = error.message;
+        loginError.style.display = "block";
+      } else {
+        // On success, redirect to recipes so recipes.js picks up the session
+        window.location.href = "/recipes";
+      }
+
+      loginBtn.disabled = false;
+    });
+  }
+
 });
