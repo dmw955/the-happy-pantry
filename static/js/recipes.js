@@ -75,7 +75,7 @@ waitForSupabaseClient((supabaseClient) => {
 
       data.forEach(recipe => {
         const isFavorited = favoriteIds.includes(recipe.id);
-        if (!showFavorites && isFavorited) return;
+        // Always show all recipes regardless of favorite state
 
         const imagePath = `/static/assets/${recipe.image || "default.jpg"}`;
         const isChecked = selectedIds.includes(recipe.id.toString());

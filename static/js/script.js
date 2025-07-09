@@ -16,6 +16,12 @@ console.log("✅ Supabase Object:", supabaseClient);
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
+  if (window.location.pathname === '/login') {
+  await supabaseClient.auth.signOut();
+  console.log("🔌 Cleared Supabase session on login page");
+}
+
+
   // 🔐 Handle magic link / password reset link or hosted login redirect
   const hash = window.location.hash;
   if (hash.includes("access_token")) {
