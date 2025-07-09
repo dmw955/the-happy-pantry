@@ -24,10 +24,8 @@ def home():
 
 @app.route('/dashboard')
 def dashboard():
-    if "user_id" not in session:
-        flash("⚠️ Please log in to access the dashboard.", "warning")
-        return redirect(url_for("login"))
-    return render_template("dashboard.html")
+    # Server-side gate removed; front-end will handle session checks
+    return render_template('dashboard.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -44,7 +42,7 @@ def login():
                 flash("✅ Login Successful!", "success")
                 return redirect(url_for('dashboard'))
             flash("❌ Invalid email or password. Please try again.", "danger")
-        except Exception as e:
+        except Exception:
             flash("❌ Something went wrong. Please try again later.", "danger")
     return render_template('login.html')
 
@@ -54,49 +52,49 @@ def logout():
     flash("✅ Logged out successfully.", "info")
     return redirect(url_for('home'))
 
-@app.route("/profile")
+@app.route('/profile')
 def profile():
-    if "user_id" not in session:
+    if 'user_id' not in session:
         flash("⚠️ Please log in to access your profile.", "warning")
-        return redirect(url_for("login"))
+        return redirect(url_for('login'))
     user = {
-        "email": session.get("email", "Not Available"),
-        "member_since": session.get("member_since", "Unknown"),
-        "email_notifications": session.get("email_notifications", False)
+        'email': session.get('email', 'Not Available'),
+        'member_since': session.get('member_since', 'Unknown'),
+        'email_notifications': session.get('email_notifications', False)
     }
-    return render_template("profile.html", user=user)
+    return render_template('profile.html', user=user)
 
-@app.route("/update_profile", methods=["POST"])
+@app.route('/update_profile', methods=['POST'])
 def update_profile():
-    if "user_id" not in session:
+    if 'user_id' not in session:
         flash("⚠️ Please log in to update your profile.", "warning")
-        return redirect(url_for("login"))
-    email = request.form.get("email")
-    new_password = request.form.get("new_password")
-    confirm_password = request.form.get("confirm_password")
-    email_notifications = "email_notifications" in request.form
+        return redirect(url_for('login'))
+    email = request.form.get('email')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    email_notifications = 'email_notifications' in request.form
     if new_password and new_password != confirm_password:
         flash("❌ Passwords do not match. Try again.", "danger")
-        return redirect(url_for("profile"))
+        return redirect(url_for('profile'))
     try:
-        user_id = session["user_id"]
+        user_id = session['user_id']
         updates = {}
-        if email and email != session.get("email"):
-            updates["email"] = email
+        if email and email != session.get('email'):
+            updates['email'] = email
         if new_password:
-            updates["password"] = new_password
+            updates['password'] = new_password
         if updates:
-            response = supabase_admin.auth.admin.update_user_by_id(user_id, updates)
-            if "email" in updates:
-                session["email"] = updates["email"]
+            supabase_admin.auth.admin.update_user_by_id(user_id, updates)
+            if 'email' in updates:
+                session['email'] = updates['email']
                 flash("✅ Email updated successfully!", "success")
-            if "password" in updates:
+            if 'password' in updates:
                 flash("✅ Password updated successfully!", "success")
-        session["email_notifications"] = email_notifications
+        session['email_notifications'] = email_notifications
         flash("✅ Preferences updated successfully!", "success")
-    except Exception as e:
+    except Exception:
         flash("❌ Something went wrong. Please try again.", "danger")
-    return redirect(url_for("profile"))
+    return redirect(url_for('profile'))
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
@@ -109,7 +107,7 @@ def forgot_password():
             )
             flash("✅ If an account with that email exists, a reset link has been sent.", "success")
             return redirect(url_for('login'))
-        except Exception as e:
+        except Exception:
             flash("❌ Something went wrong. Please try again later.", "danger")
     return render_template('forgot_password.html')
 
@@ -133,9 +131,9 @@ def contact():
 def signup():
     return render_template('signup.html')
 
-@app.route("/shopping_list")
+@app.route('/shopping_list')
 def shopping_list():
-    return render_template("shopping_list.html")
+    return render_template('shopping_list.html')
 
 @app.route('/planselection')
 def planselection():
@@ -153,33 +151,18 @@ def whyitworks():
 def pantry_project():
     return render_template('pantry_project.html')
 
-
-
-
-# Route for Payment Processing Page
 @app.route('/paymentprocessing')
 def payment_processing():
     return render_template('paymentprocessing.html')
 
-# Route for Success Page
 @app.route('/success')
 def success():
     return render_template('success.html')
 
-from flask import render_template
-
-@app.route("/auth-redirect.html")
-def auth_redirect():
-    return render_template("auth-redirect.html")
-
-
-
-# Route for Cancel Page
 @app.route('/cancel')
 def cancel():
     return render_template('cancel.html')
 
-# Route for Error Page
 @app.route('/error')
 def error():
     message = request.args.get('message', 'An error occurred during your transaction.')
@@ -191,21 +174,15 @@ def subscribe(plan_type):
         return "Invalid Plan", 404
     return render_template('subscribe.html', plan_type=plan_type)
 
-
-
 @app.route('/recipes')
 def recipes():
-    if "user_id" not in session:
-        flash("⚠️ You must be logged in to view recipes.", "warning")
-        return redirect(url_for("login"))
-
+    # Server-side login gate removed; front-end will handle auth checks
     return render_template(
         'recipes.html',
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
-        USER_ID=session["user_id"]
+        USER_ID=session.get('user_id')
     )
-
 
 @app.route('/recipes/<slug>')
 def recipe_page(slug):
@@ -223,8 +200,7 @@ def recipe_page(slug):
                 recipe[field] = [json.loads(i) if isinstance(i, str) else i for i in recipe[field]]
 
         return render_template('recipe.html', recipe=recipe)
-
-    except Exception as e:
+    except Exception:
         return "An error occurred while loading the recipe.", 500
 
 if __name__ == "__main__":
