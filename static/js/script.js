@@ -16,33 +16,27 @@ console.log("✅ Supabase Object:", supabaseClient);
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
-// 🔐 Handle magic link / password reset link or hosted login redirect
-const hash = window.location.hash;
-if (hash.includes("access_token")) {
-  const params = new URLSearchParams(hash.substring(1));
-  const access_token = params.get("access_token");
-  const refresh_token = params.get("refresh_token");
+  // 🔐 Handle magic link / password reset link or hosted login redirect
+  const hash = window.location.hash;
+  if (hash.includes("access_token")) {
+    const params = new URLSearchParams(hash.substring(1));
+    const access_token = params.get("access_token");
+    const refresh_token = params.get("refresh_token");
 
-  if (access_token && refresh_token) {
-    console.log("🔑 Setting Supabase session from URL fragment...");
-    const { error } = await supabaseClient.auth.setSession({
-      access_token,
-      refresh_token,
-    });
-
-    if (error) {
-      console.error("❌ Failed to set session:", error.message);
+    if (access_token && refresh_token) {
+      console.log("🔑 Setting Supabase session from URL fragment...");
+      const { error } = await supabaseClient.auth.setSession({ access_token, refresh_token });
+      if (error) {
+        console.error("❌ Failed to set session:", error.message);
+      } else {
+        console.log("✅ Supabase session set successfully");
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.location.replace(cleanUrl);
+      }
     } else {
-      console.log("✅ Supabase session set successfully");
-
-      // ✅ Reload to hydrate everything and clean up URL
-      const cleanUrl = window.location.origin + window.location.pathname;
-      window.location.replace(cleanUrl);
+      console.warn("⚠️ access_token or refresh_token missing in URL fragment.");
     }
-  } else {
-    console.warn("⚠️ access_token or refresh_token missing in URL fragment.");
   }
-}
 
   // ✅ Session logging for debugging
   const { data: { session } } = await supabaseClient.auth.getSession();
@@ -120,7 +114,7 @@ if (hash.includes("access_token")) {
   window.addEventListener("scroll", fadeInOnScroll);
   fadeInOnScroll();
 
-    // CLIENT-SIDE LOGIN WITH SUPABASE JS
+  // CLIENT-SIDE LOGIN WITH SUPABASE JS
   const loginForm = document.getElementById("loginForm");
   if (loginForm) {
     const emailInput    = document.getElementById("loginEmail");
@@ -142,8 +136,8 @@ if (hash.includes("access_token")) {
         loginError.textContent = error.message;
         loginError.style.display = "block";
       } else {
-        // On success, redirect to recipes so recipes.js picks up the session
-        window.location.href = "/recipes";
+        // On success, redirect to dashboard instead of recipes
+        window.location.href = "/dashboard";
       }
 
       loginBtn.disabled = false;
