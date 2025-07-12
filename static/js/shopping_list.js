@@ -4,6 +4,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
   const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+// ─── Calendar Export Defaults ──────────────────────────────────────────────
+const defaultTimes = {
+  breakfast: { start: "070000", end: "080000" },
+  lunch:     { start: "120000", end: "130000" },
+  dinner:    { start: "180000", end: "190000" },
+};
+
+function toICSDate(date) {
+  return date
+    .toISOString()
+    .replace(/[-:.]/g, "")
+    .split("Z")[0] + "Z";
+}
+// ───────────────────────────────────────────────────────────────────────────
 
   const listContainer = document.getElementById("listContainer");
   const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
@@ -228,6 +242,72 @@ if (pdfBtn) {
 
       pdf.save("shopping_list.pdf");
     };
+// ─── Export to Calendar (.ics) ────────────────────────────────────────────
+const exportBtn = document.getElementById("exportCalendarBtn");
+if (exportBtn) {
+  exportBtn.addEventListener("click", async () => {
+    // 1. Grab selected recipe IDs
+    const selectedIds = JSON.parse(
+      localStorage.getItem("selectedRecipes") || "[]"
+    );
+    if (!selectedIds.length) {
+      alert("⚠️ No recipes selected to export.");
+      return;
+    }
+
+    // 2. Fetch recipe details (id, slug, title, category)
+    const { data: recipes, error } = await supabaseClient
+      .from("recipes")
+      .select("id, slug, title, category")
+      .in("id", selectedIds);
+
+    if (error) {
+      console.error("Calendar export fetch error:", error);
+      alert("❌ Failed to fetch recipes for calendar export.");
+      return;
+    }
+
+    // 3. Build the ICS contents
+    const icsLines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//The Happy Pantry//Meal Plan//EN",
+    ];
+
+    // Assign each recipe to today’s date; you can adjust this logic
+    const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+
+    recipes.forEach((r) => {
+      const times = defaultTimes[r.category] || defaultTimes.dinner;
+      icsLines.push(
+        "BEGIN:VEVENT",
+        `UID:${r.id}@the-happy-pantry.com`,
+        `DTSTAMP:${toICSDate(new Date())}`,
+        `DTSTART:${today}T${times.start}`,
+        `DTEND:${today}T${times.end}`,
+        `SUMMARY:${r.title}`,
+        `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
+        "END:VEVENT"
+      );
+    });
+
+    icsLines.push("END:VCALENDAR");
+
+    // 4. Trigger the download
+    const blob = new Blob([icsLines.join("\n")], {
+      type: "text/calendar",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "happy-pantry-meal-plan.ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+}
+// ───────────────────────────────────────────────────────────────────────────
 
     logoImg.onerror = () => {
       alert("❌ Failed to load logo image.");
