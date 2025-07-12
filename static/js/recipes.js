@@ -96,7 +96,7 @@ waitForSupabaseClient((supabaseClient) => {
               <span class="select-none">Add to List</span>
             </label>
             <button 
-              class="favorite-btn text-xl" 
+              class="favorite-btn text-xl p-2" 
               data-recipe-id="${recipe.id}">
               ${isFavorited ? "❤️" : "🤍"}
             </button>
