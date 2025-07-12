@@ -17,71 +17,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ─── Helper Functions ───────────────────────────────────────────────────────
-  function decimalToFraction(decimal) {
-    const lookup = {
-      0.125: '1/8', 0.25: '1/4', 0.333: '1/3', 0.375: '3/8',
-      0.5:   '1/2', 0.625: '5/8', 0.666: '2/3', 0.75: '3/4', 0.875: '7/8'
-    };
-    const rounded = Math.round(decimal * 1000) / 1000;
-    return lookup[rounded] || decimal.toFixed(2);
+  function decimalToFraction(d) {
+    const m = {0.125:'1/8',0.25:'1/4',0.333:'1/3',0.375:'3/8',0.5:'1/2',0.625:'5/8',0.666:'2/3',0.75:'3/4',0.875:'7/8'};
+    const r = Math.round(d*1000)/1000;
+    return m[r]||d.toFixed(2);
   }
-
-  function decimalToMixedFraction(value) {
-    const whole = Math.floor(value);
-    const decimal = value - whole;
-    const fraction = decimalToFraction(decimal);
-    return decimal === 0 ? `${whole}` : whole > 0 ? `${whole} ${fraction}` : `${fraction}`;
+  function decimalToMixedFraction(v) {
+    const w = Math.floor(v), dec = v-w, frac = decimalToFraction(dec);
+    return dec===0?`${w}`:w>0?`${w} ${frac}`:`${frac}`;
   }
-
-  function convertFraction(quantity) {
-    const map = {
-      "½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 0.33, "⅔": 0.67,
-      "⅛": 0.125, "⅜": 0.375, "⅝": 0.625, "⅞": 0.875
-    };
-    return map[quantity] !== undefined ? map[quantity] : parseFloat(quantity);
+  function convertFraction(q) {
+    const m = {"½":0.5,"¼":0.25,"¾":0.75,"⅓":0.33,"⅔":0.67,"⅛":0.125,"⅜":0.375,"⅝":0.625,"⅞":0.875};
+    return m[q]!==undefined?m[q]:parseFloat(q);
   }
-
-  function safelyParseIngredient(item) {
-    try {
-      return typeof item === "string" ? JSON.parse(item) : item;
-    } catch {
-      console.warn("⚠️ Failed to parse ingredient:", item);
-      return null;
-    }
+  function safelyParseIngredient(i) {
+    try { return typeof i==='string'?JSON.parse(i):i; }
+    catch { console.warn("⚠️ Failed to parse ingredient:",i); return null; }
   }
-
   function categorizeIngredient(name) {
-    const lower = name.toLowerCase();
-    if ([
-      "apple","asparagus","avocado","baby carrots","bell pepper","bok choy",
-      "broccoli","broccoli florets","brussels sprouts","carrot ribbons","carrots","celery",
-      "cucumber","lettuce","mushrooms","onion","red onion","scallions","shallot","spinach",
-      "tomatoes","zucchini","green onion","pea shoots","fresh parsley"
-    ].some(i => lower.includes(i))) return "Produce";
-    if ([
-      "bacon","beef","beef broth","beef sirloin","beef stew meat","chicken","chicken breast",
-      "chicken thighs","ground beef","ham","pork","sausage","sirloin","steak","turkey"
-    ].some(i => lower.includes(i))) return "Meats";
-    if ([
-      "butter","cheddar","cheese","cream","feta","greek yogurt","milk","mozzarella",
-      "parmesan","sour cream","yogurt","heavy cream"
-    ].some(i => lower.includes(i))) return "Dairy";
-    if ([
-      "breadcrumbs","broth","canned","dijon","garbanzo","honey","ketchup","mayo","mustard",
-      "olive oil","oil","peanut butter","soy sauce","stock","sugar","syrup","tomato paste",
-      "tomato sauce","vinegar","worcestershire","artichoke"
-    ].some(i => lower.includes(i))) return "Pantry";
-    if ([
-      "basil","cayenne","chili powder","cumin","garlic powder","italian seasoning","onion powder",
-      "oregano","paprika","pepper","salt","spice","thyme","seasoning"
-    ].some(i => lower.includes(i))) return "Spices";
-    if ([
-      "bagel","bread","brown rice","flour","noodles","oats","orzo","pasta","quinoa","rice",
-      "spaghetti","tortilla","white rice","whole wheat","wrap"
-    ].some(i => lower.includes(i))) return "Grains";
-    if ([
-      "frozen","frozen broccoli","frozen corn","frozen peas","mixed vegetables","frozen berries"
-    ].some(i => lower.includes(i))) return "Frozen";
+    const l = name.toLowerCase();
+    if (["apple","avocado","broccoli","carrot","celery","lettuce","mushroom","onion","spinach","tomato","zucchini"]
+        .some(x=>l.includes(x))) return "Produce";
+    if (["chicken","beef","pork","turkey","ham","sausage"].some(x=>l.includes(x))) return "Meats";
+    if (["cheese","milk","cream","yogurt","butter"].some(x=>l.includes(x))) return "Dairy";
+    if (["rice","pasta","quinoa","bread","flour","oats"].some(x=>l.includes(x))) return "Grains";
+    if (["oil","sugar","honey","vinegar","ketchup","mustard"].some(x=>l.includes(x))) return "Pantry";
+    if (["pepper","salt","basil","oregano","thyme","paprika","cumin"].some(x=>l.includes(x))) return "Spices";
+    if (["frozen"].some(x=>l.includes(x))) return "Frozen";
     return "Other";
   }
 
@@ -96,149 +58,121 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ─── Group Ingredients by Category ──────────────────────────────────────────
+  // ─── Group & Render ─────────────────────────────────────────────────────────
   const categoryGroups = {};
-  recipes.forEach(recipe => {
-    if (!Array.isArray(recipe.ingredients)) return;
-    recipe.ingredients.forEach(itemRaw => {
-      const parsed = safelyParseIngredient(itemRaw);
-      if (!parsed?.item) return;
-      const key = parsed.item.toLowerCase();
-      const qty = convertFraction(parsed.quantity) || 0;
-      const cat = parsed.category || categorizeIngredient(parsed.item);
-      categoryGroups[cat] = categoryGroups[cat] || {};
-      if (!categoryGroups[cat][key]) {
-        categoryGroups[cat][key] = { ...parsed, quantity: qty };
-      } else {
-        categoryGroups[cat][key].quantity += qty;
-      }
+  recipes.forEach(r => {
+    (r.ingredients||[]).forEach(raw => {
+      const p = safelyParseIngredient(raw);
+      if (!p?.item) return;
+      const key = p.item.toLowerCase(), qty = convertFraction(p.quantity)||0;
+      const cat = p.category || categorizeIngredient(p.item);
+      categoryGroups[cat] = categoryGroups[cat]||{};
+      if (!categoryGroups[cat][key]) categoryGroups[cat][key] = {...p,quantity:qty};
+      else categoryGroups[cat][key].quantity += qty;
     });
   });
 
-  // ─── Render the Shopping List ───────────────────────────────────────────────
-  const categoryOrder = ["Produce","Spices","Meats","Dairy","Grains","Pantry","Frozen","Other"];
+  const order = ["Produce","Spices","Meats","Dairy","Grains","Pantry","Frozen","Other"];
   let html = "";
-  categoryOrder.forEach(cat => {
+  order.forEach(cat => {
     if (!categoryGroups[cat]) return;
     html += `<h3 class="font-semibold text-lg mt-4">${cat}</h3><ul class="list-disc pl-5 space-y-1">`;
-    Object.values(categoryGroups[cat]).forEach(item => {
-      const displayQty = decimalToMixedFraction(item.quantity);
-      html += `<li>${displayQty} ${item.unit||""} ${item.item}</li>`;
+    Object.values(categoryGroups[cat]).forEach(it => {
+      html += `<li>${decimalToMixedFraction(it.quantity)} ${it.unit||""} ${it.item}</li>`;
     });
     html += `</ul>`;
   });
   listContainer.innerHTML = html;
 
-  // ─── Clear Shopping List Button ────────────────────────────────────────────
-  const clearBtn = document.getElementById("clearListBtn");
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      localStorage.removeItem("selectedRecipes");
-      location.reload();
-    });
-  }
+  // ─── Clear List ─────────────────────────────────────────────────────────────
+  document.getElementById("clearListBtn")?.addEventListener("click", () => {
+    localStorage.removeItem("selectedRecipes");
+    location.reload();
+  });
 
-  // ─── Calendar Export Defaults & Handler ────────────────────────────────────
+  // ─── Calendar Export (one category per day) ─────────────────────────────────
   const defaultTimes = {
-    breakfast: { start: "070000", end: "080000" },
-    lunch:     { start: "120000", end: "130000" },
-    dinner:    { start: "180000", end: "190000" },
+    breakfast:{start:"070000",end:"080000"},
+    lunch:    {start:"120000",end:"130000"},
+    dinner:   {start:"180000",end:"190000"},
   };
-  function toICSDate(date) {
-    return date.toISOString().replace(/[-:.]/g, "").split("Z")[0] + "Z";
-  }
+  function toICSDate(d){ return d.toISOString().replace(/[-:.]/g,"").split("Z")[0]+"Z"; }
 
   console.log("Calendar export setup");
-  const exportBtn = document.getElementById("exportCalendarBtn");
-  if (exportBtn) {
-    exportBtn.addEventListener("click", async () => {
-      console.log("Export button clicked");
-      const ids = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
-      if (!ids.length) {
-        alert("⚠️ No recipes selected to export.");
-        return;
-      }
-      const { data: evts, error: evtErr } = await supabaseClient
-        .from("recipes")
-        .select("id, slug, title, category")
-        .in("id", ids);
-      if (evtErr) {
-        console.error("Calendar export fetch error:", evtErr);
-        alert("❌ Failed to fetch recipes for calendar export.");
-        return;
-      }
-      const icsLines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//The Happy Pantry//Meal Plan//EN"];
-      const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
-      evts.forEach(r => {
-        const t = defaultTimes[r.category] || defaultTimes.dinner;
-        icsLines.push(
-          "BEGIN:VEVENT",
-          `UID:${r.id}@the-happy-pantry.com`,
-          `DTSTAMP:${toICSDate(new Date())}`,
-          `DTSTART:${today}T${t.start}`,
-          `DTEND:${today}T${t.end}`,
-          `SUMMARY:${r.title}`,
-          `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
-          "END:VEVENT"
-        );
-      });
-      icsLines.push("END:VCALENDAR");
-      const blob = new Blob([icsLines.join("\n")], { type: "text/calendar" });
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement("a");
-      a.href     = url;
-      a.download = "happy-pantry-meal-plan.ics";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+  document.getElementById("exportCalendarBtn")?.addEventListener("click", async () => {
+    console.log("Export button clicked");
+    const ids = JSON.parse(localStorage.getItem("selectedRecipes")||"[]");
+    if (!ids.length) return alert("⚠️ No recipes selected to export.");
+
+    const { data: evts, error: err2 } = await supabaseClient
+      .from("recipes")
+      .select("id, slug, title, category")
+      .in("id", ids);
+    if (err2) {
+      console.error("Calendar export fetch error:", err2);
+      return alert("❌ Failed to fetch recipes for calendar export.");
+    }
+
+    let ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//The Happy Pantry//Meal Plan//EN"];
+    const catCount = {breakfast:0,lunch:0,dinner:0};
+    evts.forEach(r => {
+      catCount[r.category] = (catCount[r.category]||0) + 1;
+      const day = new Date(); day.setDate(day.getDate() + catCount[r.category]);
+      const ds = day.toISOString().split("T")[0].replace(/-/g,"");
+      const t = defaultTimes[r.category] || defaultTimes.dinner;
+      ics.push(
+        "BEGIN:VEVENT",
+        `UID:${r.id}@the-happy-pantry.com`,
+        `DTSTAMP:${toICSDate(new Date())}`,
+        `DTSTART:${ds}T${t.start}`,
+        `DTEND:${ds}T${t.end}`,
+        `SUMMARY:${r.title}`,
+        `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
+        "END:VEVENT"
+      );
     });
-  }
+    ics.push("END:VCALENDAR");
 
-  // ─── PDF Export Logic ──────────────────────────────────────────────────────
-  const pdfBtn = document.getElementById("downloadPdfBtn");
-  if (pdfBtn) {
-    pdfBtn.addEventListener("click", async () => {
-      const container = document.getElementById("listContainer");
-      if (!container) return;
-      const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
-      const w = pdf.internal.pageSize.getWidth();
-      const h = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      let y = margin;
+    const blob = new Blob([ics.join("\n")],{type:"text/calendar"});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = "happy-pantry-meal-plan.ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
 
-      const logoImg = new Image();
-      logoImg.src = "/static/assets/logo.png";
-      logoImg.crossOrigin = "anonymous";
+  // ─── PDF Export ─────────────────────────────────────────────────────────────
+  document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
+    const c = document.getElementById("listContainer");
+    if (!c) return;
+    const pdf = new window.jspdf.jsPDF("p","mm","a4");
+    const w = pdf.internal.pageSize.getWidth(), h = pdf.internal.pageSize.getHeight();
+    let y = 15;
 
-      logoImg.onload = () => {
-        const lw = 40, lh = 15;
-        pdf.addImage(logoImg, "PNG", (w - lw) / 2, y, lw, lh);
-        y += lh + 8;
-        pdf.setFontSize(16).setTextColor(40).text("Shopping List", w / 2, y, { align: "center" });
-        y += 10;
-        container.querySelectorAll("h3").forEach(section => {
-          const cat = section.textContent.trim();
-          const ul  = section.nextElementSibling;
-          pdf.setFontSize(13).setTextColor(60);
-          y += 8;
-          if (y > h - margin) { pdf.addPage(); y = margin; }
-          pdf.text(cat, margin, y);
-          ul.querySelectorAll("li").forEach(li => {
-            const text = li.textContent.trim();
-            y += 7;
-            if (y > h - margin) { pdf.addPage(); y = margin; }
-            pdf.setDrawColor(180).rect(margin, y - 4, 4, 4);
-            pdf.setFontSize(11).setTextColor(20).text(text, margin + 6, y);
-          });
+    const logo = new Image();
+    logo.src = "/static/assets/logo.png";
+    logo.crossOrigin = "anonymous";
+    logo.onload = () => {
+      pdf.addImage(logo,"PNG",(w-40)/2,y,40,15); y += 23;
+      pdf.setFontSize(16).setTextColor(40).text("Shopping List",w/2,y,{align:"center"});
+      y += 10;
+      c.querySelectorAll("h3").forEach(sec => {
+        pdf.setFontSize(13).setTextColor(60);
+        y += 8; if (y>h-15){pdf.addPage();y=15;}
+        pdf.text(sec.textContent,15,y);
+        sec.nextElementSibling.querySelectorAll("li").forEach(li => {
+          pdf.setDrawColor(180).rect(15,y+2,4,4);
+          pdf.setFontSize(11).setTextColor(20);
+          pdf.text(li.textContent,25,y+6);
+          y += 10; if (y>h-15){pdf.addPage();y=15;}
         });
-        pdf.save("shopping_list.pdf");
-      };
-
-      logoImg.onerror = () => {
-        alert("❌ Failed to load logo image.");
-      };
-    });
-  }
+      });
+      pdf.save("shopping_list.pdf");
+    };
+    logo.onerror = () => alert("❌ Failed to load logo image.");
+  });
 
 }); // end DOMContentLoaded
