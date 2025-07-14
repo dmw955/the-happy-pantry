@@ -168,6 +168,10 @@ def error():
     message = request.args.get('message', 'An error occurred during your transaction.')
     return render_template('error.html', message=message)
 
+@app.route('/local-resources')
+def local_resources():
+    return render_template('local_resources.html')
+
 @app.route('/subscribe/<plan_type>')
 def subscribe(plan_type):
     if plan_type not in ['monthly', 'yearly']:
