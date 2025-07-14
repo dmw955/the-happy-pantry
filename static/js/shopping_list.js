@@ -90,19 +90,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     location.reload();
   });
 
-  // ─── Calendar Export (one category per day) ─────────────────────────────────
+    // ─── Calendar Export (one category per day) ─────────────────────────────────
   const defaultTimes = {
-    breakfast:{start:"070000",end:"080000"},
-    lunch:    {start:"120000",end:"130000"},
-    dinner:   {start:"180000",end:"190000"},
+    breakfast: { start: "070000", end: "080000" },
+    lunch:     { start: "120000", end: "130000" },
+    dinner:    { start: "180000", end: "190000" },
   };
-  function toICSDate(d){ return d.toISOString().replace(/[-:.]/g,"").split("Z")[0]+"Z"; }
+  function toICSDate(d) {
+    return d.toISOString().replace(/[-:.]/g, "").split("Z")[0] + "Z";
+  }
 
   console.log("Calendar export setup");
   document.getElementById("exportCalendarBtn")?.addEventListener("click", async () => {
     console.log("Export button clicked");
-    const ids = JSON.parse(localStorage.getItem("selectedRecipes")||"[]");
-    if (!ids.length) return alert("⚠️ No recipes selected to export.");
+    const ids = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
+    if (!ids.length) {
+      return alert("⚠️ No recipes selected to export.");
+    }
 
     const { data: evts, error: err2 } = await supabaseClient
       .from("recipes")
@@ -113,40 +117,46 @@ document.addEventListener("DOMContentLoaded", async () => {
       return alert("❌ Failed to fetch recipes for calendar export.");
     }
 
-    let ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//The Happy Pantry//Meal Plan//EN"];
-    const catCount = {breakfast:0,lunch:0,dinner:0};
-evts.forEach(r => {
-  // normalize category key
-  let key = (r.category || "dinner").toLowerCase();
-  if (!defaultTimes[key]) {
-    console.warn("Unknown category, falling back to dinner:", r.category);
-    key = "dinner";
-  }
+    // initialize ICS array
+    let ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//The Happy Pantry//Meal Plan//EN"
+    ];
 
-  // increment this category’s counter
-  catCount[key] = (catCount[key] || 0) + 1;
+    // track how many of each category
+    const catCount = { breakfast: 0, lunch: 0, dinner: 0 };
 
-  // date = tomorrow + (counter - 1) days
-  const d = new Date();
-  d.setDate(d.getDate() + catCount[key]);
-  const dateStr = d.toISOString().split("T")[0].replace(/-/g, "");
+    evts.forEach(r => {
+      // normalize
+      let key = (r.category || "dinner").toLowerCase();
+      if (!defaultTimes[key]) {
+        console.warn("Unknown category, falling back to dinner:", r.category);
+        key = "dinner";
+      }
 
-  const t = defaultTimes[key];
-  icsLines.push(
-    "BEGIN:VEVENT",
-    `UID:${r.id}@the-happy-pantry.com`,
-    `DTSTAMP:${toICSDate(new Date())}`,
-    `DTSTART:${dateStr}T${t.start}`,
-    `DTEND:${dateStr}T${t.end}`,
-    `SUMMARY:${r.title}`,
-    `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
-    "END:VEVENT"
-  );
-});
+      // increment and compute date
+      catCount[key]++;
+      const d = new Date();
+      d.setDate(d.getDate() + catCount[key]);
+      const dateStr = d.toISOString().split("T")[0].replace(/-/g, "");
+
+      const t = defaultTimes[key];
+      ics.push(
+        "BEGIN:VEVENT",
+        `UID:${r.id}@the-happy-pantry.com`,
+        `DTSTAMP:${toICSDate(new Date())}`,
+        `DTSTART:${dateStr}T${t.start}`,
+        `DTEND:${dateStr}T${t.end}`,
+        `SUMMARY:${r.title}`,
+        `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
+        "END:VEVENT"
+      );
+    });
 
     ics.push("END:VCALENDAR");
 
-    const blob = new Blob([ics.join("\n")],{type:"text/calendar"});
+    const blob = new Blob([ics.join("\n")], { type: "text/calendar" });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href     = url;
@@ -156,6 +166,7 @@ evts.forEach(r => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   });
+
 
   // ─── PDF Export ─────────────────────────────────────────────────────────────
   document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
