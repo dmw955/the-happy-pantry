@@ -115,22 +115,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     let ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//The Happy Pantry//Meal Plan//EN"];
     const catCount = {breakfast:0,lunch:0,dinner:0};
-    evts.forEach(r => {
-      catCount[r.category] = (catCount[r.category]||0) + 1;
-      const day = new Date(); day.setDate(day.getDate() + catCount[r.category]);
-      const ds = day.toISOString().split("T")[0].replace(/-/g,"");
-      const t = defaultTimes[r.category] || defaultTimes.dinner;
-      ics.push(
-        "BEGIN:VEVENT",
-        `UID:${r.id}@the-happy-pantry.com`,
-        `DTSTAMP:${toICSDate(new Date())}`,
-        `DTSTART:${ds}T${t.start}`,
-        `DTEND:${ds}T${t.end}`,
-        `SUMMARY:${r.title}`,
-        `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
-        "END:VEVENT"
-      );
-    });
+evts.forEach(r => {
+  // normalize category key
+  let key = (r.category || "dinner").toLowerCase();
+  if (!defaultTimes[key]) {
+    console.warn("Unknown category, falling back to dinner:", r.category);
+    key = "dinner";
+  }
+
+  // increment this category’s counter
+  catCount[key] = (catCount[key] || 0) + 1;
+
+  // date = tomorrow + (counter - 1) days
+  const d = new Date();
+  d.setDate(d.getDate() + catCount[key]);
+  const dateStr = d.toISOString().split("T")[0].replace(/-/g, "");
+
+  const t = defaultTimes[key];
+  icsLines.push(
+    "BEGIN:VEVENT",
+    `UID:${r.id}@the-happy-pantry.com`,
+    `DTSTAMP:${toICSDate(new Date())}`,
+    `DTSTART:${dateStr}T${t.start}`,
+    `DTEND:${dateStr}T${t.end}`,
+    `SUMMARY:${r.title}`,
+    `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
+    "END:VEVENT"
+  );
+});
+
     ics.push("END:VCALENDAR");
 
     const blob = new Blob([ics.join("\n")],{type:"text/calendar"});
