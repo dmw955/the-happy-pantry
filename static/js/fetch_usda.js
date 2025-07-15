@@ -2,36 +2,35 @@
 import fetch from 'node-fetch';
 import { createClient } from '@supabase/supabase-js';
 
-// your Supabase client init
+// Supabase client init (using your env vars)
 const SUPABASE_URL         = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 async function seedByZip(zip) {
   console.log(`\n🔍 Fetching USDA markets for ZIP ${zip}…`);
-  // use HTTP so we get JSON rather than an expired‐cert HTML page
+  // <-- switched to HTTP here
   const res = await fetch(
     `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}`
   );
   const { results } = await res.json();
 
   for (let { id, marketname } of results) {
+    // <-- and here
     const detailRes = await fetch(
       `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`
     );
     const { marketdetails } = await detailRes.json();
 
-    // parse lat/lng out of the GoogleLink
     const m = marketdetails.GoogleLink.match(/@([-.\d]+),([-.\d]+)/);
     if (!m) continue;
     const [, lat, lng] = m;
 
-    // upsert into Supabase
     const { error } = await supabase
       .from('locations')
       .upsert({
         id:        parseInt(id, 10),
-        name:      marketname.replace(/\n/g,' '),
+        name:      marketname.replace(/\n/g, ' '),
         latitude:  parseFloat(lat),
         longitude: parseFloat(lng),
         type:      'farm',
@@ -45,11 +44,8 @@ async function seedByZip(zip) {
 }
 
 async function main() {
-  // tweak these ZIPs as needed
   const zips = ['03801','05602','04605'];
-  for (let zip of zips) {
-    await seedByZip(zip);
-  }
+  for (let zip of zips) await seedByZip(zip);
   console.log('\n✨ Done seeding USDA data.');
 }
 
