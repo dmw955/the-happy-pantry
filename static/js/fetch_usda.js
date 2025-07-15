@@ -2,25 +2,21 @@
 import fetch from 'node-fetch';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase client init (from your env vars)
+// initialize Supabase client
 const SUPABASE_URL         = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 async function seedByZip(zip) {
-  console.log(`\n🔍 Fetching USDA markets for ZIP ${zip}…`);
-
-  // 👇 NOTE: HTTP, not HTTPS
-  const res = await fetch(
-    `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}`
-  );
+  const url1 = `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}`;
+  console.log(`\n🔍 Fetching USDA markets for ZIP ${zip} from`, url1);
+  const res = await fetch(url1);
   const { results } = await res.json();
 
   for (let { id, marketname } of results) {
-    // 👇 NOTE: HTTP again
-    const detailRes = await fetch(
-      `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`
-    );
+    const url2 = `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`;
+    console.log(`   ↳ fetching details from`, url2);
+    const detailRes = await fetch(url2);
     const { marketdetails } = await detailRes.json();
 
     const m = marketdetails.GoogleLink.match(/@([-.\d]+),([-.\d]+)/);
@@ -39,7 +35,7 @@ async function seedByZip(zip) {
         website:   marketdetails.Link || null,
       });
 
-    if (error) console.error(`❌ Failed to upsert ${marketname}:`, error);
+    if (error) console.error(`❌ Upsert failed for ${marketname}:`, error);
     else        console.log(`✅ Upserted ${marketname}`);
   }
 }
