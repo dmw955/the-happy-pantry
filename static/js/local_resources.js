@@ -1,3 +1,5 @@
+// static/js/local_resources.js
+
 // 1. Initialize the map (default to NH)
 const map = L.map('map').setView([43.0, -71.5], 6);
 
@@ -22,16 +24,24 @@ const markers = L.markerClusterGroup();
     .from('locations')
     .select('*');
 
+  // ── DEBUG LOG ───────────────────────────────────────────────
+  console.log('📍 fetched locations:', locations);
+  console.log('❗ fetch error (if any):', error);
+  // ────────────────────────────────────────────────────────────
+
   if (error) {
     console.error('Error fetching locations:', error);
     return;
+  }
+  if (!locations || locations.length === 0) {
+    console.warn('No locations returned—check table content and RLS.');
   }
 
   locations.forEach(loc => {
     const marker = L.marker([loc.latitude, loc.longitude]);
     marker.bindPopup(`
       <strong>${loc.name}</strong><br/>
-      <a href="${loc.website}" target="_blank">Visit site</a><br/>
+      ${loc.website ? `<a href="${loc.website}" target="_blank">Visit site</a><br/>` : ''}
       <button onclick="saveFavorite(${loc.id})">★ Save</button>
     `);
     markers.addLayer(marker);
