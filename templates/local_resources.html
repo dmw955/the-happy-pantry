@@ -1,42 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Local Farms & Wellness Stores</title>
+{% extends "dashboard.html" %}
 
+{% block head %}
+  {{ super() }}
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <!-- MarkerCluster CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
   <!-- GeoSearch CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch/dist/geosearch.css"/>
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch/dist/geosearch.css" />
   <style>
+    /* Fullscreen map styling */
     html, body { height: 100%; margin: 0; }
-    #map { width: 100%; height: 100%; }
-    /* Add sidebar/filter styling here if needed */
+    #map { width: 100%; height: calc(100vh - var(--navbar-height)); }
   </style>
-</head>
-<body>
-  <div id="map"></div>
+{% endblock %}
 
+{% block content %}
+  <div id="map"></div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <!-- MarkerCluster JS -->
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   <!-- GeoSearch JS -->
   <script src="https://unpkg.com/leaflet-geosearch/dist/bundle.min.js"></script>
-  <!-- Supabase JS (UMD) -->
+
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    // Supabase client (ensure you inject these in your real template or via env vars)
-    const SUPABASE_URL    = "{{ SUPABASE_URL }}";
-    const SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Initialize Supabase client
+    window.supabase = supabase.createClient(
+      "{{ SUPABASE_URL }}",
+      "{{ SUPABASE_ANON_KEY }}"
+    );
   </script>
-  <!-- Your map logic -->
+
+  <!-- Map logic -->
   <script src="{{ url_for('static', filename='js/local_resources.js') }}"></script>
-</body>
-</html>
+{% endblock %}
