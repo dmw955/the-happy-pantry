@@ -2,21 +2,22 @@
 import fetch from 'node-fetch';
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase client init (using your env vars)
+// Supabase client init (from your env vars)
 const SUPABASE_URL         = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 async function seedByZip(zip) {
   console.log(`\n🔍 Fetching USDA markets for ZIP ${zip}…`);
-  // <-- switched to HTTP here
+
+  // 👇 NOTE: HTTP, not HTTPS
   const res = await fetch(
     `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}`
   );
   const { results } = await res.json();
 
   for (let { id, marketname } of results) {
-    // <-- and here
+    // 👇 NOTE: HTTP again
     const detailRes = await fetch(
       `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`
     );
@@ -45,7 +46,9 @@ async function seedByZip(zip) {
 
 async function main() {
   const zips = ['03801','05602','04605'];
-  for (let zip of zips) await seedByZip(zip);
+  for (let zip of zips) {
+    await seedByZip(zip);
+  }
   console.log('\n✨ Done seeding USDA data.');
 }
 
