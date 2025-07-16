@@ -1,13 +1,17 @@
 // static/js/fetch_usda.js
 import 'dotenv/config'               // loads SUPABASE_URL & SERVICE_KEY from .env
 import fetch from 'node-fetch'
+import http from 'http'
 import https from 'https'
 import { createClient } from '@supabase/supabase-js'
 
-// create an agent that ignores the USDA server's expired cert
-const usdaAgent = new https.Agent({ rejectUnauthorized: false })
+// Agent map: HTTP goes through default agent; HTTPS skips cert validation
+const agent = {
+  http:  new http.Agent(),
+  https: new https.Agent({ rejectUnauthorized: false }),
+}
 
-// — Supabase client init (from your env vars)
+// Supabase client (service role key so you can upsert)
 const SUPABASE_URL         = process.env.SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
@@ -15,20 +19,24 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 async function seedByZip(zip) {
   console.log(`\n🔍 Fetching USDA markets for ZIP ${zip}…`)
 
-  // force fetch to use our https.Agent for this host
+  // note we pass `agent` so both http:// and https:// calls work
   const res = await fetch(
     `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}`,
-    { agent: usdaAgent }
+    { agent }
   )
+  if (!res.ok) throw new Error(`Zip search failed: ${res.status}`)
   const { results } = await res.json()
 
   for (let { id, marketname } of results) {
     const detailRes = await fetch(
       `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`,
-      { agent: usdaAgent }
+      { agent }
     )
+    if (!detailRes.ok) {
+      console.error(`Detail fetch failed for ${id}: ${detailRes.status}`)
+      continue
+    }
     const { marketdetails } = await detailRes.json()
-
     const m = marketdetails.GoogleLink.match(/@([-.\d]+),([-.\d]+)/)
     if (!m) continue
     const [, lat, lng] = m
