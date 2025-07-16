@@ -5,11 +5,13 @@ import http from 'http'
 import https from 'https'
 import { createClient } from '@supabase/supabase-js'
 
-// Agent map: HTTP goes through default agent; HTTPS skips cert validation
-const agent = {
-  http:  new http.Agent(),
-  https: new https.Agent({ rejectUnauthorized: false }),
-}
+// create one of each agent up front
+const httpAgent  = new http.Agent()
+const httpsAgent = new https.Agent({ rejectUnauthorized: false })
+
+// this function picks which agent to use based on request URL
+const agent = ({ protocol }) =>
+  protocol === 'https:' ? httpsAgent : httpAgent
 
 // Supabase client (service role key so you can upsert)
 const SUPABASE_URL         = process.env.SUPABASE_URL
@@ -19,7 +21,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 async function seedByZip(zip) {
   console.log(`\n🔍 Fetching USDA markets for ZIP ${zip}…`)
 
-  // note we pass `agent` so both http:// and https:// calls work
   const res = await fetch(
     `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}`,
     { agent }
@@ -59,8 +60,9 @@ async function seedByZip(zip) {
 }
 
 async function main() {
-  const zips = ['03801','05602','04605']
-  for (let zip of zips) await seedByZip(zip)
+  for (let zip of ['03801','05602','04605']) {
+    await seedByZip(zip)
+  }
   console.log('\n✨ Done seeding USDA data.')
 }
 
