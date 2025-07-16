@@ -1,38 +1,27 @@
 // static/js/fetch_usda.js
-import 'dotenv/config'               // loads SUPABASE_URL & SERVICE_KEY from .env
+import 'dotenv/config'                 // loads all your .env vars
 import fetch from 'node-fetch'
-import http from 'http'
-import https from 'https'
 import { createClient } from '@supabase/supabase-js'
-
-// create one of each agent up front
-const httpAgent  = new http.Agent()
-const httpsAgent = new https.Agent({ rejectUnauthorized: false })
-
-// this function picks which agent to use based on request URL
-const agent = ({ protocol }) =>
-  protocol === 'https:' ? httpsAgent : httpAgent
 
 // Supabase client (service role key so you can upsert)
 const SUPABASE_URL         = process.env.SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-async function seedByZip(zip) {
-  console.log(`\n🔍 Fetching USDA markets for ZIP ${zip}…`)
+// Data.gov key
+const DATA_GOV_API_KEY = process.env.DATA_GOV_API_KEY
 
-  const res = await fetch(
-    `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}`,
-    { agent }
-  )
-  if (!res.ok) throw new Error(`Zip search failed: ${res.status}`)
-  const { results } = await res.json()
+async function seedByZip(zip) {
+  console.log(`\n🔍 Fetching markets for ZIP ${zip}…`)
+  // Data.gov endpoint requires api_key
+  const zipUrl = `https://api.data.gov/farmersmarkets/v1/data.svc/zipSearch?zip=${zip}&api_key=${DATA_GOV_API_KEY}`
+  const zipRes = await fetch(zipUrl)
+  if (!zipRes.ok) throw new Error(`Zip search failed: ${zipRes.status}`)
+  const { results } = await zipRes.json()
 
   for (let { id, marketname } of results) {
-    const detailRes = await fetch(
-      `http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`,
-      { agent }
-    )
+    const detailUrl = `https://api.data.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}&api_key=${DATA_GOV_API_KEY}`
+    const detailRes = await fetch(detailUrl)
     if (!detailRes.ok) {
       console.error(`Detail fetch failed for ${id}: ${detailRes.status}`)
       continue
@@ -55,14 +44,13 @@ async function seedByZip(zip) {
       })
 
     if (error) console.error(`❌ Upsert failed for ${marketname}:`, error)
-    else        console.log(`✅ Upserted ${marketname}`)
+    else console.log(`✅ Upserted ${marketname}`)
   }
 }
 
 async function main() {
-  for (let zip of ['03801','05602','04605']) {
-    await seedByZip(zip)
-  }
+  const zips = ['03801','05602','04605']
+  for (let zip of zips) await seedByZip(zip)
   console.log('\n✨ Done seeding USDA data.')
 }
 
