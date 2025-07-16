@@ -4,16 +4,22 @@
   {{ super() }}
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <!-- MarkerCluster CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <!-- GeoSearch CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch/dist/geosearch.css" />
   <style>
-    /* Fullscreen map styling */
     html, body { height: 100%; margin: 0; }
     #map { width: 100%; height: calc(100vh - var(--navbar-height)); }
   </style>
+  <!-- Supabase JS (UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+  <script>
+    // Initialize Supabase client before map logic
+    window.supabase = supabase.createClient(
+      "{{ SUPABASE_URL }}",
+      "{{ SUPABASE_ANON_KEY }}"
+    );
+  </script>
 {% endblock %}
 
 {% block content %}
@@ -22,23 +28,10 @@
 
 {% block scripts %}
   {{ super() }}
-  <!-- Leaflet JS -->
+  <!-- Leaflet & Plugins JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- MarkerCluster JS -->
   <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-  <!-- GeoSearch JS -->
   <script src="https://unpkg.com/leaflet-geosearch/dist/bundle.min.js"></script>
-
-  <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script>
-    // Initialize Supabase client
-    window.supabase = supabase.createClient(
-      "{{ SUPABASE_URL }}",
-      "{{ SUPABASE_ANON_KEY }}"
-    );
-  </script>
-
-  <!-- Map logic -->
+  <!-- Map Logic -->
   <script src="{{ url_for('static', filename='js/local_resources.js') }}"></script>
 {% endblock %}

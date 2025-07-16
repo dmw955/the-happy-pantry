@@ -170,7 +170,12 @@ def error():
 
 @app.route('/local-resources')
 def local_resources():
-    return render_template('local_resources.html')
+    return render_template(
+      'local_resources.html',
+      SUPABASE_URL=SUPABASE_URL,
+      SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+    )
+
 
 @app.route('/subscribe/<plan_type>')
 def subscribe(plan_type):
