@@ -1,99 +1,65 @@
 // static/js/local_resources.js
 
-// 1) Get user’s location
-function getUserLocation() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      return reject(new Error("Geolocation not supported"));
-    }
-    navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      err => reject(err)
-    );
-  });
-}
+// 2a) Put your Mapbox token here
+mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
 
-// 2) Call USDA locSearch to get nearby market IDs & distances
-async function fetchNearbyMarketSummaries(lat, lng) {
-  const url = `https://search.ams.usda.gov/farmersmarkets/v1/data.svc/locSearch?lat=${lat}&lng=${lng}`;
-  const res  = await fetch(url);
-  if (!res.ok) throw new Error(`locSearch failed: ${res.status}`);
-  const { results } = await res.json();
-  // results: [{id: "123", marketname: "Market A:0.5 Miles"}, …]
-  return results.map(m => ({
-    id:       m.id,
-    name:     m.marketname.split(':')[0],
-    distance: parseFloat(m.marketname.split(':')[1])
+async function fetchMapboxMarkets(lat, lng, query = 'farmers market') {
+  const url =
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
+    `${encodeURIComponent(query)}.json` +
+    `?proximity=${lng},${lat}` +
+    `&limit=10&types=poi` +
+    `&access_token=${mapboxgl.accessToken}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Mapbox search failed: ${res.status}`);
+  const { features } = await res.json();
+  return features.map(f => ({
+    name:    f.text,
+    address: f.place_name,
+    lng:     f.geometry.coordinates[0],
+    lat:     f.geometry.coordinates[1]
   }));
 }
 
-// 3) Fetch full details for each market
-async function fetchMarketDetails(id) {
-  const url = `https://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`;
-  const res  = await fetch(url);
-  if (!res.ok) throw new Error(`mktDetail failed: ${res.status}`);
-  const { marketdetails } = await res.json();
-  return {
-    id:       id,
-    name:     marketdetails.GoogleName,
-    address:  marketdetails.Address,
-    products: marketdetails.Products,
-    schedule: marketdetails.Schedule,
-    website:  marketdetails.Links
-  };
-}
-
-// 4) Tie it all together
 async function loadLocalResources() {
   try {
-    console.log("📍 Getting user location…");
-    const { lat, lng } = await getUserLocation();
-    console.log("📍 User coords:", lat, lng);
-
-    console.log("🔍 Fetching nearby markets…");
-    const summaries = await fetchNearbyMarketSummaries(lat, lng);
-    if (summaries.length === 0) {
-      console.log("⚠️ No nearby markets found.");
-      showNoResourcesMessage();
-      return;
-    }
-
-    console.log(`✅ Found ${summaries.length} markets, fetching details…`);
-    const details = await Promise.all(
-      summaries.map(s => fetchMarketDetails(s.id).then(d => ({ ...d, distance: s.distance })))
+    // 2b) Get user location
+    const { coords } = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej)
     );
+    const lat = coords.latitude, lng = coords.longitude;
 
-    displayResources(details);
+    // 2c) Initialize Mapbox map
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style:     'mapbox://styles/mapbox/streets-v11',
+      center:    [lng, lat],
+      zoom:      12
+    });
+
+    // 2d) Show user location
+    new mapboxgl.Marker({ color: 'blue' })
+      .setLngLat([lng, lat])
+      .setPopup(new mapboxgl.Popup().setText('You are here'))
+      .addTo(map);
+
+    // 2e) Fetch & plot markets
+    const markets = await fetchMapboxMarkets(lat, lng);
+    markets.forEach(m => {
+      new mapboxgl.Marker()
+        .setLngLat([m.lng, m.lat])
+        .setPopup(
+          new mapboxgl.Popup().setHTML(
+            `<strong>${m.name}</strong><br>${m.address}`
+          )
+        )
+        .addTo(map);
+    });
   } catch (err) {
-    console.error("Local resources error:", err);
-    showErrorMessage(err);
+    console.error('Mapbox integration error:', err);
+    alert(`Error loading local markets: ${err.message}`);
   }
 }
 
-// 5) Render into the DOM
-function displayResources(markets) {
-  const container = document.getElementById("local-resources");
-  container.innerHTML = markets
-    .map(m => `
-      <div class="resource-card">
-        <h3>${m.name} (${m.distance.toFixed(1)} mi)</h3>
-        <p>${m.address}</p>
-        <p><strong>Products:</strong> ${m.products}</p>
-        <p><strong>Schedule:</strong> ${m.schedule}</p>
-        ${m.website ? `<p><a href="${m.website}" target="_blank">Website</a></p>` : ""}
-      </div>
-    `).join("");
-}
-
-function showNoResourcesMessage() {
-  document.getElementById("local-resources").innerHTML =
-    "<p>No farmers markets found near you.</p>";
-}
-
-function showErrorMessage(err) {
-  document.getElementById("local-resources").innerHTML =
-    `<p>Error loading resources: ${err.message}</p>`;
-}
-
-// 6) Kick off on page load (or when ready)
-document.addEventListener("DOMContentLoaded", loadLocalResources);
+// 2f) Run it on page load
+document.addEventListener('DOMContentLoaded', loadLocalResources);
