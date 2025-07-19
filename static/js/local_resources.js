@@ -2,184 +2,171 @@
 
 console.log("▶ local_resources.js loaded");
 
-// 1) Set your real Mapbox token
+// 1) Mapbox token
 mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
 
-/**
- * Calculates distance between two lat/lng points in miles.
- */
+/** Haversine distance in miles */
 function getDistance(lat1, lng1, lat2, lng2) {
-  const toRad = deg => deg * (Math.PI / 180);
-  const R = 3958.8; // Earth radius in miles
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const toRad = d => d * Math.PI / 180;
+  const R = 3958.8;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*
+            Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/**
- * Builds bbox string for Mapbox API: minLng,minLat,maxLng,maxLat
- */
-function buildBBox(lat, lng, radiusMiles = 50) {
-  const rad = radiusMiles / 3958.8;
-  const deg = 180 / Math.PI;
-  const dLat = rad * deg;
-  const dLng = rad * deg / Math.cos(lat * Math.PI / 180);
-  const minLat = lat - dLat, maxLat = lat + dLat;
-  const minLng = lng - dLng, maxLng = lng + dLng;
-  return `${minLng},${minLat},${maxLng},${maxLat}`;
+/** Build a bbox for Overpass/Mapbox: minLon,minLat,maxLon,maxLat */
+function buildBBox(lat, lng, miles = 50) {
+  const r   = miles / 3958.8;
+  const deg = 180/Math.PI;
+  const dLat = r*deg, dLng = r*deg/Math.cos(lat*Math.PI/180);
+  return `${lng-dLng},${lat-dLat},${lng+dLng},${lat+dLat}`;
 }
 
-/**
- * Fetch POIs for a single keyword within bounding box.
- */
-// static/js/local_resources.js
-
-// …keep your getDistance, buildBBox, etc. …
-
+/** Mapbox Places lookup */
 async function fetchMapboxMarkets(lat, lng, query) {
-  console.log(`    • fetching POIs for "${query}"…`);
+  console.log(`    • Mapbox: "${query}"`);
   const bbox = buildBBox(lat, lng, 50);
-  const url =
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
-    `${encodeURIComponent(query)}.json` +
-    `?bbox=${bbox}` +
-    `&types=poi` +
-    `&autocomplete=false` +
-    `&limit=20` +
-    `&access_token=${mapboxgl.accessToken}`;
-  console.log("      URL:", url);
-
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
+              `${encodeURIComponent(query)}.json` +
+              `?bbox=${bbox}&limit=20&types=poi` +
+              `&access_token=${mapboxgl.accessToken}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Mapbox search failed for "${query}": ${res.status}`);
+  if (!res.ok) throw new Error(`Mapbox ${query} failed: ${res.status}`);
   const { features } = await res.json();
-
   return features.map(f => {
-    const [lngF, latF] = f.geometry.coordinates;
+    const [lon, latf] = f.geometry.coordinates;
     return {
       name:     f.text,
       address:  f.place_name,
-      lng:      lngF,
-      lat:      latF,
-      distance: getDistance(lat, lng, latF, lngF)
+      lat:      latf,
+      lng:      lon,
+      distance: getDistance(lat, lng, latf, lon)
     };
   });
 }
 
+/** Overpass fallback for true local POIs */
+async function fetchOverpassMarkets(lat, lng) {
+  console.log("    • Overpass fallback");
+  const radius = 50 * 1609.34; // 50mi in meters
+  const q = `
+[out:json][timeout:25];
+(
+  node["amenity"="marketplace"](around:${radius},${lat},${lng});
+  node["shop"="farm"](around:${radius},${lat},${lng});
+  node["shop"="butcher"](around:${radius},${lat},${lng});
+);
+out body;`.trim();
 
-/**
- * Query multiple keywords, dedupe & sort by distance.
- */
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    body:   q,
+    headers: { 'Content-Type':'text/plain;charset=UTF-8' }
+  });
+  if (!res.ok) throw new Error(`Overpass failed: ${res.status}`);
+  const data = await res.json();
+  return data.elements.map(e => {
+    const name = e.tags.name || e.tags.operator || 'Unknown';
+    const addr = e.tags['addr:full']
+              || `${e.tags['addr:street']||''} ${e.tags['addr:housenumber']||''}`.trim();
+    return {
+      name,
+      address: addr,
+      lat: e.lat,
+      lng: e.lon,
+      distance: getDistance(lat, lng, e.lat, e.lon)
+    };
+  });
+}
+
+/** Aggregate Mapbox → fallback Overpass → dedupe & sort */
 async function fetchAllMarkets(lat, lng) {
   const queries = ['farmers market','farm stand','local market','butchery','meat market'];
   let all = [];
-  for (const q of queries) {
+  for (let q of queries) {
     try {
-      const list = await fetchMapboxMarkets(lat, lng, q);
-      all = all.concat(list);
-    } catch (err) {
-      console.warn(`    • "${q}" search error:`, err);
+      all = all.concat(await fetchMapboxMarkets(lat, lng, q));
+    } catch(e) {
+      console.warn(`      Mapbox ${q} error`, e);
     }
   }
-  const unique = [];
-  const seen = new Set();
+  // dedupe
+  const seen = new Set(), uniq = [];
   all.forEach(m => {
-    const key = `${m.name}::${m.address}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      unique.push(m);
-    }
+    const k = `${m.name}::${m.address}`;
+    if (!seen.has(k)) { seen.add(k); uniq.push(m); }
   });
-  unique.sort((a,b)=>a.distance-b.distance);
-  console.log("  ✓ aggregated & sorted markets:", unique);
-  return unique;
+  if (!uniq.length) {
+    // fallback
+    const over = await fetchOverpassMarkets(lat, lng);
+    over.forEach(m=> { 
+      const k = `${m.name}::${m.address}`; 
+      if (!seen.has(k)) { seen.add(k); uniq.push(m); } 
+    });
+  }
+  // sort by distance
+  uniq.sort((a,b)=>a.distance-b.distance);
+  console.log("  ✓ final market list:", uniq);
+  return uniq;
 }
 
-/**
- * Main loader.
- */
+/** Main */
 async function loadLocalResources() {
   console.log("▶ loadLocalResources()");
   try {
-    console.log("  • requesting geolocation…");
-    const { coords } = await new Promise((res, rej)=>
-      navigator.geolocation.getCurrentPosition(res, rej)
-    );
+    // geolocation
+    const { coords } = await new Promise((r,j)=>navigator.geolocation.getCurrentPosition(r,j));
     const lat = coords.latitude, lng = coords.longitude;
-    console.log("  ✓ got coords:", lat, lng);
+    console.log("  ✓ coords:", lat, lng);
 
-    console.log("  • initializing map…");
+    // map
     const map = new mapboxgl.Map({
-      container: 'map',
-      style:     'mapbox://styles/mapbox/streets-v11',
-      center:    [lng, lat],
-      zoom:      12
+      container:'map', style:'mapbox://styles/mapbox/streets-v11',
+      center:[lng,lat], zoom:12
     });
-    console.log("  ✓ map initialized");
 
-    console.log("  • adding user marker…");
-    new mapboxgl.Marker({ color: 'blue' })
-      .setLngLat([lng, lat])
+    // user pin
+    new mapboxgl.Marker({ color:'blue' })
+      .setLngLat([lng,lat])
       .setPopup(new mapboxgl.Popup().setText('You are here'))
       .addTo(map);
 
-    console.log("  • fetching all relevant markets…");
+    // fetch & plot
     const markets = await fetchAllMarkets(lat, lng);
-    console.log("  ✓ markets to plot:", markets.length);
-
-    console.log("  • plotting markers…");
     markets.forEach(m => {
       const el = document.createElement('div');
-      el.style.width           = '16px';
-      el.style.height          = '16px';
-      el.style.backgroundColor = '#e74c3c';
-      el.style.border          = '2px solid white';
-      el.style.borderRadius    = '50%';
-
-      new mapboxgl.Marker({ element: el })
-        .setLngLat([m.lng, m.lat])
+      el.style.cssText = 'width:16px;height:16px;background:#e74c3c;border:2px solid white;border-radius:50%';
+      new mapboxgl.Marker({ element:el })
+        .setLngLat([m.lng,m.lat])
         .setPopup(new mapboxgl.Popup()
-          .setHTML(`<strong>${m.name}</strong><br>${m.address}<br><em>${m.distance.toFixed(1)} mi</em>`))
+          .setHTML(`<strong>${m.name}</strong><br>${m.address}<br><em>${m.distance.toFixed(1)}mi</em>`))
         .addTo(map);
     });
-    console.log(`  ✓ plotted ${markets.length} markers`);
-
+    // fit bounds
     if (markets.length) {
       const b = new mapboxgl.LngLatBounds();
-      b.extend([lng, lat]);
-      markets.forEach(m => b.extend([m.lng, m.lat]));
-      map.fitBounds(b, { padding:40 });
+      b.extend([lng,lat]);
+      markets.forEach(m=>b.extend([m.lng,m.lat]));
+      map.fitBounds(b,{padding:40});
+    }
+    // text list
+    const listEl = document.getElementById('market-list');
+    if (listEl) {
+      listEl.innerHTML = markets.map(m=>`
+        <div class="market-item">
+          <h4>${m.name}</h4>
+          <p>${m.address}</p>
+          <small>${m.distance.toFixed(1)} mi away</small>
+        </div>
+      `).join('');
     }
 
-    displayMarketList(markets);
-
   } catch(err) {
-    console.error("✘ Mapbox integration error:", err);
+    console.error("✘ load error:", err);
     alert(`Error loading local markets: ${err.message}`);
   }
 }
 
-/**
- * Render list under map.
- */
-function displayMarketList(markets) {
-  const el = document.getElementById('market-list');
-  if (!el) {
-    console.warn("No #market-list element found");
-    return;
-  }
-  el.innerHTML = markets.map(m=>`
-    <div class="market-item">
-      <h4>${m.name}</h4>
-      <p>${m.address}</p>
-      <small>${m.distance.toFixed(1)} mi away</small>
-    </div>
-  `).join('');
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  console.log("▶ DOMContentLoaded");
-  loadLocalResources();
-});
+document.addEventListener('DOMContentLoaded', loadLocalResources);
