@@ -1,50 +1,43 @@
 // static/js/local_resources.js
 
-// 2a) Put your Mapbox token here
-mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
+console.log("▶ local_resources.js loaded");
 
-async function fetchMapboxMarkets(lat, lng, query = 'farmers market') {
-  const url =
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
-    `${encodeURIComponent(query)}.json` +
-    `?proximity=${lng},${lat}` +
-    `&limit=10&types=poi` +
-    `&access_token=${mapboxgl.accessToken}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Mapbox search failed: ${res.status}`);
-  const { features } = await res.json();
-  return features.map(f => ({
-    name:    f.text,
-    address: f.place_name,
-    lng:     f.geometry.coordinates[0],
-    lat:     f.geometry.coordinates[1]
-  }));
-}
+mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
 
+// wrap your entire load in a logged function
 async function loadLocalResources() {
+  console.log("▶ loadLocalResources()");
   try {
-    // 2b) Get user location
+    // 1) geolocation
+    console.log("  • requesting geolocation…");
     const { coords } = await new Promise((res, rej) =>
       navigator.geolocation.getCurrentPosition(res, rej)
     );
     const lat = coords.latitude, lng = coords.longitude;
+    console.log("  ✓ got coords:", lat, lng);
 
-    // 2c) Initialize Mapbox map
+    // 2) init map
+    console.log("  • initializing map…");
     const map = new mapboxgl.Map({
       container: 'map',
       style:     'mapbox://styles/mapbox/streets-v11',
       center:    [lng, lat],
       zoom:      12
     });
+    console.log("  ✓ map initialized");
 
-    // 2d) Show user location
+    // 3) user marker
     new mapboxgl.Marker({ color: 'blue' })
       .setLngLat([lng, lat])
       .setPopup(new mapboxgl.Popup().setText('You are here'))
       .addTo(map);
 
-    // 2e) Fetch & plot markets
+    // 4) fetch markets
+    console.log("  • fetching POIs from Mapbox…");
     const markets = await fetchMapboxMarkets(lat, lng);
+    console.log("  ✓ fetched markets:", markets);
+
+    // 5) plot markers
     markets.forEach(m => {
       new mapboxgl.Marker()
         .setLngLat([m.lng, m.lat])
@@ -55,11 +48,14 @@ async function loadLocalResources() {
         )
         .addTo(map);
     });
+    console.log(`  ✓ plotted ${markets.length} markers`);
   } catch (err) {
-    console.error('Mapbox integration error:', err);
+    console.error("✘ Mapbox integration error:", err);
     alert(`Error loading local markets: ${err.message}`);
   }
 }
 
-// 2f) Run it on page load
-document.addEventListener('DOMContentLoaded', loadLocalResources);
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("▶ DOMContentLoaded");
+  loadLocalResources();
+});
