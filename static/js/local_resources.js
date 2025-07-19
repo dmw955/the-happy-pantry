@@ -2,7 +2,29 @@
 
 console.log("▶ local_resources.js loaded");
 
-mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
+// 1) Set your real Mapbox token
+mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
+
+// 2) Mapbox Places POI lookup
+async function fetchMapboxMarkets(lat, lng, query = 'farmers market') {
+  console.log(`    • building Mapbox search URL for "${query}" near ${lat},${lng}`);
+  const url =
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
+    `${encodeURIComponent(query)}.json` +
+    `?proximity=${lng},${lat}` +
+    `&limit=10&types=poi` +
+    `&access_token=${mapboxgl.accessToken}`;
+  console.log("    • Mapbox search URL:", url);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Mapbox search failed: ${res.status}`);
+  const { features } = await res.json();
+  return features.map(f => ({
+    name:    f.text,
+    address: f.place_name,
+    lng:     f.geometry.coordinates[0],
+    lat:     f.geometry.coordinates[1]
+  }));
+}
 
 // wrap your entire load in a logged function
 async function loadLocalResources() {
@@ -27,6 +49,7 @@ async function loadLocalResources() {
     console.log("  ✓ map initialized");
 
     // 3) user marker
+    console.log("  • adding user marker…");
     new mapboxgl.Marker({ color: 'blue' })
       .setLngLat([lng, lat])
       .setPopup(new mapboxgl.Popup().setText('You are here'))
@@ -38,6 +61,7 @@ async function loadLocalResources() {
     console.log("  ✓ fetched markets:", markets);
 
     // 5) plot markers
+    console.log("  • plotting markers…");
     markets.forEach(m => {
       new mapboxgl.Marker()
         .setLngLat([m.lng, m.lat])
