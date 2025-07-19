@@ -101,7 +101,15 @@ async function loadLocalResources() {
 
     console.log("  • plotting markers…");
     markets.forEach(m => {
-      new mapboxgl.Marker()
+      // create a big, red circle marker
+      const el = document.createElement('div');
+      el.style.width = '16px';
+      el.style.height = '16px';
+      el.style.backgroundColor = '#e74c3c';
+      el.style.border = '2px solid white';
+      el.style.borderRadius = '50%';
+
+      new mapboxgl.Marker({ element: el })
         .setLngLat([m.lng, m.lat])
         .setPopup(
           new mapboxgl.Popup().setHTML(
@@ -112,7 +120,15 @@ async function loadLocalResources() {
     });
     console.log(`  ✓ plotted ${markets.length} markers`);
 
-    // 5) display text list under the map
+    // 5) zoom map to include all markers + user location
+    if (markets.length) {
+      const bounds = new mapboxgl.LngLatBounds();
+      bounds.extend([lng, lat]);
+      markets.forEach(m => bounds.extend([m.lng, m.lat]));
+      map.fitBounds(bounds, { padding: 40 });
+    }
+
+    // 6) display text list under the map
     displayMarketList(markets);
 
   } catch (err) {
