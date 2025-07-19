@@ -1,101 +1,99 @@
 // static/js/local_resources.js
 
-// 1. Initialize the map (default to NH)
-const map = L.map('map').setView([43.0, -71.5], 6);
-
-// 2. Add OSM tile layer
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
-
-// 3. Marker clustering
-const markers = L.markerClusterGroup();
-
-// 4. Helper to load locations into the map
-async function loadLocations(filterBounds) {
-  let query = supabase.from('locations').select('*');
-
-  if (filterBounds) {
-    const { latMin, latMax, lngMin, lngMax } = filterBounds;
-    query = query
-      .gte('latitude', latMin)
-      .lte('latitude', latMax)
-      .gte('longitude', lngMin)
-      .lte('longitude', lngMax);
-  }
-
-  const { data: locations, error } = await query;
-  console.log('📍 fetched locations:', locations, '❗ error:', error);
-  if (error) {
-    console.error('Error fetching locations:', error);
-    return 0;
-  }
-
-  markers.clearLayers(); // remove old markers
-  locations.forEach(loc => {
-    const marker = L.marker([loc.latitude, loc.longitude]);
-    marker.bindPopup(`
-      <strong>${loc.name}</strong><br/>
-      ${loc.website ? `<a href="${loc.website}" target="_blank">Visit site</a><br/>` : ''}
-      <button onclick="saveFavorite(${loc.id})">★ Save</button>
-    `);
-    markers.addLayer(marker);
-  });
-
-  map.addLayer(markers);
-
-  // auto-fit to show all markers
-  if (markers.getLayers().length) {
-    map.fitBounds(markers.getBounds(), { padding: [50, 50] });
-  }
-
-  return locations.length;
-}
-
-// 5. Geolocation: center & filter on user
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    async ({ coords }) => {
-      const { latitude: lat, longitude: lng } = coords;
-      console.log('User coords:', lat, lng);
-      map.setView([lat, lng], 13);
-
-      // bounding box (~0.1° approx 11km)
-      const delta = 0.1;
-      const bounds = {
-        latMin: lat - delta,
-        latMax: lat + delta,
-        lngMin: lng - delta,
-        lngMax: lng + delta,
-      };
-      console.log('Using bounds:', bounds);
-
-      let count = await loadLocations(bounds);
-      if (count === 0) {
-        console.info('No nearby markets found—loading all locations.');
-        await loadLocations();
-      }
-    },
-    // on error or denial -> load all
-    () => {
-      console.info('Geolocation failed or denied—loading all locations.');
-      loadLocations();
+// 1) Get user’s location
+function getUserLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      return reject(new Error("Geolocation not supported"));
     }
-  );
-} else {
-  console.info('No geolocation support—loading all locations.');
-  loadLocations();
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      err => reject(err)
+    );
+  });
 }
 
-// 6. Add search control (Leaflet-Geosearch)
-const provider = new window.GeoSearch.OpenStreetMapProvider();
-const searchControl = new window.GeoSearch.GeoSearchControl({
-  provider,
-  style: 'bar',
-  autoComplete: true,
-  searchLabel: 'Search for a place…'
-});
-map.addControl(searchControl);
+// 2) Call USDA locSearch to get nearby market IDs & distances
+async function fetchNearbyMarketSummaries(lat, lng) {
+  const url = `https://search.ams.usda.gov/farmersmarkets/v1/data.svc/locSearch?lat=${lat}&lng=${lng}`;
+  const res  = await fetch(url);
+  if (!res.ok) throw new Error(`locSearch failed: ${res.status}`);
+  const { results } = await res.json();
+  // results: [{id: "123", marketname: "Market A:0.5 Miles"}, …]
+  return results.map(m => ({
+    id:       m.id,
+    name:     m.marketname.split(':')[0],
+    distance: parseFloat(m.marketname.split(':')[1])
+  }));
+}
 
-// 7. (Optional) Locate-me button – requires leaflet.locatecontrol plugin
-// L.control.locate({ flyTo: true }).addTo(map);
+// 3) Fetch full details for each market
+async function fetchMarketDetails(id) {
+  const url = `https://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=${id}`;
+  const res  = await fetch(url);
+  if (!res.ok) throw new Error(`mktDetail failed: ${res.status}`);
+  const { marketdetails } = await res.json();
+  return {
+    id:       id,
+    name:     marketdetails.GoogleName,
+    address:  marketdetails.Address,
+    products: marketdetails.Products,
+    schedule: marketdetails.Schedule,
+    website:  marketdetails.Links
+  };
+}
+
+// 4) Tie it all together
+async function loadLocalResources() {
+  try {
+    console.log("📍 Getting user location…");
+    const { lat, lng } = await getUserLocation();
+    console.log("📍 User coords:", lat, lng);
+
+    console.log("🔍 Fetching nearby markets…");
+    const summaries = await fetchNearbyMarketSummaries(lat, lng);
+    if (summaries.length === 0) {
+      console.log("⚠️ No nearby markets found.");
+      showNoResourcesMessage();
+      return;
+    }
+
+    console.log(`✅ Found ${summaries.length} markets, fetching details…`);
+    const details = await Promise.all(
+      summaries.map(s => fetchMarketDetails(s.id).then(d => ({ ...d, distance: s.distance })))
+    );
+
+    displayResources(details);
+  } catch (err) {
+    console.error("Local resources error:", err);
+    showErrorMessage(err);
+  }
+}
+
+// 5) Render into the DOM
+function displayResources(markets) {
+  const container = document.getElementById("local-resources");
+  container.innerHTML = markets
+    .map(m => `
+      <div class="resource-card">
+        <h3>${m.name} (${m.distance.toFixed(1)} mi)</h3>
+        <p>${m.address}</p>
+        <p><strong>Products:</strong> ${m.products}</p>
+        <p><strong>Schedule:</strong> ${m.schedule}</p>
+        ${m.website ? `<p><a href="${m.website}" target="_blank">Website</a></p>` : ""}
+      </div>
+    `).join("");
+}
+
+function showNoResourcesMessage() {
+  document.getElementById("local-resources").innerHTML =
+    "<p>No farmers markets found near you.</p>";
+}
+
+function showErrorMessage(err) {
+  document.getElementById("local-resources").innerHTML =
+    `<p>Error loading resources: ${err.message}</p>`;
+}
+
+// 6) Kick off on page load (or when ready)
+document.addEventListener("DOMContentLoaded", loadLocalResources);
