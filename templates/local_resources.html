@@ -10,14 +10,39 @@
   <style>
     /* Fullscreen map styling */
     html, body { height: 100%; margin: 0; padding: 0; }
-    /* Define navbar height for map */
+    /* Reserve space for your navbar */
     :root { --navbar-height: 56px; }
+
+    /* Map container */
     #map { width: 100%; height: calc(100vh - var(--navbar-height)); }
+
+    /* Market list styling */
+    .market-list {
+      max-height: calc(100vh - var(--navbar-height) - 10px);
+      overflow-y: auto;
+      padding: 1rem;
+      background: rgba(255,255,255,0.9);
+    }
+    .market-list .market-item {
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: .5rem;
+    }
+    .market-list .market-item h4 {
+      margin: 0 0 .25rem;
+      font-size: 1rem;
+    }
+    .market-list .market-item p {
+      margin: 0;
+      font-size: .875rem;
+      color: #555;
+    }
   </style>
 {% endblock %}
 
 {% block content %}
   <div id="map"></div>
+  <div id="market-list" class="market-list"></div>
 {% endblock %}
 
 {% block scripts %}
@@ -33,6 +58,6 @@
       "{{ SUPABASE_ANON_KEY }}"
     );
   </script>
-  <!-- Map logic -->
+  <!-- Your Mapbox + market‐fetch logic -->
   <script src="{{ url_for('static', filename='js/local_resources.js') }}"></script>
 {% endblock %}

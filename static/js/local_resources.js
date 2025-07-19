@@ -111,10 +111,31 @@ async function loadLocalResources() {
         .addTo(map);
     });
     console.log(`  ✓ plotted ${markets.length} markers`);
+
+    // 5) display text list under the map
+    displayMarketList(markets);
+
   } catch (err) {
     console.error("✘ Mapbox integration error:", err);
     alert(`Error loading local markets: ${err.message}`);
   }
+}
+
+/**
+ * Render a simple list of markets under the map
+ */
+function displayMarketList(markets) {
+  const container = document.getElementById('market-list');
+  if (!container) {
+    console.warn("No #market-list element found");
+    return;
+  }
+  container.innerHTML = markets.map(m => `
+    <div class="market-item">
+      <h4>${m.name}</h4>
+      <p>${m.address}</p>
+    </div>
+  `).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
