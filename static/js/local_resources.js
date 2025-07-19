@@ -33,8 +33,9 @@ const markers = L.markerClusterGroup();
     console.error('Error fetching locations:', error);
     return;
   }
+
   if (!locations || locations.length === 0) {
-    console.warn('No locations returned—check table content and RLS.');
+    console.info('No locations found—check table content and RLS.');
   }
 
   locations.forEach(loc => {
@@ -47,10 +48,16 @@ const markers = L.markerClusterGroup();
     markers.addLayer(marker);
   });
 
+  // 6. Add markers layer to map
   map.addLayer(markers);
+
+  // 7. Auto-zoom to fit all markers
+  if (markers.getLayers().length) {
+    map.fitBounds(markers.getBounds(), { padding: [50, 50] });
+  }
 })();
 
-// 6. Add search control (Leaflet-Geosearch)
+// 8. Add search control (Leaflet-Geosearch)
 const provider = new window.GeoSearch.OpenStreetMapProvider();
 const searchControl = new window.GeoSearch.GeoSearchControl({
   provider,
@@ -60,5 +67,5 @@ const searchControl = new window.GeoSearch.GeoSearchControl({
 });
 map.addControl(searchControl);
 
-// 7. (Optional) Locate-me button – requires leaflet.locatecontrol plugin
+// 9. (Optional) Locate-me button – requires leaflet.locatecontrol plugin
 // L.control.locate({ flyTo: true }).addTo(map);
