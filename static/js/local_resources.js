@@ -5,18 +5,24 @@ console.log("▶ local_resources.js loaded");
 // 1) Set your real Mapbox token
 mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
 
-// 2) Mapbox Places POI lookup
-async function fetchMapboxMarkets(lat, lng, query = 'farmers market') {
-  console.log(`    • building Mapbox search URL for "${query}" near ${lat},${lng}`);
+/**
+ * Fetch POIs for a single keyword from Mapbox Places.
+ * @param {number} lat 
+ * @param {number} lng 
+ * @param {string} query 
+ * @returns {Promise<Array<{name:string,address:string,lng:number,lat:number}>>}
+ */
+async function fetchMapboxMarkets(lat, lng, query) {
+  console.log(`    • fetching POIs for "${query}"…`);
   const url =
     `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
     `${encodeURIComponent(query)}.json` +
     `?proximity=${lng},${lat}` +
-    `&limit=10&types=poi` +
+    `&limit=20` +
     `&access_token=${mapboxgl.accessToken}`;
-  console.log("    • Mapbox search URL:", url);
+  console.log("      URL:", url);
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Mapbox search failed: ${res.status}`);
+  if (!res.ok) throw new Error(`Mapbox search failed for "${query}": ${res.status}`);
   const { features } = await res.json();
   return features.map(f => ({
     name:    f.text,
@@ -26,7 +32,40 @@ async function fetchMapboxMarkets(lat, lng, query = 'farmers market') {
   }));
 }
 
-// wrap your entire load in a logged function
+/**
+ * Run multiple keyword searches and dedupe results.
+ */
+async function fetchAllMarkets(lat, lng) {
+  const queries = [
+    'farmers market',
+    'farm stand',
+    'local market',
+    'butchery',
+    'meat market'
+  ];
+  let allResults = [];
+  for (const q of queries) {
+    try {
+      const results = await fetchMapboxMarkets(lat, lng, q);
+      allResults = allResults.concat(results);
+    } catch (err) {
+      console.warn(`    • "${q}" search error:`, err);
+    }
+  }
+  // Deduplicate by name + address
+  const unique = [];
+  const seen = new Set();
+  for (const m of allResults) {
+    const key = `${m.name}::${m.address}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(m);
+    }
+  }
+  console.log("  ✓ aggregated unique markets:", unique);
+  return unique;
+}
+
 async function loadLocalResources() {
   console.log("▶ loadLocalResources()");
   try {
@@ -55,12 +94,11 @@ async function loadLocalResources() {
       .setPopup(new mapboxgl.Popup().setText('You are here'))
       .addTo(map);
 
-    // 4) fetch markets
-    console.log("  • fetching POIs from Mapbox…");
-    const markets = await fetchMapboxMarkets(lat, lng);
-    console.log("  ✓ fetched markets:", markets);
+    // 4) fetch & plot markets
+    console.log("  • fetching all relevant markets…");
+    const markets = await fetchAllMarkets(lat, lng);
+    console.log("  ✓ markets to plot:", markets.length);
 
-    // 5) plot markers
     console.log("  • plotting markers…");
     markets.forEach(m => {
       new mapboxgl.Marker()
