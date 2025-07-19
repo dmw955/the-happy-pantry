@@ -35,18 +35,27 @@ function buildBBox(lat, lng, radiusMiles = 50) {
 /**
  * Fetch POIs for a single keyword within bounding box.
  */
+// static/js/local_resources.js
+
+// …keep your getDistance, buildBBox, etc. …
+
 async function fetchMapboxMarkets(lat, lng, query) {
   console.log(`    • fetching POIs for "${query}"…`);
   const bbox = buildBBox(lat, lng, 50);
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
-              `${encodeURIComponent(query)}.json` +
-              `?bbox=${bbox}` +
-              `&limit=20` +
-              `&access_token=${mapboxgl.accessToken}`;
+  const url =
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/` +
+    `${encodeURIComponent(query)}.json` +
+    `?bbox=${bbox}` +
+    `&types=poi` +
+    `&autocomplete=false` +
+    `&limit=20` +
+    `&access_token=${mapboxgl.accessToken}`;
   console.log("      URL:", url);
+
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Mapbox search failed for "${query}": ${res.status}`);
   const { features } = await res.json();
+
   return features.map(f => {
     const [lngF, latF] = f.geometry.coordinates;
     return {
@@ -58,6 +67,7 @@ async function fetchMapboxMarkets(lat, lng, query) {
     };
   });
 }
+
 
 /**
  * Query multiple keywords, dedupe & sort by distance.
