@@ -18,28 +18,25 @@ async function loadLocations(filterBounds) {
   if (filterBounds) {
     const { latMin, latMax, lngMin, lngMax } = filterBounds;
     query = query
-      .gte('latitude',  latMin)
-      .lte('latitude',  latMax)
+      .gte('latitude', latMin)
+      .lte('latitude', latMax)
       .gte('longitude', lngMin)
       .lte('longitude', lngMax);
   }
 
   const { data: locations, error } = await query;
-
   console.log('📍 fetched locations:', locations, '❗ error:', error);
   if (error) {
     console.error('Error fetching locations:', error);
-    return;
+    return 0;
   }
 
-  markers.clearLayers(); // clear any old markers
+  markers.clearLayers(); // remove old markers
   locations.forEach(loc => {
     const marker = L.marker([loc.latitude, loc.longitude]);
     marker.bindPopup(`
       <strong>${loc.name}</strong><br/>
-      ${loc.website
-        ? `<a href="${loc.website}" target="_blank">Visit site</a><br/>`
-        : ''}
+      ${loc.website ? `<a href="${loc.website}" target="_blank">Visit site</a><br/>` : ''}
       <button onclick="saveFavorite(${loc.id})">★ Save</button>
     `);
     markers.addLayer(marker);
@@ -47,21 +44,23 @@ async function loadLocations(filterBounds) {
 
   map.addLayer(markers);
 
-  // auto‐zoom to show all markers
+  // auto-fit to show all markers
   if (markers.getLayers().length) {
     map.fitBounds(markers.getBounds(), { padding: [50, 50] });
   }
+
+  return locations.length;
 }
 
 // 5. Geolocation: center & filter on user
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
     async ({ coords }) => {
-      const lat = coords.latitude;
-      const lng = coords.longitude;
+      const { latitude: lat, longitude: lng } = coords;
+      console.log('User coords:', lat, lng);
       map.setView([lat, lng], 13);
 
-      // build a small bounding box (~0.1° ~11km)
+      // bounding box (~0.1° approx 11km)
       const delta = 0.1;
       const bounds = {
         latMin: lat - delta,
@@ -69,14 +68,22 @@ if (navigator.geolocation) {
         lngMin: lng - delta,
         lngMax: lng + delta,
       };
+      console.log('Using bounds:', bounds);
 
-      await loadLocations(bounds);
+      let count = await loadLocations(bounds);
+      if (count === 0) {
+        console.info('No nearby markets found—loading all locations.');
+        await loadLocations();
+      }
     },
-    // on error or if user denies, just load everything
-    () => loadLocations()
+    // on error or denial -> load all
+    () => {
+      console.info('Geolocation failed or denied—loading all locations.');
+      loadLocations();
+    }
   );
 } else {
-  // no geolocation support
+  console.info('No geolocation support—loading all locations.');
   loadLocations();
 }
 
@@ -84,11 +91,11 @@ if (navigator.geolocation) {
 const provider = new window.GeoSearch.OpenStreetMapProvider();
 const searchControl = new window.GeoSearch.GeoSearchControl({
   provider,
-  style:      'bar',
+  style: 'bar',
   autoComplete: true,
-  searchLabel:  'Search for a place…',
+  searchLabel: 'Search for a place…'
 });
 map.addControl(searchControl);
 
-// 7. (Optional) Locate‐me button – requires leaflet.locatecontrol plugin
+// 7. (Optional) Locate-me button – requires leaflet.locatecontrol plugin
 // L.control.locate({ flyTo: true }).addTo(map);
