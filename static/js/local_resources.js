@@ -3,7 +3,8 @@
 console.log("▶ local_resources.js loaded");
 
 // 1) Your Mapbox access token
-mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
+mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
+;
 
 /** Haversine distance in miles */
 function getDistance(lat1, lng1, lat2, lng2) {
@@ -18,19 +19,14 @@ function getDistance(lat1, lng1, lat2, lng2) {
 
 /** Build a bbox string: minLon,minLat,maxLon,maxLat */
 function buildBBox(lat, lng, miles = 50) {
-  const r = miles / 3958.8;           // fraction of Earth radius
+  const r   = miles / 3958.8;
   const deg = 180 / Math.PI;
   const dLat = r * deg;
   const dLng = r * deg / Math.cos(lat * Math.PI / 180);
   return `${lng - dLng},${lat - dLat},${lng + dLng},${lat + dLat}`;
 }
 
-/** 
- * Perform a single free-text Mapbox Places lookup within bbox 
- * @param {number} lat 
- * @param {number} lng 
- * @param {string} query 
- */
+/** Single free-text Mapbox lookup */
 async function fetchMapboxPlaces(lat, lng, query) {
   console.log(`    • Mapbox search: "${query}"`);
   const bbox = buildBBox(lat, lng, 50);
@@ -57,42 +53,61 @@ async function fetchMapboxPlaces(lat, lng, query) {
 }
 
 /** 
- * Combined free-text search for markets, farms, butcheries & veggies 
+ * Run multiple targeted queries, merge & dedupe 
  */
 async function fetchAllMarkets(lat, lng) {
-  const query = 'farmers market farm stand butcher grocery vegetable';
-  let results = [];
-  try {
-    results = await fetchMapboxPlaces(lat, lng, query);
-  } catch (err) {
-    console.warn("  • Mapbox search failed:", err);
-  }
-  // Dedupe by name+address
-  const seen = new Set(), unique = [];
-  results.forEach(m => {
-    const key = `${m.name}::${m.address}`;
-    if (!seen.has(key)) {
-      seen.add(key);
-      unique.push(m);
+  const queries = [
+    'farmers market',
+    'produce market',
+    'fruit stand',
+    'vegetable stand',
+    'butcher shop',
+    'grocery store',
+    'dairy farm',
+    'fish market',
+    'food co-op',
+    'organic market',
+    'road-side stand',
+    'farm shop',
+    'pop-up market'
+  ];
+
+  let all = [];
+  for (const q of queries) {
+    try {
+      const res = await fetchMapboxPlaces(lat, lng, q);
+      all = all.concat(res);
+    } catch (err) {
+      console.warn(`  • Mapbox "${q}" search failed:`, err);
     }
+  }
+
+  // dedupe by name + address
+  const seen = new Set();
+  const unique = all.filter(m => {
+    const key = `${m.name}::${m.address}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
+
   // sort by proximity
   unique.sort((a, b) => a.distance - b.distance);
-  console.log("  ✓ final Mapbox results:", unique);
+  console.log('  ✓ combined Mapbox results:', unique);
   return unique;
 }
 
 async function loadLocalResources() {
   console.log("▶ loadLocalResources()");
   try {
-    // get user location
+    // 1) Get user location
     const { coords } = await new Promise((res, rej) =>
       navigator.geolocation.getCurrentPosition(res, rej)
     );
     const lat = coords.latitude, lng = coords.longitude;
     console.log("  ✓ coords:", lat, lng);
 
-    // init Mapbox map
+    // 2) Initialize Mapbox map
     const map = new mapboxgl.Map({
       container: 'map',
       style:     'mapbox://styles/mapbox/streets-v11',
@@ -100,22 +115,18 @@ async function loadLocalResources() {
       zoom:      12
     });
 
-    // user marker
+    // 3) Add user marker
     new mapboxgl.Marker({ color: 'blue' })
       .setLngLat([lng, lat])
       .setPopup(new mapboxgl.Popup().setText('You are here'))
       .addTo(map);
 
-    // fetch & plot
+    // 4) Fetch & plot all markets
     const markets = await fetchAllMarkets(lat, lng);
+
     markets.forEach(m => {
       const el = document.createElement('div');
-      el.style.cssText = [
-        'width:16px;height:16px',
-        'background:#e74c3c',
-        'border:2px solid white',
-        'border-radius:50%'
-      ].join(';');
+      el.style.cssText = 'width:16px;height:16px;background:#e74c3c;border:2px solid white;border-radius:50%';
       new mapboxgl.Marker({ element: el })
         .setLngLat([m.lng, m.lat])
         .setPopup(
@@ -126,7 +137,7 @@ async function loadLocalResources() {
         .addTo(map);
     });
 
-    // fit map to markers
+    // 5) Fit bounds to include all markers + user
     if (markets.length) {
       const bounds = new mapboxgl.LngLatBounds();
       bounds.extend([lng, lat]);
@@ -134,7 +145,7 @@ async function loadLocalResources() {
       map.fitBounds(bounds, { padding: 40 });
     }
 
-    // text list
+    // 6) Render text list
     const listEl = document.getElementById('market-list');
     if (listEl) {
       listEl.innerHTML = markets.map(m => `
@@ -148,7 +159,7 @@ async function loadLocalResources() {
 
   } catch (err) {
     console.error("✘ loadLocalResources error:", err);
-    alert(`Error loading local markets: ${err.message}`);
+    alert(`Error loading local resources: ${err.message}`);
   }
 }
 
