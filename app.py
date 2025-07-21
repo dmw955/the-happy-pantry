@@ -176,6 +176,10 @@ def local_resources():
       SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
+@app.route("/macrogoals")
+def macro_goals():
+    return render_template("macrogoals.html")
+
 
 @app.route('/subscribe/<plan_type>')
 def subscribe(plan_type):
