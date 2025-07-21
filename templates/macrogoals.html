@@ -1,55 +1,146 @@
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container px-5">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">My Profile</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('local_resources') }}">Local Resources</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('macro_goals') }}">Macro Tracking</a></li>
-                    <li class="nav-item"><a class="logout-btn nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Macro Tracking - The Happy Pantry</title>
 
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
 
+  <!-- Supabase & JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+  <script src="{{ url_for('static', filename='js/macrogoals.js') }}"></script>
 
-<div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md mt-6 border border-teal-600">
-  <h2 class="text-xl font-bold mb-4 text-teal-700">My Daily Macro Goals</h2>
+  <style>
+    :root {
+      --primary-color: #008080;
+      --accent-color: #FFC72C;
+      --text-dark: #2E2E2E;
+      --text-light: #FFFFFF;
+      --background-light: #FFFFFF;
+    }
+    body {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(15px);
+    }
+    .navbar {
+      background-color: var(--background-light);
+      border-bottom: 2px solid var(--accent-color);
+      padding: 10px 0;
+    }
+    .navbar-brand img {
+      height: 50px;
+      width: auto;
+    }
+    .navbar-nav .nav-link {
+      color: var(--text-dark);
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+    .navbar-nav .nav-link:hover {
+      color: var(--accent-color);
+      text-decoration: underline;
+    }
+    .form-container {
+      max-width: 700px;
+      margin: 60px auto;
+      background: rgba(255,255,255,0.3);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      backdrop-filter: blur(8px);
+    }
+    .form-title {
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+    .btn-primary-custom {
+      background-color: var(--accent-color);
+      color: #000;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      transition: all .3s;
+    }
+    .btn-primary-custom:hover {
+      background-color: #C9A000;
+    }
+    .footer-bg {
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      padding: 20px 0;
+      text-align: center;
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
 
-  <form id="macro-goals-form" class="space-y-4">
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Calories</label>
-        <input type="number" id="calories" class="w-full border rounded-md p-2" required />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Protein (g)</label>
-        <input type="number" id="protein" class="w-full border rounded-md p-2" required />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Carbs (g)</label>
-        <input type="number" id="carbs" class="w-full border rounded-md p-2" required />
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Fat (g)</label>
-        <input type="number" id="fat" class="w-full border rounded-md p-2" required />
-      </div>
-    </div>
-
-    <button type="submit" class="mt-4 px-4 py-2 bg-teal-700 text-white rounded-md hover:bg-teal-800">
-      Save Goals
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container px-5">
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
     </button>
-    <p id="goal-status" class="text-sm mt-2"></p>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">My Profile</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('local_resources') }}">Local Resources</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('macro_goals') }}">Macro Tracking</a></li>
+        <li class="nav-item"><a class="logout-btn nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Macro Goals Form -->
+<div class="form-container">
+  <h2 class="form-title text-center mb-4">My Daily Macro Goals</h2>
+
+  <form id="macro-goals-form" class="row g-3">
+    <div class="col-md-6">
+      <label for="calories" class="form-label">Calories</label>
+      <input type="number" class="form-control" id="calories" required>
+    </div>
+    <div class="col-md-6">
+      <label for="protein" class="form-label">Protein (g)</label>
+      <input type="number" class="form-control" id="protein" required>
+    </div>
+    <div class="col-md-6">
+      <label for="carbs" class="form-label">Carbs (g)</label>
+      <input type="number" class="form-control" id="carbs" required>
+    </div>
+    <div class="col-md-6">
+      <label for="fat" class="form-label">Fat (g)</label>
+      <input type="number" class="form-control" id="fat" required>
+    </div>
+    <div class="col-12 text-center">
+      <button type="submit" class="btn btn-primary-custom mt-3">Save Goals</button>
+<p id="goal-status" class="text-sm mt-2"></p>
+    </div>
   </form>
 </div>
-<script src="{{ url_for('static', filename='js/macrogoals.js') }}"></script>
+
+<!-- Footer -->
+<footer class="footer-bg">
+  <div class="container px-5">
+    <p class="m-0">&copy; The Happy Pantry 2025</p>
+  </div>
+</footer>
+
+<!-- Bootstrap Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
