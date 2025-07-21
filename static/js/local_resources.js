@@ -9,7 +9,7 @@ function getDistance(lat1, lng1, lat2, lng2) {
   const toRad = d => d * Math.PI / 180;
   const R = 3958.8;
   const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
+  const dLng = toRad(lat2 - lng1);
   const a = Math.sin(dLat / 2) ** 2 +
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
             Math.sin(dLng / 2) ** 2;
@@ -33,42 +33,45 @@ async function fetchMapboxPlaces(lat, lng, query) {
     `?bbox=${bbox}` +
     `&limit=30` +
     `&access_token=${mapboxgl.accessToken}`;
-  console.log("      URL:", url);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Mapbox search error: ${res.status}`);
   const { features } = await res.json();
   return features.map(f => {
     const [lon, latf] = f.geometry.coordinates;
     return {
-      name:     f.text,
-      address:  f.place_name,
-      lat:      latf,
-      lng:      lon,
+      name: f.text,
+      address: f.place_name,
+      lat: latf,
+      lng: lon,
       distance: getDistance(lat, lng, latf, lon)
     };
   });
 }
 
 async function fetchOverpassMarkets(lat, lng) {
-  console.log("    • Overpass fallback");
-  const radius = 50 * 1609.34; // meters
+  console.log("    • Overpass query (primary)");
+  const radius = 50 * 1609.34; // 50 miles in meters
   const query = `
 [out:json][timeout:25];
 (
-  node[~"^(amenity|shop|craft)$"~"^(marketplace|farm|butcher|greengrocer|grocery)$"](around:${radius},${lat},${lng});
-  node["produce"](around:${radius},${lat},${lng});
-  node["organic"](around:${radius},${lat},${lng});
-  node["name"~"Farm|Market|Vegetable",i](around:${radius},${lat},${lng});
-  way[~"^(amenity|shop|craft)$"~"^(marketplace|farm|butcher|greengrocer|grocery)$"](around:${radius},${lat},${lng});
-  way["produce"](around:${radius},${lat},${lng});
-  way["organic"](around:${radius},${lat},${lng});
-  way["name"~"Farm|Market|Vegetable",i](around:${radius},${lat},${lng});
-  relation[~"^(amenity|shop|craft)$"~"^(marketplace|farm|butcher|greengrocer|grocery)$"](around:${radius},${lat},${lng});
-  relation["produce"](around:${radius},${lat},${lng});
-  relation["organic"](around:${radius},${lat},${lng});
-  relation["name"~"Farm|Market|Vegetable",i](around:${radius},${lat},${lng});
+  node["shop"~"farm|butcher|greengrocer"](around:${radius},${lat},${lng});
+  node["amenity"="marketplace"](around:${radius},${lat},${lng});
+  node["produce"="yes"](around:${radius},${lat},${lng});
+  node["organic"="yes"](around:${radius},${lat},${lng});
+  node["craft"="butcher"](around:${radius},${lat},${lng});
+  way[shop~"farm|butcher|greengrocer"](around:${radius},${lat},${lng});
+  way[amenity="marketplace"](around:${radius},${lat},${lng});
+  way[produce="yes"](around:${radius},${lat},${lng});
+  way[organic="yes"](around:${radius},${lat},${lng});
+  way[craft="butcher"](around:${radius},${lat},${lng});
+  relation[shop~"farm|butcher|greengrocer"](around:${radius},${lat},${lng});
+  relation[amenity="marketplace"](around:${radius},${lat},${lng});
+  relation[produce="yes"](around:${radius},${lat},${lng});
+  relation[organic="yes"](around:${radius},${lat},${lng});
+  relation[craft="butcher"](around:${radius},${lat},${lng});
 );
-out center;`.trim();
+out center;
+`.trim();
   const res = await fetch('https://overpass-api.de/api/interpreter', {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
@@ -93,11 +96,24 @@ out center;`.trim();
 }
 
 async function fetchAllMarkets(lat, lng) {
+  let all = [];
+
+  // Primary: Overpass
+  try {
+    all = await fetchOverpassMarkets(lat, lng);
+    if (all.length) {
+      console.log("✔ Found real POIs via Overpass");
+      return dedupeAndSort(all, lat, lng);
+    }
+  } catch (err) {
+    console.warn("⚠ Overpass failed:", err);
+  }
+
+  // Fallback: Mapbox
   const queries = [
     'farmers market', 'produce market', 'fruit stand', 'vegetable stand',
-    'butcher shop', 'grocery store', 'organic market', 'local farm'
+    'butcher shop', 'grocery store', 'organic food', 'local meat'
   ];
-  let all = [];
   for (const q of queries) {
     try {
       const res = await fetchMapboxPlaces(lat, lng, q);
@@ -106,10 +122,11 @@ async function fetchAllMarkets(lat, lng) {
       console.warn(`Mapbox "${q}" error:`, err);
     }
   }
-  if (!all.length) {
-    const over = await fetchOverpassMarkets(lat, lng);
-    all = all.concat(over);
-  }
+
+  return dedupeAndSort(all, lat, lng);
+}
+
+function dedupeAndSort(all, lat, lng) {
   const seen = new Set();
   const unique = all.filter(m => {
     const key = `${m.name}::${m.address}`;
@@ -123,15 +140,15 @@ async function fetchAllMarkets(lat, lng) {
 }
 
 function getMarkerColor(name) {
-  if (/butcher/i.test(name)) return '#8B4513';        // brown
-  if (/farm|produce|vegetable|stand/i.test(name)) return '#27ae60'; // green
-  if (/market/i.test(name)) return '#e67e22';         // orange
-  return '#e74c3c';                                   // red fallback
+  if (/butcher/i.test(name)) return '#8B4513';
+  if (/farm|produce|vegetable|stand|organic|greengrocer/i.test(name)) return '#27ae60';
+  if (/market/i.test(name)) return '#e67e22';
+  return '#e74c3c';
 }
 
 function getIcon(name) {
   if (/butcher/i.test(name)) return '🐄 Butcher';
-  if (/farm|produce|vegetable|stand/i.test(name)) return '🥬 Farm Stand';
+  if (/farm|produce|vegetable|stand|organic|greengrocer/i.test(name)) return '🥬 Farm Stand';
   if (/market/i.test(name)) return '🧺 Farmers Market';
   return '📍 Local Place';
 }
@@ -158,11 +175,13 @@ async function loadLocalResources() {
       .addTo(map);
 
     const markets = await fetchAllMarkets(lat, lng);
+
     markets.forEach(m => {
       const el = document.createElement('div');
       el.style.cssText =
         `width:16px;height:16px;background:${getMarkerColor(m.name)};` +
         'border:2px solid white;border-radius:50%';
+
       new mapboxgl.Marker({ element: el })
         .setLngLat([m.lng, m.lat])
         .setPopup(
