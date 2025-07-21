@@ -1,123 +1,115 @@
 // static/js/local_resources.js
 
 console.log("▶ local_resources.js loaded");
-mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
 
-// Haversine
-function getDistance(a1, o1, a2, o2) {
-  const toRad = d => d * Math.PI/180, R=3958.8;
-  const dA = toRad(a2-a1), dO = toRad(o2-o1);
-  const x = Math.sin(dA/2)**2 + Math.cos(toRad(a1))*Math.cos(toRad(a2))*Math.sin(dO/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
-}
-function buildBBox(lat,lng,mi=50){
-  const r=mi/3958.8,deg=180/Math.PI;
-  const dA=r*deg, dO=r*deg/Math.cos(lat*Math.PI/180);
-  return `${lng-dO},${lat-dA},${lng+dO},${lat+dA}`;
-}
+// 1) Mapbox token (for rendering the map & markers)
+mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN_HERE';
 
-// Combined Mapbox free-text
-async function fetchMapboxMarkets(lat,lng,query){
-  console.log("  • Mapbox query:",query);
-  const bbox=buildBBox(lat,lng,50);
-  const url=`https://api.mapbox.com/geocoding/v5/mapbox.places/`
-    + encodeURIComponent(query)+`.json`
-    + `?bbox=${bbox}&limit=20&types=poi`
-    + `&access_token=${mapboxgl.accessToken}`;
-  const r=await fetch(url);
-  if(!r.ok) throw new Error(r.status);
-  const {features}=await r.json();
-  return features.map(f=>{
-    const [o,a]=f.geometry.coordinates;
-    return {name:f.text, address:f.place_name, lat:a, lng:o, distance:getDistance(lat,lng,a,o)};
-  });
+// 2) Your Google Places API key (for searching)
+const GOOGLE_API_KEY = 'YOUR_GOOGLE_PLACES_API_KEY_HERE';
+
+/** Haversine distance in miles */
+function getDistance(lat1, lng1, lat2, lng2) {
+  const toRad = d => d * Math.PI / 180;
+  const R = 3958.8;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Overpass fallback including farms by name
-async function fetchOverpassMarkets(lat,lng){
-  console.log("  • Overpass fallback");
-  const radius=50*1609.34;
-  const q=`
-[out:json][timeout:25];
-(
-  node["amenity"="marketplace"](around:${radius},${lat},${lng});
-  node["shop"~"farm|butcher|greengrocer|grocery|supermarket"](around:${radius},${lat},${lng});
-  node["name"~"Farm|Market|Vegetable",i](around:${radius},${lat},${lng});
-  way["name"~"Farm|Market|Vegetable",i](around:${radius},${lat},${lng});
-  relation["name"~"Farm|Market|Vegetable",i](around:${radius},${lat},${lng});
-);
-out center;`.trim();
-  const r=await fetch('https://overpass-api.de/api/interpreter',{
-    method:'POST',headers:{'Content-Type':'text/plain'},body:q
-  });
-  if(!r.ok) throw new Error(r.status);
-  const {elements}=await r.json();
-  return elements.map(e=>{
-    const latF=e.lat ?? e.center?.lat, lngF=e.lon ?? e.center?.lon;
-    const name=e.tags?.name||e.tags?.operator||'Unknown';
-    const addr=e.tags?.['addr:full']||`${e.tags?.['addr:street']||''} ${e.tags?.['addr:housenumber']||''}`.trim();
-    return {name, address:addr, lat:latF, lng:lngF, distance:getDistance(lat,lng,latF,lngF)};
-  });
+/**
+ * Call Google Places Text Search API
+ */
+async function fetchGooglePlaces(lat, lng, query) {
+  console.log(`    • Google Places textSearch: "${query}"`);
+  const radiusMeters = 50000; // 50 km
+  const url = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
+  url.searchParams.set('location', `${lat},${lng}`);
+  url.searchParams.set('radius', radiusMeters);
+  url.searchParams.set('query', query);
+  url.searchParams.set('key', GOOGLE_API_KEY);
+
+  console.log('      URL:', url.toString());
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Places API error: ${res.status}`);
+  const { results } = await res.json();
+  return results.map(p => ({
+    name:     p.name,
+    address:  p.formatted_address,
+    lat:      p.geometry.location.lat,
+    lng:      p.geometry.location.lng,
+    distance: getDistance(lat, lng, p.geometry.location.lat, p.geometry.location.lng)
+  }));
 }
 
-async function fetchAllMarkets(lat,lng){
-  let res=[];
-  try {
-    res = await fetchMapboxMarkets(lat,lng,'farmers market farm stand butcher grocery vegetable');
-  } catch(e){ console.warn('Mapbox failed',e); }
-  if(!res.length){
-    res = await fetchOverpassMarkets(lat,lng);
-  }
-  // dedupe
-  const seen=new Set(), uniq=[];
-  res.forEach(m=>{
-    const k=`${m.name}::${m.address}`;
-    if(!seen.has(k)){ seen.add(k); uniq.push(m); }
-  });
-  uniq.sort((a,b)=>a.distance-b.distance);
-  console.log("  ✓ final list:",uniq);
-  return uniq;
-}
-
-async function loadLocalResources(){
+async function loadLocalResources() {
   console.log("▶ loadLocalResources()");
   try {
-    const {coords}=await new Promise((r,j)=>navigator.geolocation.getCurrentPosition(r,j));
-    const {latitude:lat, longitude:lng}=coords;
-    console.log("  ✓ coords:",lat,lng);
+    // 1) Get user location
+    const { coords } = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej)
+    );
+    const lat = coords.latitude, lng = coords.longitude;
+    console.log("  ✓ coords:", lat, lng);
 
-    // map
-    const map=new mapboxgl.Map({
-      container:'map', style:'mapbox://styles/mapbox/streets-v11',
-      center:[lng,lat], zoom:12
-    });
-    new mapboxgl.Marker({color:'blue'}).setLngLat([lng,lat]).addTo(map);
-
-    // fetch
-    const markets=await fetchAllMarkets(lat,lng);
-
-    // dump JSON for debug
-    const dumpEl=document.getElementById('market-list');
-    dumpEl.innerHTML = `<pre style="max-height:200px;overflow:auto;">`
-      + JSON.stringify(markets,null,2) + `</pre>`;
-
-    // plot & list
-    markets.forEach(m=>{
-      const el=document.createElement('div');
-      el.style.cssText='width:12px;height:12px;background:#e74c3c;border:2px solid white;border-radius:50%';
-      new mapboxgl.Marker({element:el})
-        .setLngLat([m.lng,m.lat]).addTo(map);
+    // 2) Initialize Mapbox map
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style:     'mapbox://styles/mapbox/streets-v11',
+      center:    [lng, lat],
+      zoom:      12
     });
 
-    if(markets.length){
-      const b=new mapboxgl.LngLatBounds();
-      b.extend([lng,lat]); markets.forEach(m=>b.extend([m.lng,m.lat]));
-      map.fitBounds(b,{padding:40});
+    // 3) Add user marker
+    new mapboxgl.Marker({ color: 'blue' })
+      .setLngLat([lng, lat])
+      .setPopup(new mapboxgl.Popup().setText('You are here'))
+      .addTo(map);
+
+    // 4) Fetch nearby farm/market/veggie places from Google
+    const places = await fetchGooglePlaces(lat, lng, 'farmers market meat veggies');
+    console.log("  ✓ Google Places results:", places);
+
+    // 5) Plot them on the map
+    places.forEach(p => {
+      const el = document.createElement('div');
+      el.style.cssText = 'width:16px;height:16px;background:#e74c3c;border:2px solid white;border-radius:50%';
+      new mapboxgl.Marker({ element: el })
+        .setLngLat([p.lng, p.lat])
+        .setPopup(
+          new mapboxgl.Popup().setHTML(
+            `<strong>${p.name}</strong><br>${p.address}<br><em>${p.distance.toFixed(1)} mi away</em>`
+          )
+        )
+        .addTo(map);
+    });
+
+    // 6) Zoom map to fit all markers + user
+    if (places.length) {
+      const bounds = new mapboxgl.LngLatBounds();
+      bounds.extend([lng, lat]);
+      places.forEach(p => bounds.extend([p.lng, p.lat]));
+      map.fitBounds(bounds, { padding: 40 });
     }
-  } catch(err){
-    console.error(err);
-    alert(err.message);
+
+    // 7) Render a text list under the map
+    const listEl = document.getElementById('market-list');
+    if (listEl) {
+      listEl.innerHTML = places.map(p => `
+        <div class="market-item">
+          <h4>${p.name}</h4>
+          <p>${p.address}</p>
+          <small>${p.distance.toFixed(1)} mi away</small>
+        </div>
+      `).join('');
+    }
+
+  } catch (err) {
+    console.error("✘ loadLocalResources error:", err);
+    alert(`Error loading local resources: ${err.message}`);
   }
 }
 
-document.addEventListener('DOMContentLoaded',loadLocalResources);
+document.addEventListener('DOMContentLoaded', loadLocalResources);
