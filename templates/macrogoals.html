@@ -1,3 +1,28 @@
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container px-5">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">My Profile</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('local_resources') }}">Local Resources</a></li>
+                    li class="nav-item"><a class="nav-link" href="{{ url_for('macrogoals') }}">Macro Tracking</a></li>
+                    <li class="nav-item"><a class="logout-btn nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
 <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md mt-6 border border-teal-600">
   <h2 class="text-xl font-bold mb-4 text-teal-700">My Daily Macro Goals</h2>
 
