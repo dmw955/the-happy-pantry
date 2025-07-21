@@ -2,25 +2,24 @@
 
 console.log("▶ local_resources.js loaded");
 
-// Your Mapbox token (used for map display, not for POI search)
 mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
 
 /** Calculate distance in miles between lat/lng pairs */
 function getDistance(lat1, lng1, lat2, lng2) {
   const toRad = d => d * Math.PI / 180;
-  const R = 3958.8; // Earth radius in miles
+  const R = 3958.8;
   const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lat2 - lng1);
+  const dLng = toRad(lng2 - lng1);
   const a = Math.sin(dLat / 2) ** 2 +
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
             Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/** Query OpenStreetMap for POIs via Overpass */
+/** Query Overpass API for local farms, butchers, and markets */
 async function fetchOverpassMarkets(lat, lng) {
   console.log("    • Overpass query (primary)");
-  const radius = 50 * 1609.34; // 50 miles in meters
+  const radius = 50 * 1609.34;
   const query = `
 [out:json][timeout:25];
 (
@@ -50,22 +49,27 @@ out center;
   });
 
   if (!res.ok) throw new Error(`Overpass failed: ${res.status}`);
-
   const { elements } = await res.json();
-  return elements.map(e => {
-    const latF = e.lat ?? e.center?.lat;
-    const lngF = e.lon ?? e.center?.lon;
-    const name = e.tags?.name || e.tags?.operator || 'Unknown';
-    const addr = e.tags?.['addr:full'] ||
-                 `${e.tags?.['addr:street'] || ''} ${e.tags?.['addr:housenumber'] || ''}`.trim();
-    return {
-      name,
-      address: addr || 'No address provided',
-      lat: latF,
-      lng: lngF,
-      distance: getDistance(lat, lng, latF, lngF)
-    };
-  });
+
+  return elements
+    .map(e => {
+      const latF = e.lat ?? e.center?.lat;
+      const lngF = e.lon ?? e.center?.lon;
+      if (!latF || !lngF) return null;
+
+      const name = e.tags?.name || e.tags?.operator || 'Unknown';
+      const addr = e.tags?.['addr:full'] ||
+        `${e.tags?.['addr:street'] || ''} ${e.tags?.['addr:housenumber'] || ''}`.trim();
+
+      return {
+        name,
+        address: addr || 'No address provided',
+        lat: latF,
+        lng: lngF,
+        distance: getDistance(lat, lng, latF, lngF)
+      };
+    })
+    .filter(Boolean); // ✅ removes nulls (bad coords)
 }
 
 /** Use Overpass to find local markets/farms/etc */
@@ -130,9 +134,9 @@ async function loadLocalResources() {
 
     const map = new mapboxgl.Map({
       container: 'map',
-      style:     'mapbox://styles/mapbox/streets-v11',
-      center:    [lng, lat],
-      zoom:      12
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [lng, lat],
+      zoom: 12
     });
 
     new mapboxgl.Marker({ color: 'blue' })
