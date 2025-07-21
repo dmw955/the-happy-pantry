@@ -3,8 +3,7 @@
 console.log("▶ local_resources.js loaded");
 
 // 1) Your Mapbox access token
-mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg';
-;
+mapboxgl.accessToken = 'pk.eyJ1IjoiZG13OTU1IiwiYSI6ImNtZDJ4MnRrNzB4NzcybG9oNXdic2x0c3gifQ.GFJRVWXHpkFtEQzxbXEzRg'
 
 /** Haversine distance in miles */
 function getDistance(lat1, lng1, lat2, lng2) {
@@ -26,7 +25,7 @@ function buildBBox(lat, lng, miles = 50) {
   return `${lng - dLng},${lat - dLat},${lng + dLng},${lat + dLat}`;
 }
 
-/** Single free-text Mapbox lookup */
+/** Single free-text Mapbox lookup, filtered to true POIs */
 async function fetchMapboxPlaces(lat, lng, query) {
   console.log(`    • Mapbox search: "${query}"`);
   const bbox = buildBBox(lat, lng, 50);
@@ -40,7 +39,20 @@ async function fetchMapboxPlaces(lat, lng, query) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Mapbox search error: ${res.status}`);
   const { features } = await res.json();
-  return features.map(f => {
+
+  // 1) Only keep Mapbox Place POIs (id prefix "poi.")
+  const poiFeatures = features.filter(f => f.id && f.id.startsWith('poi.'));
+
+  // 2) Further filter by category or name keywords
+  const kw = /market|farm|butcher|grocery|veg/i;
+  const filtered = poiFeatures.filter(f => {
+    const cat = (f.properties && f.properties.category) || '';
+    return kw.test(cat) || kw.test(f.text);
+  });
+  console.log(`      ✓ filtered ${filtered.length}/${features.length} features to true POIs`);
+
+  // 3) Map to our simpler object
+  return filtered.map(f => {
     const [lon, latf] = f.geometry.coordinates;
     return {
       name:     f.text,
@@ -52,9 +64,7 @@ async function fetchMapboxPlaces(lat, lng, query) {
   });
 }
 
-/** 
- * Run multiple targeted queries, merge & dedupe 
- */
+/** Run multiple targeted queries, merge & dedupe */
 async function fetchAllMarkets(lat, lng) {
   const queries = [
     'farmers market',
@@ -123,15 +133,17 @@ async function loadLocalResources() {
 
     // 4) Fetch & plot all markets
     const markets = await fetchAllMarkets(lat, lng);
-
     markets.forEach(m => {
       const el = document.createElement('div');
-      el.style.cssText = 'width:16px;height:16px;background:#e74c3c;border:2px solid white;border-radius:50%';
+      el.style.cssText =
+        'width:16px;height:16px;background:#e74c3c;' +
+        'border:2px solid white;border-radius:50%';
       new mapboxgl.Marker({ element: el })
         .setLngLat([m.lng, m.lat])
         .setPopup(
           new mapboxgl.Popup().setHTML(
-            `<strong>${m.name}</strong><br>${m.address}<br><em>${m.distance.toFixed(1)} mi away</em>`
+            `<strong>${m.name}</strong><br>${m.address}<br>` +
+            `<em>${m.distance.toFixed(1)} mi away</em>`
           )
         )
         .addTo(map);
