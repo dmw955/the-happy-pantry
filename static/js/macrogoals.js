@@ -1,10 +1,3 @@
-// Ensure Supabase is initialized before using this script
-// Replace with your actual URL and public anon key if needed
-const supabase = supabase?.createClient?.(
-  "https://ulaaelkluixsmqozeaaa.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs"
-);
-
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     // 🔐 Get the current user
