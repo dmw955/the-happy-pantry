@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // 🔐 Get the current user
     const {
       data: { user },
       error: userError,
@@ -22,7 +21,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .from("macro_goals")
         .select("*")
         .eq("user_id", userId)
-        .maybeSingle(); // ✅ avoids 406 when no row exists
+        .maybeSingle();
 
       if (error) {
         console.error("Error loading goals:", error);
@@ -32,13 +31,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data) {
         const { calories, protein, carbs, fat } = data;
 
-        // If all macros are filled, assume goals are set and redirect
         if (calories && protein && carbs && fat) {
           window.location.href = "macrotracking.html";
           return;
         }
 
-        // Prefill form fields if partially completed
         document.getElementById("calories").value = calories || "";
         document.getElementById("protein").value = protein || "";
         document.getElementById("carbs").value = carbs || "";
@@ -52,12 +49,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
+      const age = +document.getElementById("age").value;
+      const gender = document.getElementById("gender").value;
+      const height = +document.getElementById("height").value;
+      const weight = +document.getElementById("weight").value;
+      const activity = parseFloat(document.getElementById("activity").value);
+
+      // Mifflin-St Jeor calculation
+      let bmr;
+      if (gender === "male") {
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5;
+      } else {
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161;
+      }
+
+      const calories = Math.round(bmr * activity);
+      const protein = Math.round((calories * 0.3) / 4);
+      const fat = Math.round((calories * 0.3) / 9);
+      const carbs = Math.round((calories * 0.4) / 4);
+
+      // Auto-fill preview fields (optional if still visible)
+      document.getElementById("calories").value = calories;
+      document.getElementById("protein").value = protein;
+      document.getElementById("carbs").value = carbs;
+      document.getElementById("fat").value = fat;
+
       const goalData = {
         user_id: userId,
-        calories: +document.getElementById("calories").value,
-        protein: +document.getElementById("protein").value,
-        carbs: +document.getElementById("carbs").value,
-        fat: +document.getElementById("fat").value,
+        calories,
+        protein,
+        carbs,
+        fat,
         updated_at: new Date().toISOString(),
       };
 
@@ -67,13 +89,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (error) {
         statusEl.textContent = "❌ Error saving goals.";
-        statusEl.classList.add("text-red-600");
+        statusEl.classList.add("text-danger");
       } else {
         statusEl.textContent = "✅ Goals saved!";
-        statusEl.classList.remove("text-red-600");
-        statusEl.classList.add("text-green-600");
+        statusEl.classList.remove("text-danger");
+        statusEl.classList.add("text-success");
 
-        // Redirect after short delay
         setTimeout(() => {
           window.location.href = "macrotracking.html";
         }, 1000);
