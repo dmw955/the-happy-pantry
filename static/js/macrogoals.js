@@ -22,9 +22,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         .from("macro_goals")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle(); // ✅ avoids 406 when no row exists
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.error("Error loading goals:", error);
         return;
       }
