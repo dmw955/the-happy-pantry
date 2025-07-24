@@ -163,6 +163,10 @@ def success():
 def cancel():
     return render_template('cancel.html')
 
+@app.route("/macrotracking")
+def macro_tracking():
+    return render_template("macrotracking.html")
+
 @app.route('/error')
 def error():
     message = request.args.get('message', 'An error occurred during your transaction.')

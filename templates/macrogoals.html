@@ -10,9 +10,19 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
 
-  <!-- Supabase & JS -->
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
-  <script src="{{ url_for('static', filename='js/macrogoals.js') }}"></script>
+
+  <!-- Supabase Initialization (REPLACE with your actual keys) -->
+  <script>
+    const supabase = supabase.createClient(
+      'https://ulaaelkluixsmqozeaaa.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs'
+    );
+  </script>
+
+  <!-- Macro Goals Script -->
+  <script src="{{ url_for('static', filename='js/macrogoals.js') }}" defer></script>
 
   <style>
     :root {
@@ -127,7 +137,7 @@
     </div>
     <div class="col-12 text-center">
       <button type="submit" class="btn btn-primary-custom mt-3">Save Goals</button>
-<p id="goal-status" class="text-sm mt-2"></p>
+      <p id="goal-status" class="text-sm mt-2"></p>
     </div>
   </form>
 </div>
