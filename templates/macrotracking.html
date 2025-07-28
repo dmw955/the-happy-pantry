@@ -47,7 +47,7 @@
           <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('local_resources') }}">Local Resources</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('macrogoals') }}">Macro Tracking</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('macro_goals') }}">Macro Tracking</a></li>
           <li class="nav-item"><a class="logout-btn nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
         </ul>
       </div>
@@ -61,7 +61,19 @@
       <div class="d-flex justify-content-center flex-wrap gap-3">
         <button class="btn btn-primary-custom">Add from My Recipes</button>
         <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#mealModal">Manually Add Food</button>
-        <button class="btn btn-primary-custom">Search USDA Foods</button>
+        <button class="btn btn-primary-custom" data-bs-toggle="collapse" data-bs-target="#usdaSearchBox">Search USDA Foods</button>
+      </div>
+    </div>
+
+    <!-- USDA Search Box -->
+    <div class="collapse mb-4" id="usdaSearchBox">
+      <div class="card p-4">
+        <form id="usda-search-form" class="mb-3">
+          <label for="usda-search-input" class="form-label">Search USDA Food Database</label>
+          <input type="text" class="form-control" id="usda-search-input" placeholder="e.g. Lays Potato Chips" required>
+          <button type="submit" class="btn btn-primary-custom mt-2">Search</button>
+        </form>
+        <div id="usda-results"></div>
       </div>
     </div>
 

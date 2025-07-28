@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const macroChartCanvas = document.getElementById("macroCircleChart");
   const weeklyTableBody = document.getElementById("weekly-macros");
+  const usdaSearchForm = document.getElementById("usda-search-form");
+  const usdaResultsContainer = document.getElementById("usda-results");
 
   let user;
 
@@ -83,7 +85,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
     });
 
-    // Meal Form Submission
     const mealForm = document.getElementById("meal-form");
     mealForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -117,6 +118,71 @@ document.addEventListener("DOMContentLoaded", async () => {
         setTimeout(() => location.reload(), 1000);
       }
     });
+
+    // USDA Food Search
+    usdaSearchForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const query = document.getElementById("usda-search-input").value.trim();
+      if (!query) return;
+
+      usdaResultsContainer.innerHTML = "<p>Searching...</p>";
+      try {
+        const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
+        const data = await res.json();
+
+        if (!data.foods || data.foods.length === 0) {
+          usdaResultsContainer.innerHTML = "<p>No results found.</p>";
+          return;
+        }
+
+        usdaResultsContainer.innerHTML = data.foods
+          .slice(0, 10)
+          .map(food => `
+            <div class="card p-3 mb-2">
+              <h6>${food.description}</h6>
+              <button class="btn btn-primary-custom" onclick="logUSDAFood('${food.fdcId}', '${food.description.replace(/'/g, "")}')">Log This</button>
+            </div>`
+          ).join("");
+
+      } catch (err) {
+        console.error("USDA search error", err);
+        usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
+      }
+    });
+
+    window.logUSDAFood = async (fdcId, name) => {
+      try {
+        const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
+        const data = await res.json();
+        const nutrients = data.foodNutrients.reduce((acc, n) => {
+          if (n.nutrientName.includes("Protein")) acc.protein = n.value;
+          if (n.nutrientName.includes("Carbohydrate")) acc.carbs = n.value;
+          if (n.nutrientName.includes("Total lipid")) acc.fat = n.value;
+          return acc;
+        }, { protein: 0, carbs: 0, fat: 0 });
+
+        const { error } = await supabase.from("macro_log").insert([
+          {
+            user_id: user.id,
+            date: today,
+            name,
+            protein: nutrients.protein,
+            carbs: nutrients.carbs,
+            fat: nutrients.fat,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+        if (error) alert("Error logging food.");
+        else {
+          alert("✅ Logged " + name);
+          location.reload();
+        }
+      } catch (err) {
+        console.error("Error logging USDA food", err);
+      }
+    };
+
   } catch (err) {
     console.error("Unexpected error loading macro tracking", err);
   }

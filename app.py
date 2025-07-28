@@ -167,6 +167,23 @@ def cancel():
 def macro_tracking():
     return render_template("macrotracking.html")
 
+@app.route('/usda/search')
+def usda_search():
+    query = request.args.get('query')
+    res = requests.get(
+        "https://api.nal.usda.gov/fdc/v1/foods/search",
+        params={"query": query, "api_key": USDA_API_KEY, "pageSize": 10}
+    )
+    return jsonify(res.json())
+
+@app.route('/usda/detail')
+def usda_detail():
+    fdc_id = request.args.get('fdcId')
+    res = requests.get(
+        f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}",
+        params={"api_key": USDA_API_KEY}
+    )
+
 @app.route('/error')
 def error():
     message = request.args.get('message', 'An error occurred during your transaction.')
