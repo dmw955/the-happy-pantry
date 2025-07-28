@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from supabase import create_client
 import os
 from dotenv import load_dotenv
 import json
+import requests
 
 # Load environment variables
 load_dotenv()
@@ -13,6 +14,7 @@ app.secret_key = os.urandom(24)
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+USDA_API_KEY = os.getenv("USDA_API_KEY")
 
 # Create clients
 supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
@@ -24,7 +26,6 @@ def home():
 
 @app.route('/dashboard')
 def dashboard():
-    # Server-side gate removed; front-end will handle session checks
     return render_template('dashboard.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -159,10 +160,6 @@ def payment_processing():
 def success():
     return render_template('success.html')
 
-@app.route('/cancel')
-def cancel():
-    return render_template('cancel.html')
-
 @app.route("/macrotracking")
 def macro_tracking():
     return render_template("macrotracking.html")
@@ -183,6 +180,7 @@ def usda_detail():
         f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}",
         params={"api_key": USDA_API_KEY}
     )
+    return jsonify(res.json())
 
 @app.route('/error')
 def error():
@@ -201,7 +199,6 @@ def local_resources():
 def macro_goals():
     return render_template("macrogoals.html")
 
-
 @app.route('/subscribe/<plan_type>')
 def subscribe(plan_type):
     if plan_type not in ['monthly', 'yearly']:
@@ -210,7 +207,6 @@ def subscribe(plan_type):
 
 @app.route('/recipes')
 def recipes():
-    # Server-side login gate removed; front-end will handle auth checks
     return render_template(
         'recipes.html',
         SUPABASE_URL=SUPABASE_URL,
