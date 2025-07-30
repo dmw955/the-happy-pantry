@@ -162,7 +162,24 @@ def success():
 
 @app.route("/macrotracking")
 def macro_tracking():
+    user_id = session.get('user_id')
+
+    if not user_id:
+        flash("⚠️ Please log in first.", "warning")
+        return redirect(url_for('login'))
+
+    # Check if the user has macro goals saved
+    try:
+        response = supabase.table("macro_goals").select("*").eq("user_id", user_id).execute()
+        if not response.data:
+            flash("⚠️ Please set your macro goals first.", "warning")
+            return redirect(url_for("macro_goals"))
+    except Exception:
+        flash("❌ Unable to check macro goals. Try again later.", "danger")
+        return redirect(url_for("dashboard"))
+
     return render_template("macrotracking.html")
+
 
 @app.route('/usda/search')
 def usda_search():

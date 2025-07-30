@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (authError || !sessionUser) {
       console.error("User not logged in");
-      window.location.href = "login.html";
+      window.location.href = "/login";
       return;
     }
     user = sessionUser;
@@ -24,6 +24,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       .select("calories, protein, carbs, fat")
       .eq("user_id", user.id)
       .maybeSingle();
+
+    // ✅ Redirect if macro goals not found
+    if (!goalData) {
+      console.warn("No macro goals found, redirecting...");
+      window.location.href = "/macrogoals";
+      return;
+    }
 
     const today = new Date().toISOString().split("T")[0];
     const { data: todayLogs } = await supabase
@@ -141,8 +148,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="card p-3 mb-2">
               <h6>${food.description}</h6>
               <button class="btn btn-primary-custom" onclick="logUSDAFood('${food.fdcId}', '${food.description.replace(/'/g, "")}')">Log This</button>
-            </div>`
-          ).join("");
+            </div>`).join("");
 
       } catch (err) {
         console.error("USDA search error", err);
