@@ -35,17 +35,23 @@ def login():
         password = request.form.get('password')
         try:
             response = supabase.auth.sign_in_with_password({"email": email, "password": password})
+
             if response and hasattr(response, 'user') and response.user:
                 session['user_id'] = response.user.id
                 session['email'] = response.user.email
                 session['member_since'] = response.user.created_at.strftime("%B %Y") if response.user.created_at else "Unknown"
+                session['access_token'] = response.session.access_token if response.session else None
+                session['refresh_token'] = response.session.refresh_token if response.session else None
                 session.permanent = True
                 flash("✅ Login Successful!", "success")
                 return redirect(url_for('dashboard'))
+
             flash("❌ Invalid email or password. Please try again.", "danger")
-        except Exception:
+        except Exception as e:
+            print("Login error:", e)
             flash("❌ Something went wrong. Please try again later.", "danger")
-    return render_template('login.html')
+    return render_template('login.html', SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
+
 
 @app.route('/logout')
 def logout():
