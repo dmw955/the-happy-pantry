@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (userError || !user) {
       console.error("User not logged in:", userError);
-      window.location.href = "login.html";
+      window.location.href = "/login";
       return;
     }
 
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { calories, protein, carbs, fat } = data;
 
         if (calories && protein && carbs && fat) {
-          window.location.href = "macrotracking.html";
+          window.location.href = "/macrotracking"; // ✅ FIXED
           return;
         }
 
@@ -68,7 +68,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const fat = Math.round((calories * 0.3) / 9);
       const carbs = Math.round((calories * 0.4) / 4);
 
-      // Auto-fill preview fields (optional if still visible)
       document.getElementById("calories").value = calories;
       document.getElementById("protein").value = protein;
       document.getElementById("carbs").value = carbs;
@@ -96,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         statusEl.classList.add("text-success");
 
         setTimeout(() => {
-          window.location.href = "macrotracking.html";
+          window.location.href = "/macrotracking"; // ✅ FIXED
         }, 1000);
       }
     });
