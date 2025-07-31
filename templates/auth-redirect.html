@@ -7,10 +7,12 @@
 <body>
   <p>Redirecting, please wait...</p>
 
+  <!-- Load Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
   <script>
-    const supabaseUrl = 'https://ulaaelkluixsmqozeaaa.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs';
+    const supabaseUrl = "{{ SUPABASE_URL }}";
+    const supabaseAnonKey = "{{ SUPABASE_ANON_KEY }}";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     async function handleRedirect() {
@@ -27,13 +29,26 @@
         });
 
         if (error) {
-          console.error('Error setting session:', error.message);
+          console.error('❌ Error setting session:', error.message);
         } else {
           console.log('✅ Supabase session set via redirect');
-          window.location.href = '/dashboard.html'; // 👈 Change this if needed
+
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+          if (user?.id) {
+            await fetch('/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: user.id })
+            });
+            console.log("✅ User ID sent to Flask session");
+          }
+
+          // Redirect to dashboard or anywhere needed
+          window.location.href = '/dashboard';
         }
       } else {
         console.warn('⚠️ No access token found in redirect');
+        window.location.href = '/login';
       }
     }
 

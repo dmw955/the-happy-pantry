@@ -28,6 +28,14 @@ def home():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route("/auth-redirect")
+def auth_redirect():
+    return render_template("auth-redirect.html", 
+        SUPABASE_URL=SUPABASE_URL, 
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+    )
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -52,6 +60,20 @@ def login():
             flash("❌ Something went wrong. Please try again later.", "danger")
     return render_template('login.html', SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
+@app.route("/session", methods=["POST"])
+def store_session():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    email = data.get("email")
+
+    if user_id:
+        session["user_id"] = user_id
+        session["email"] = email
+        print("✅ Session set via JS for user:", email)
+        return jsonify({"message": "Session stored"}), 200
+    else:
+        print("❌ No user_id provided in /session")
+        return jsonify({"error": "user_id missing"}), 400
 
 @app.route('/logout')
 def logout():
@@ -174,7 +196,6 @@ def macro_tracking():
         flash("⚠️ Please log in first.", "warning")
         return redirect(url_for('login'))
 
-    # Check if the user has macro goals saved
     try:
         response = supabase.table("macro_goals").select("*").eq("user_id", user_id).execute()
         if not response.data:
@@ -185,7 +206,6 @@ def macro_tracking():
         return redirect(url_for("dashboard"))
 
     return render_template("macrotracking.html")
-
 
 @app.route('/usda/search')
 def usda_search():
