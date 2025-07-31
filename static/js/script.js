@@ -1,13 +1,11 @@
-// ✅ Ensure Supabase is loaded
-if (typeof supabase === 'undefined') {
-  console.error("❌ Supabase library not loaded! Check script tag order in your HTML.");
+// ✅ Ensure Supabase environment variables are loaded from HTML
+if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
+  console.error("❌ Supabase environment variables not defined. Make sure they are injected into the HTML.");
 }
 
-// ✅ Initialize Supabase client once globally
+// ✅ Initialize Supabase client globally
 if (typeof window.supabaseClient === "undefined") {
-  const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-  window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+  window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   console.log("✅ Supabase client created globally");
 }
 
@@ -115,7 +113,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-
   window.addEventListener("scroll", fadeInOnScroll);
   fadeInOnScroll();
 
@@ -154,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         if (response.ok) {
-          window.location.href = "/dashboard";
+          window.location.href = "/dashboard";  // Or any protected route
         } else {
           loginError.textContent = "Failed to sync session with backend.";
           loginError.style.display = "block";
