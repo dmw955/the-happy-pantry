@@ -17,10 +17,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("✅ script.js is running!");
 
   if (window.location.pathname === '/login') {
-  await supabaseClient.auth.signOut();
-  console.log("🔌 Cleared Supabase session on login page");
-}
-
+    await supabaseClient.auth.signOut();
+    console.log("🔌 Cleared Supabase session on login page");
+  }
 
   // 🔐 Handle magic link / password reset link or hosted login redirect
   const hash = window.location.hash;
@@ -120,13 +119,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.addEventListener("scroll", fadeInOnScroll);
   fadeInOnScroll();
 
-  // CLIENT-SIDE LOGIN WITH SUPABASE JS
+  // ✅ CLIENT-SIDE LOGIN WITH SESSION SYNC
   const loginForm = document.getElementById("loginForm");
   if (loginForm) {
-    const emailInput    = document.getElementById("loginEmail");
+    const emailInput = document.getElementById("loginEmail");
     const passwordInput = document.getElementById("loginPassword");
-    const loginBtn      = document.querySelector("#loginForm button[type=submit]");
-    const loginError    = document.getElementById("loginError");
+    const loginBtn = document.querySelector("#loginForm button[type=submit]");
+    const loginError = document.getElementById("loginError");
 
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -134,20 +133,39 @@ document.addEventListener("DOMContentLoaded", async () => {
       loginError.style.display = "none";
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email:    emailInput.value.trim(),
+        email: emailInput.value.trim(),
         password: passwordInput.value,
       });
 
       if (error) {
         loginError.textContent = error.message;
         loginError.style.display = "block";
-      } else {
-        // On success, redirect to dashboard instead of recipes
-        window.location.href = "/dashboard";
+        loginBtn.disabled = false;
+        return;
+      }
+
+      try {
+        const token = data.session.access_token;
+
+        const response = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        if (response.ok) {
+          window.location.href = "/dashboard";  // Or any protected route
+        } else {
+          loginError.textContent = "Failed to sync session with backend.";
+          loginError.style.display = "block";
+        }
+      } catch (err) {
+        console.error("Error sending token to backend:", err);
+        loginError.textContent = "Unexpected error.";
+        loginError.style.display = "block";
       }
 
       loginBtn.disabled = false;
     });
   }
-
 });
