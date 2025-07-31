@@ -6,7 +6,7 @@ if (typeof supabase === 'undefined') {
 // ✅ Initialize Supabase client once globally
 if (typeof window.supabaseClient === "undefined") {
   const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
   window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
   console.log("✅ Supabase client created globally");
 }
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         if (response.ok) {
-          window.location.href = "/dashboard";  // Or any protected route
+          window.location.href = "/dashboard";
         } else {
           loginError.textContent = "Failed to sync session with backend.";
           loginError.style.display = "block";
@@ -168,4 +168,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       loginBtn.disabled = false;
     });
   }
+
+  // ✅ Session Sync: Send Supabase session to Flask on every page load
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session && session.user) {
+      fetch("/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: session.user.id })
+      }).then(res => {
+        if (res.ok) {
+          console.log("✅ Flask session updated with Supabase user_id");
+        } else {
+          console.warn("❌ Flask session update failed");
+        }
+      }).catch(err => {
+        console.error("❌ Error updating Flask session:", err);
+      });
+    } else {
+      console.log("⚠️ No Supabase session to sync to Flask");
+    }
+  });
+
 });
