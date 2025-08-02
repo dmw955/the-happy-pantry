@@ -80,20 +80,8 @@ def logout():
 
 @app.route('/profile')
 def profile():
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("⚠️ Please log in to access your profile.", "warning")
-        return render_template('profile.html')
-
-    user = {
-        'email': session.get('email', 'Not Available'),
-        'member_since': session.get('member_since', 'Unknown'),
-        'email_notifications': session.get('email_notifications', False)
-    }
-
     return render_template(
         'profile.html',
-        user=user,
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
@@ -201,21 +189,19 @@ def success():
 
 @app.route("/macrotracking")
 def macro_tracking():
-    user_id = session.get('user_id')
-    if not user_id:
-        flash("⚠️ Please log in first.", "warning")
-        return render_template("macrotracking.html")
+    return render_template(
+        "macrotracking.html",
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+    )
 
-    try:
-        response = supabase.table("macro_goals").select("*").eq("user_id", user_id).execute()
-        if not response.data:
-            flash("⚠️ Please set your macro goals first.", "warning")
-            return redirect(url_for("macro_goals"))
-    except Exception:
-        flash("❌ Unable to check macro goals. Try again later.", "danger")
-        return redirect(url_for("dashboard"))
-
-    return render_template("macrotracking.html")
+@app.route("/macrogoals")
+def macro_goals():
+    return render_template(
+        "macrogoals.html",
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+    )
 
 @app.route('/usda/search')
 def usda_search():
@@ -243,14 +229,10 @@ def error():
 @app.route('/local-resources')
 def local_resources():
     return render_template(
-      'local_resources.html',
-      SUPABASE_URL=SUPABASE_URL,
-      SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        'local_resources.html',
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
-
-@app.route("/macrogoals")
-def macro_goals():
-    return render_template("macrogoals.html")
 
 @app.route('/subscribe/<plan_type>')
 def subscribe(plan_type):
