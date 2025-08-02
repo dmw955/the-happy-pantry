@@ -1,3 +1,4 @@
+<!-- 🔁 Updated login.html (same layout, fixes auth) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,15 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Login - The Happy Pantry</title>
 
-  <meta name="description" content="Login - The Happy Pantry">
-  <meta name="author" content="The Happy Pantry Team">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}" />
-
-  <!-- Bootstrap & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- ✅ Config before auth.js -->
+  <script>
+    window.SUPABASE_URL = "{{ SUPABASE_URL }}";
+    window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+  </script>
+
+  <!-- ✅ Load Supabase + auth -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+  <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
 
   <style>
     :root {
@@ -98,17 +103,11 @@
       font-size: 0.9rem;
     }
   </style>
-
-  <!-- Supabase Config -->
-  <script>
-    const SUPABASE_URL = "{{ SUPABASE_URL }}";
-    const SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
-  </script>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
 
-  <!-- Navbar -->
+  <!-- ✅ Navbar -->
   <nav class="navbar navbar-expand-lg">
     <div class="container px-5">
       <a class="navbar-brand" href="{{ url_for('home') }}">
@@ -129,7 +128,7 @@
     </div>
   </nav>
 
-  <!-- Login Box -->
+  <!-- ✅ Login Box -->
   <main class="flex-grow-1 d-flex align-items-center justify-content-center">
     <div class="login-container">
       <h2 class="mb-4 fw-bold text-dark">Login to Your Account</h2>
@@ -149,29 +148,27 @@
     </div>
   </main>
 
-  <!-- Footer -->
+  <!-- ✅ Footer -->
   <footer class="footer-bg mt-auto">
     <div class="container px-4 py-2 d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 text-center">
       <p class="m-0">&copy; 2025 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
-         class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
+      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
         <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px;" />
       </a>
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <!-- ✅ Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 
   {% if session.access_token and session.refresh_token %}
   <script>
-    const supabase = supabase || createClient('{{ SUPABASE_URL }}', '{{ SUPABASE_ANON_KEY }}');
+    const supabase = window.supabase || window.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     supabase.auth.setSession({
       access_token: "{{ session.access_token }}",
       refresh_token: "{{ session.refresh_token }}"
-    }).then(({ data, error }) => {
+    }).then(({ error }) => {
       if (error) {
         console.error("❌ Supabase session sync failed:", error);
       } else {
