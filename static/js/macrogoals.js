@@ -1,5 +1,17 @@
 document.addEventListener("DOMContentLoaded", async () => {
   try {
+    // ✅ Initialize Supabase
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      console.error("❌ Supabase config missing.");
+      return;
+    }
+
+    const supabase = window.supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+
+    // ✅ Get current user
     const {
       data: { user },
       error: userError,
@@ -32,7 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { calories, protein, carbs, fat } = data;
 
         if (calories && protein && carbs && fat) {
-          window.location.href = "/macrotracking"; // ✅ FIXED
+          window.location.href = "/macrotracking"; // ✅ redirect if already set
           return;
         }
 
@@ -95,11 +107,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         statusEl.classList.add("text-success");
 
         setTimeout(() => {
-          window.location.href = "/macrotracking"; // ✅ FIXED
+          window.location.href = "/macrotracking";
         }, 1000);
       }
     });
   } catch (err) {
-    console.error("Initialization error:", err);
+    console.error("🔥 Initialization error:", err);
   }
 });

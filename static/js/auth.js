@@ -1,14 +1,15 @@
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // Ensure Supabase is initialized
+    // ✅ Validate Supabase config
     if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
       console.error("❌ Missing Supabase config");
       return;
     }
 
-    const supabase = window.supabase || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ✅ Correctly initialize Supabase client
+    const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-    // Check if user is logged in
+    // ✅ Check if user is logged in
     const { data, error } = await supabase.auth.getUser();
 
     if (error || !data?.user) {
@@ -18,13 +19,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const user = data.user;
 
-    // Send limited info to Flask
+    // ✅ Build payload
     const payload = {
       user_id: user.id,
       email: user.email
     };
 
-    // Prevent multiple syncs per browser session
+    // ✅ Prevent re-sending during same browser session
     if (!sessionStorage.getItem("flaskSessionSet")) {
       const res = await fetch("/session", {
         method: "POST",
