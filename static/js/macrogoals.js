@@ -1,17 +1,16 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    // ✅ Initialize Supabase
-    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-      console.error("❌ Supabase config missing.");
-      return;
-    }
+  // ✅ Route guard: only run on macrogoals page
+  if (window.location.pathname !== "/macrogoals") return;
 
-    const supabase = window.supabase.createClient(
-      window.SUPABASE_URL,
-      window.SUPABASE_ANON_KEY
+  try {
+    // ✅ Supabase singleton init
+    const supabase = window.supabase || (
+      window.supabase = supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      )
     );
 
-    // ✅ Get current user
     const {
       data: { user },
       error: userError,
@@ -27,7 +26,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const form = document.getElementById("macro-goals-form");
     const statusEl = document.getElementById("goal-status");
 
-    // 🚀 Load existing macro goals
     async function loadGoals() {
       const { data, error } = await supabase
         .from("macro_goals")
@@ -44,7 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { calories, protein, carbs, fat } = data;
 
         if (calories && protein && carbs && fat) {
-          window.location.href = "/macrotracking"; // ✅ redirect if already set
+          window.location.href = "/macrotracking";
           return;
         }
 
@@ -57,7 +55,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadGoals();
 
-    // 📝 Handle form submit
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -67,7 +64,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const weight = +document.getElementById("weight").value;
       const activity = parseFloat(document.getElementById("activity").value);
 
-      // Mifflin-St Jeor calculation
       let bmr;
       if (gender === "male") {
         bmr = 10 * weight + 6.25 * height - 5 * age + 5;

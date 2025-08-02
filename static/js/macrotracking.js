@@ -1,32 +1,31 @@
 document.addEventListener("DOMContentLoaded", async () => {
   if (window.location.pathname !== "/macrotracking") return;
 
-  // ✅ Initialize Supabase
-  const supabase = window.supabase.createClient(
-    window.SUPABASE_URL,
-    window.SUPABASE_ANON_KEY
-  );
-
-  const macroChartCanvas = document.getElementById("macroCircleChart");
-  const weeklyTableBody = document.getElementById("weekly-macros");
-  const usdaSearchForm = document.getElementById("usda-search-form");
-  const usdaResultsContainer = document.getElementById("usda-results");
-
-  let user;
-
   try {
+    // ✅ Supabase singleton instance
+    const supabase = window.supabase || (
+      window.supabase = supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      )
+    );
+
+    const macroChartCanvas = document.getElementById("macroCircleChart");
+    const weeklyTableBody = document.getElementById("weekly-macros");
+    const usdaSearchForm = document.getElementById("usda-search-form");
+    const usdaResultsContainer = document.getElementById("usda-results");
+
+    // ✅ Check user session
     const {
-      data: { user: sessionUser },
+      data: { user },
       error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !sessionUser) {
-      console.error("User not logged in");
+    if (authError || !user) {
+      console.warn("User not logged in:", authError);
       window.location.href = "/login";
       return;
     }
-
-    user = sessionUser;
 
     const { data: goalData } = await supabase
       .from("macro_goals")
@@ -40,8 +39,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // ✅ Daily macros
     const today = new Date().toISOString().split("T")[0];
-    const { data: todayLogs } = await supabase
+    const { data: todayLogs = [] } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
       .eq("user_id", user.id)
@@ -78,7 +78,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     });
 
-    const { data: weeklyLogs } = await supabase
+    // ✅ Weekly macro logs
+    const { data: weeklyLogs = [] } = await supabase
       .from("macro_log")
       .select("date, protein, carbs, fat")
       .eq("user_id", user.id)
@@ -87,8 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     weeklyTableBody.innerHTML = "";
     weeklyLogs.forEach((entry) => {
-      const calories =
-        entry.protein * 4 + entry.carbs * 4 + entry.fat * 9;
+      const calories = entry.protein * 4 + entry.carbs * 4 + entry.fat * 9;
       weeklyTableBody.innerHTML += `
         <tr>
           <td>${entry.date}</td>
@@ -100,6 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
     });
 
+    // ✅ Manual meal logging
     const mealForm = document.getElementById("meal-form");
     mealForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -110,20 +111,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const fat = parseFloat(document.getElementById("fat").value);
       const logStatus = document.getElementById("log-status");
 
-      const { error } = await supabase.from("macro_log").insert([
-        {
-          user_id: user.id,
-          date: today,
-          name,
-          protein,
-          carbs,
-          fat,
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      const { error } = await supabase.from("macro_log").insert([{
+        user_id: user.id,
+        date: today,
+        name,
+        protein,
+        carbs,
+        fat,
+        created_at: new Date().toISOString(),
+      }]);
 
       if (error) {
-        console.error("Failed to log meal:", error);
         logStatus.textContent = "❌ Failed to log meal.";
         logStatus.classList.add("text-danger");
       } else {
@@ -134,13 +132,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // USDA Food Search
+    // ✅ USDA food search
     usdaSearchForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const query = document.getElementById("usda-search-input").value.trim();
       if (!query) return;
 
       usdaResultsContainer.innerHTML = "<p>Searching...</p>";
+
       try {
         const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
         const data = await res.json();
@@ -164,10 +163,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
+    // ✅ USDA food log handler
     window.logUSDAFood = async (fdcId, name) => {
       try {
         const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
         const data = await res.json();
+
         const nutrients = data.foodNutrients.reduce((acc, n) => {
           if (n.nutrientName.includes("Protein")) acc.protein = n.value;
           if (n.nutrientName.includes("Carbohydrate")) acc.carbs = n.value;
@@ -175,19 +176,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           return acc;
         }, { protein: 0, carbs: 0, fat: 0 });
 
-        const { error } = await supabase.from("macro_log").insert([
-          {
-            user_id: user.id,
-            date: today,
-            name,
-            protein: nutrients.protein,
-            carbs: nutrients.carbs,
-            fat: nutrients.fat,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        const { error } = await supabase.from("macro_log").insert([{
+          user_id: user.id,
+          date: today,
+          name,
+          protein: nutrients.protein,
+          carbs: nutrients.carbs,
+          fat: nutrients.fat,
+          created_at: new Date().toISOString(),
+        }]);
 
-        if (error) alert("Error logging food.");
+        if (error) alert("❌ Error logging food.");
         else {
           alert("✅ Logged " + name);
           location.reload();
@@ -198,6 +197,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
   } catch (err) {
-    console.error("Unexpected error loading macro tracking", err);
+    console.error("🔥 Unexpected error loading macro tracking:", err);
   }
 });
