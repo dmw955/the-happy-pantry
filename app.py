@@ -83,7 +83,8 @@ def profile():
     return render_template(
         'profile.html',
         SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
+        user={}  # ← This prevents template crash
     )
 
 @app.route('/update_profile', methods=['POST'])
