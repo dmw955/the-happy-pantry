@@ -1,4 +1,12 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  if (window.location.pathname !== "/macrotracking") return;
+
+  // ✅ Initialize Supabase
+  const supabase = window.supabase.createClient(
+    window.SUPABASE_URL,
+    window.SUPABASE_ANON_KEY
+  );
+
   const macroChartCanvas = document.getElementById("macroCircleChart");
   const weeklyTableBody = document.getElementById("weekly-macros");
   const usdaSearchForm = document.getElementById("usda-search-form");
@@ -17,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.location.href = "/login";
       return;
     }
+
     user = sessionUser;
 
     const { data: goalData } = await supabase
@@ -25,7 +34,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    // ✅ Redirect if macro goals not found
     if (!goalData) {
       console.warn("No macro goals found, redirecting...");
       window.location.href = "/macrogoals";
@@ -93,7 +101,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     const mealForm = document.getElementById("meal-form");
-    mealForm.addEventListener("submit", async (e) => {
+    mealForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const name = document.getElementById("meal-name").value.trim();
@@ -127,7 +135,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // USDA Food Search
-    usdaSearchForm.addEventListener("submit", async (e) => {
+    usdaSearchForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const query = document.getElementById("usda-search-input").value.trim();
       if (!query) return;
