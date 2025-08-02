@@ -16,7 +16,7 @@ SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 USDA_API_KEY = os.getenv("USDA_API_KEY")
 
-# Create clients
+# Create Supabase clients
 supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
@@ -35,7 +35,6 @@ def auth_redirect():
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -43,7 +42,6 @@ def login():
         password = request.form.get('password')
         try:
             response = supabase.auth.sign_in_with_password({"email": email, "password": password})
-
             if response and hasattr(response, 'user') and response.user:
                 session['user_id'] = response.user.id
                 session['email'] = response.user.email
@@ -53,7 +51,6 @@ def login():
                 session.permanent = True
                 flash("✅ Login Successful!", "success")
                 return redirect(url_for('dashboard'))
-
             flash("❌ Invalid email or password. Please try again.", "danger")
         except Exception as e:
             print("Login error:", e)
@@ -83,10 +80,11 @@ def logout():
 
 @app.route('/profile')
 def profile():
-    if 'user_id' not in session:
+    user_id = session.get('user_id')
+    if not user_id:
         flash("⚠️ Please log in to access your profile.", "warning")
-        return redirect(url_for('login'))
-    
+        return render_template('profile.html')
+
     user = {
         'email': session.get('email', 'Not Available'),
         'member_since': session.get('member_since', 'Unknown'),
@@ -100,26 +98,29 @@ def profile():
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
-
 @app.route('/update_profile', methods=['POST'])
 def update_profile():
-    if 'user_id' not in session:
+    user_id = session.get('user_id')
+    if not user_id:
         flash("⚠️ Please log in to update your profile.", "warning")
-        return redirect(url_for('login'))
+        return render_template("profile.html")
+
     email = request.form.get('email')
     new_password = request.form.get('new_password')
     confirm_password = request.form.get('confirm_password')
     email_notifications = 'email_notifications' in request.form
+
     if new_password and new_password != confirm_password:
         flash("❌ Passwords do not match. Try again.", "danger")
         return redirect(url_for('profile'))
+
     try:
-        user_id = session['user_id']
         updates = {}
         if email and email != session.get('email'):
             updates['email'] = email
         if new_password:
             updates['password'] = new_password
+
         if updates:
             supabase_admin.auth.admin.update_user_by_id(user_id, updates)
             if 'email' in updates:
@@ -127,10 +128,12 @@ def update_profile():
                 flash("✅ Email updated successfully!", "success")
             if 'password' in updates:
                 flash("✅ Password updated successfully!", "success")
+
         session['email_notifications'] = email_notifications
         flash("✅ Preferences updated successfully!", "success")
     except Exception:
         flash("❌ Something went wrong. Please try again.", "danger")
+
     return redirect(url_for('profile'))
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
@@ -199,10 +202,9 @@ def success():
 @app.route("/macrotracking")
 def macro_tracking():
     user_id = session.get('user_id')
-
     if not user_id:
         flash("⚠️ Please log in first.", "warning")
-        return redirect(url_for('login'))
+        return render_template("macrotracking.html")
 
     try:
         response = supabase.table("macro_goals").select("*").eq("user_id", user_id).execute()
