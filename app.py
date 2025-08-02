@@ -86,12 +86,20 @@ def profile():
     if 'user_id' not in session:
         flash("⚠️ Please log in to access your profile.", "warning")
         return redirect(url_for('login'))
+    
     user = {
         'email': session.get('email', 'Not Available'),
         'member_since': session.get('member_since', 'Unknown'),
         'email_notifications': session.get('email_notifications', False)
     }
-    return render_template('profile.html', user=user)
+
+    return render_template(
+        'profile.html',
+        user=user,
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+    )
+
 
 @app.route('/update_profile', methods=['POST'])
 def update_profile():
