@@ -2,13 +2,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.location.pathname !== "/macrotracking") return;
 
   try {
-    // ✅ Supabase singleton instance
-    const supabase = window.supabase || (
-      window.supabase = supabase.createClient(
-        window.SUPABASE_URL,
-        window.SUPABASE_ANON_KEY
-      )
-    );
+  const supabase = window.supabase || (
+  window.supabase = supabase.createClient(
+    window.SUPABASE_URL,
+    window.SUPABASE_ANON_KEY
+  )
+);
+
 
     const macroChartCanvas = document.getElementById("macroCircleChart");
     const weeklyTableBody = document.getElementById("weekly-macros");
