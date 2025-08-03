@@ -2,13 +2,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.location.pathname !== "/macrotracking") return;
 
   try {
-  const supabase = window.supabase || (
-  window.supabase = supabase.createClient(
-    window.SUPABASE_URL,
-    window.SUPABASE_ANON_KEY
-  )
-);
-
+    // ✅ Initialize Supabase safely
+    if (!window.supabase) {
+      if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+        throw new Error("❌ Supabase configuration missing.");
+      }
+      window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    }
+    const supabase = window.supabase;
 
     const macroChartCanvas = document.getElementById("macroCircleChart");
     const weeklyTableBody = document.getElementById("weekly-macros");
@@ -27,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // ✅ Load macro goals
     const { data: goalData } = await supabase
       .from("macro_goals")
       .select("calories, protein, carbs, fat")
@@ -61,24 +63,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       type: "doughnut",
       data: {
         labels: ["Carbs", "Protein", "Fat"],
-        datasets: [
-          {
-            label: "Consumed",
-            data: [totals.carbs, totals.protein, totals.fat],
-            backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
-            borderWidth: 1,
-          },
-        ],
+        datasets: [{
+          label: "Consumed",
+          data: [totals.carbs, totals.protein, totals.fat],
+          backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
+          borderWidth: 1,
+        }],
       },
       options: {
         cutout: "70%",
-        plugins: {
-          legend: { position: "bottom" },
-        },
+        plugins: { legend: { position: "bottom" } },
       },
     });
 
-    // ✅ Weekly macro logs
+    // ✅ Weekly log
     const { data: weeklyLogs = [] } = await supabase
       .from("macro_log")
       .select("date, protein, carbs, fat")
@@ -96,11 +94,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td>${entry.protein}</td>
           <td>${entry.fat}</td>
           <td>${calories}</td>
-        </tr>
-      `;
+        </tr>`;
     });
 
-    // ✅ Manual meal logging
+    // ✅ Manual meal form
     const mealForm = document.getElementById("meal-form");
     mealForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -139,12 +136,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!query) return;
 
       usdaResultsContainer.innerHTML = "<p>Searching...</p>";
-
       try {
         const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
         const data = await res.json();
 
-        if (!data.foods || data.foods.length === 0) {
+        if (!data.foods?.length) {
           usdaResultsContainer.innerHTML = "<p>No results found.</p>";
           return;
         }
@@ -163,7 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // ✅ USDA food log handler
+    // ✅ Log selected USDA food
     window.logUSDAFood = async (fdcId, name) => {
       try {
         const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
