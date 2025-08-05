@@ -2,8 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.location.pathname !== "/macrotracking") return;
 
   try {
-    // ✅ Use the globally initialized Supabase client
-    const supabase = window.supabase;
+    const supabase = window.supabaseClient;
     if (!supabase) throw new Error("❌ Supabase not initialized. Make sure auth.js runs before this script.");
 
     const macroChartCanvas = document.getElementById("macroCircleChart");
@@ -11,11 +10,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const usdaSearchForm = document.getElementById("usda-search-form");
     const usdaResultsContainer = document.getElementById("usda-results");
 
-    // ✅ Check user session
+    // ✅ Use getSession instead of getUser
     const {
-      data: { user },
+      data: { session },
       error: authError,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getSession();
+
+    const user = session?.user;
 
     if (authError || !user) {
       console.warn("User not logged in:", authError);
@@ -36,7 +37,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // ✅ Daily macros
     const today = new Date().toISOString().split("T")[0];
     const { data: todayLogs = [] } = await supabase
       .from("macro_log")

@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // ✅ Only create if not already created
+    // ✅ Initialize Supabase client once
     if (!window.supabaseClient) {
       if (!window.supabase?.createClient) {
         console.error("❌ Supabase library did not load properly");
@@ -22,23 +22,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const supabase = window.supabaseClient;
 
-    const { data, error } = await supabase.auth.getUser();
+    // ✅ Get session instead of getUser (v2-compatible)
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
 
-    if (error || !data?.user) {
+    if (error || !session?.user) {
       console.warn("⚠️ No Supabase session found");
       return;
     }
 
+    const user = session.user;
+
     const payload = {
-      user_id: data.user.id,
-      email: data.user.email
+      user_id: user.id,
+      email: user.email,
     };
 
     if (!sessionStorage.getItem("flaskSessionSet")) {
       const res = await fetch("/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
