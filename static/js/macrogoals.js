@@ -3,13 +3,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.location.pathname !== "/macrogoals") return;
 
   try {
-    // ✅ Supabase singleton init
-    const supabase = window.supabase || (
-      window.supabase = supabase.createClient(
-        window.SUPABASE_URL,
-        window.SUPABASE_ANON_KEY
-      )
+  // ✅ Ensure Supabase is initialized only once and safely
+  if (!window.supabaseClient) {
+    if (!window.supabase?.createClient) {
+      throw new Error("❌ Supabase library not loaded properly.");
+    }
+
+    window.supabaseClient = window.supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
     );
+    console.log("✅ Supabase client initialized");
+  }
+
+  const supabase = window.supabaseClient;
+
 
     const {
       data: { user },

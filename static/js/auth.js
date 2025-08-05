@@ -1,22 +1,27 @@
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // ✅ Validate Supabase config
     if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
       console.error("❌ Missing Supabase config");
       return;
     }
 
-    // ✅ Only create client if not already created
-    if (!window.supabase) {
-      if (typeof supabase === "undefined") {
-        throw new Error("❌ Supabase library not loaded before auth.js.");
+    // ✅ Only create if not already created
+    if (!window.supabaseClient) {
+      if (!window.supabase?.createClient) {
+        console.error("❌ Supabase library did not load properly");
+        return;
       }
-      window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+      window.supabaseClient = window.supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY
+      );
+
+      console.log("✅ Supabase client initialized");
     }
 
-    const supabase = window.supabase;
+    const supabase = window.supabaseClient;
 
-    // ✅ Check if user is logged in
     const { data, error } = await supabase.auth.getUser();
 
     if (error || !data?.user) {
@@ -24,15 +29,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const user = data.user;
-
-    // ✅ Build payload
     const payload = {
-      user_id: user.id,
-      email: user.email
+      user_id: data.user.id,
+      email: data.user.email
     };
 
-    // ✅ Prevent re-sending during same browser session
     if (!sessionStorage.getItem("flaskSessionSet")) {
       const res = await fetch("/session", {
         method: "POST",
