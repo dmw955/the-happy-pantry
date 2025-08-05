@@ -6,8 +6,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // ✅ Correctly initialize Supabase client
-    const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    // ✅ Only create client if not already created
+    if (!window.supabase) {
+      if (typeof supabase === "undefined") {
+        throw new Error("❌ Supabase library not loaded before auth.js.");
+      }
+      window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    }
+
+    const supabase = window.supabase;
 
     // ✅ Check if user is logged in
     const { data, error } = await supabase.auth.getUser();

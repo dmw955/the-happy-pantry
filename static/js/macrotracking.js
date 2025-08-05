@@ -2,14 +2,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (window.location.pathname !== "/macrotracking") return;
 
   try {
-    // ✅ Initialize Supabase safely
-    if (!window.supabase) {
-      if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-        throw new Error("❌ Supabase configuration missing.");
-      }
-      window.supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    }
+    // ✅ Use the globally initialized Supabase client
     const supabase = window.supabase;
+    if (!supabase) throw new Error("❌ Supabase not initialized. Make sure auth.js runs before this script.");
 
     const macroChartCanvas = document.getElementById("macroCircleChart");
     const weeklyTableBody = document.getElementById("weekly-macros");
