@@ -38,11 +38,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const today = new Date().toISOString().split("T")[0];
-    const { data: todayLogs = [] } = await supabase
+    const { data: todayLogsRaw, error: logError } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
       .eq("user_id", user.id)
       .eq("date", today);
+
+    const todayLogs = Array.isArray(todayLogsRaw) ? todayLogsRaw : [];
 
     const totals = todayLogs.reduce(
       (acc, entry) => {
