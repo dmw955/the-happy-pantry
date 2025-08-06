@@ -32,6 +32,12 @@
   <script src="{{ url_for('static', filename='js/macrogoals.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/macrotracking.js') }}" defer></script>
 
+  <style>
+  .navbar { background-color: var(--background-light); border-bottom: 2px solid var(--accent-color); padding: 10px 0; }
+  .navbar-nav .nav-link { color: var(--text-dark); font-weight: bold; transition: color 0.3s; }
+  .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
+</style>
+
   <!-- Inline Custom Styles -->
   <style>
     :root {
