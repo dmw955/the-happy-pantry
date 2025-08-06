@@ -22,6 +22,8 @@
   window.SUPABASE_URL = "{{ SUPABASE_URL }}";
   window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
 </script>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <!-- ✅ Load auth.js AFTER Supabase + config -->
 <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
