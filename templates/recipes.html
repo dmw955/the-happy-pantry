@@ -26,17 +26,10 @@
   <!-- ✅ Load auth.js for session enforcement -->
   <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
-  <!-- Your custom page logic -->
+  <!-- Your custom page logic (if used here) -->
   <script src="{{ url_for('static', filename='js/macrogoals.js') }}" defer></script>
 
-  <!-- Optional CSS Styling -->
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      padding-top: 70px;
-    }
-  </style>
+  <!-- Base styles -->
   <style>
     :root {
       --primary-color: #008080; /* Teal Green */
@@ -44,54 +37,96 @@
       --text-dark: #2E2E2E;
       --text-light: #FFFFFF;
       --background-light: #FFFFFF;
+
+      /* PantryPal variables */
+      --pp-teal: #008080;
+      --pp-gold: #FFC72C;
+      --pp-bg: #ffffff;
+      --pp-text: #0f172a;
+      --pp-muted: #6b7280;
+      --pp-border: #e5e7eb;
+      --pp-shadow-1: 0 2px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
+      --pp-shadow-2: 0 8px 24px rgba(0,0,0,.14), 0 16px 48px rgba(0,0,0,.12);
     }
+
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: var(--background-light);
+      padding-top: 70px;
     }
+
     .navbar {
       background-color: var(--background-light);
       border-bottom: 2px solid var(--accent-color);
       padding: 10px 0;
     }
-    .navbar-brand img {
-      height: 50px;
-      width: auto;
-    }
+    .navbar-brand img { height: 50px; width: auto; }
     .navbar-nav .nav-link {
       color: var(--text-dark);
       font-weight: bold;
       transition: color 0.3s ease-in-out;
     }
-    .navbar-nav .nav-link:hover {
-      color: var(--accent-color);
-      text-decoration: underline;
-    }
-    .bg-brand-teal {
-      background-color: var(--primary-color);
-    }
-    .text-brand-gold {
-      color: var(--accent-color);
-    }
-    .hover-brand-gold:hover {
-      color: var(--accent-color);
-    }
-  </style>
+    .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
 
-  <!-- ▶ PantryPal FAB + Bottom Sheet styles -->
-  <style>
-    :root {
-      --pp-teal: #008080; /* brand teal */
-      --pp-gold: #FFC72C; /* brand gold */
-      --pp-bg: #ffffff;
-      --pp-text: #0f172a; /* slate-900 */
-      --pp-muted: #6b7280; /* gray-500 */
-      --pp-border: #e5e7eb; /* gray-200 */
-      --pp-shadow-1: 0 2px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
-      --pp-shadow-2: 0 8px 24px rgba(0,0,0,.14), 0 16px 48px rgba(0,0,0,.12);
+    /* ---------- Layout polish (centered search/filters, responsive grid) ---------- */
+    #searchInput {
+      max-width: 720px;
+      margin: 0 auto 16px;
+      display: block;
+    }
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    #recipeContainer {
+      /* Force a predictable grid: 1 col on mobile, 3 cols md+ */
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-bottom: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      #recipeContainer { grid-template-columns: repeat(3, 1fr); }
     }
 
-    /* ——— Floating Action Button ——— */
+    /* Card & image scaling (works even if JS doesn’t add classes) */
+    #recipeContainer article,
+    #recipeContainer .recipe-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    #recipeContainer .thumb { width: 100%; border-radius: 10px; overflow: hidden; background: #f3f4f6; }
+    /* Be robust: style any img inside the container */
+    #recipeContainer img {
+      width: 100%;
+      height: auto;              /* fallback */
+      aspect-ratio: 4 / 3;       /* consistent tiles */
+      object-fit: cover;         /* nice crop */
+      display: block;
+      border-radius: 10px;
+      background: #f3f4f6;
+    }
+    #recipeContainer h3 { font-size: 1.05rem; margin: 10px 0 6px; }
+    #recipeContainer .meta { color: #6b7280; font-size: .9rem; margin-bottom: 6px; }
+
+    .pagination-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* ---------- PantryPal FAB + bottom sheet styles ---------- */
     .pp-fab {
       position: fixed;
       right: 20px;
@@ -109,19 +144,15 @@
     .pp-fab:hover { transform: translateY(-2px); box-shadow: var(--pp-shadow-2); }
     .pp-fab:active { transform: translateY(0); }
     .pp-fab[aria-hidden="true"] { opacity: 0; pointer-events: none; }
-
-    /* Icon pulse when new */
     .pp-fab.pulse::after {
       content: ""; position: absolute; inset: 0; border-radius: 999px;
       border: 2px solid var(--pp-gold); opacity: .6; animation: pp-pulse 1.6s ease-out infinite;
     }
     @keyframes pp-pulse { from { transform: scale(1); opacity: .7 } to { transform: scale(1.25); opacity: 0 } }
 
-    /* ——— Backdrop ——— */
     .pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 9998; }
     .pp-backdrop.open { opacity: 1; pointer-events: auto; }
 
-    /* ——— Bottom Sheet ——— */
     .pp-sheet { position: fixed; left: 0; right: 0; bottom: 0; transform: translateY(100%); background: var(--pp-bg); border-top-left-radius: 18px; border-top-right-radius: 18px; box-shadow: var(--pp-shadow-2); z-index: 10000; display: grid; grid-template-rows: auto 1fr auto; max-height: 92dvh; transition: transform .25s ease; }
     .pp-sheet.open { transform: translateY(0); }
 
@@ -145,14 +176,13 @@
     .pp-send { background: var(--pp-teal); color: white; border: none; border-radius: 12px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
     .pp-send:disabled { opacity: .5; cursor: not-allowed; }
 
-    /* Hide FAB while keyboard visible on mobile (best-effort) */
     @media (max-width: 640px) { .pp-fab.hide-on-input:has(input:focus) { opacity: 0; pointer-events: none; } }
   </style>
 </head>
 
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
 
-  <!-- ✅ Navbar (copied directly from Dashboard) -->
+  <!-- ✅ Navbar -->
   <nav class="navbar navbar-expand-lg">
     <div class="container px-5">
       <a class="navbar-brand" href="{{ url_for('home') }}">
@@ -179,19 +209,19 @@
   <!-- Main Content -->
   <div class="flex-grow">
     <div class="max-w-5xl mx-auto p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h1 class="text-3xl font-bold text-brand-gold">The Happy Pantry - Recipes</h1>
-        <a href="/shopping_list" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-100 shadow">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="text-3xl fw-bold" style="color: var(--accent-color);">The Happy Pantry - Recipes</h1>
+        <a href="/shopping_list" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-100 shadow text-decoration-none">
           🛒 Generate Shopping List
         </a>
       </div>
 
       <!-- Search Bar -->
-      <input id="searchInput" type="text" placeholder="🔍 Search recipes..." class="w-full p-3 rounded shadow mb-4 border border-gray-300" />
+      <input id="searchInput" type="text" placeholder="🔍 Search recipes..." class="form-control" />
 
-      <!-- Filters & Sorting -->
-      <div class="flex flex-wrap gap-4 mb-6 items-center">
-        <select id="categoryFilter" class="p-2 rounded border shadow">
+      <!-- Filters & Sorting (centered) -->
+      <div class="filters-bar">
+        <select id="categoryFilter" class="form-select" style="max-width: 220px;">
           <option value="">All Categories</option>
           <option value="Breakfast">Breakfast</option>
           <option value="Lunch">Lunch</option>
@@ -199,35 +229,42 @@
           <option value="Dessert">Dessert</option>
         </select>
 
-        <select id="dietFilter" class="p-2 rounded border shadow">
+        <select id="dietFilter" class="form-select" style="max-width: 220px;">
           <option value="">All Diets</option>
           <option value="vegan">Vegan</option>
           <option value="keto">Keto</option>
           <option value="gluten-free">Gluten-Free</option>
         </select>
 
-        <select id="sortFilter" class="p-2 rounded border shadow">
+        <select id="sortFilter" class="form-select" style="max-width: 220px;">
           <option value="title.asc">A → Z</option>
           <option value="title.desc">Z → A</option>
           <option value="created_at.desc">Newest</option>
           <option value="created_at.asc">Oldest</option>
         </select>
 
-        <button id="clearFilters" class="bg-gray-300 px-4 py-2 rounded shadow hover:bg-gray-400">Clear Filters</button>
+        <button id="clearFilters" class="btn btn-outline-secondary">Clear Filters</button>
       </div>
 
-      <label class="flex items-center text-sm mt-2">
-        <input type="checkbox" id="showFavoritesToggle" class="mr-2" />
+      <label class="d-inline-flex align-items-center text-muted small mb-2">
+        <input type="checkbox" id="showFavoritesToggle" class="form-check-input me-2" />
         Show favorited recipes
       </label>
 
       <!-- Recipe List -->
-      <div id="recipeContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <!-- Recipes dynamically populated here -->
+      <div id="recipeContainer">
+        <!-- JS will populate 9 cards per page. 
+             For best look, render each as:
+             <article class="recipe-card">
+               <div class="thumb"><img src="/static/assets/default.jpg" alt="Title"></div>
+               <h3>Title</h3>
+               <div class="meta">Dinner · 30 min</div>
+             </article>
+        -->
       </div>
 
       <!-- Pagination Controls -->
-      <div class="flex justify-between items-center">
+      <div class="pagination-wrap">
         <button id="prevPage" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">← Previous</button>
         <span id="pageInfo" class="text-gray-700"></span>
         <button id="nextPage" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">Next →</button>
@@ -334,7 +371,6 @@
       const body = document.getElementById('ppBody');
       const suggestions = document.getElementById('ppSuggestions');
 
-      // ——— Open/Close helpers ———
       function openSheet() {
         sheet.classList.add('open');
         backdrop.classList.add('open');
@@ -353,12 +389,9 @@
       fab.addEventListener('click', openSheet);
       backdrop.addEventListener('click', closeSheet);
       closeBtn.addEventListener('click', closeSheet);
+      document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeSheet(); });
 
-      // ——— Keyboard & focus mgmt ———
-      function onKeydown(e){ if (e.key === 'Escape') closeSheet(); }
-      document.addEventListener('keydown', onKeydown);
-
-      // Trap focus inside sheet for accessibility
+      // Trap focus inside sheet
       let prevFocused = null;
       function trapFocus(){ prevFocused = document.activeElement; sheet.addEventListener('keydown', handleTab); }
       function releaseFocus(){ sheet.removeEventListener('keydown', handleTab); if (prevFocused) prevFocused.focus?.(); }
@@ -372,20 +405,18 @@
         else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
       }
 
-      // ——— FAB hide on scroll down ———
+      // Hide FAB on scroll down
       let lastY = window.scrollY;
       window.addEventListener('scroll', () => {
         const y = window.scrollY;
         const goingDown = y > lastY + 10;
         lastY = y;
-        if (goingDown) { fab.setAttribute('aria-hidden','true'); }
-        else { fab.setAttribute('aria-hidden','false'); }
+        if (goingDown) fab.setAttribute('aria-hidden','true');
+        else fab.setAttribute('aria-hidden','false');
       }, { passive: true });
 
-      // ——— Input enable/disable ———
       input.addEventListener('input', () => { send.disabled = input.value.trim().length === 0; });
 
-      // ——— Suggestions ———
       suggestions.addEventListener('click', (e)=>{
         const chip = e.target.closest('[data-suggest]');
         if (!chip) return;
@@ -394,7 +425,6 @@
         input.focus();
       });
 
-      // ——— Fake AI stub for now ———
       function addUser(text){
         const wrap = document.createElement('div');
         wrap.className = 'pp-msg user';
@@ -418,7 +448,6 @@
         if (!q) return;
         addUser(q);
         input.value = ''; send.disabled = true;
-        // Simulate thinking
         setTimeout(()=>{
           const demo = demoReply(q);
           addBot(demo.text, demo.actions);
@@ -431,9 +460,9 @@
         let text = "Here are a few ideas based on what you asked:";
         let actions = `
           <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-            <button class=\"pp-chip\" data-action=\"apply-filters\" data-filters='{"protein":"high","time":"<=35"}'>Apply filters</button>
-            <button class=\"pp-chip\" data-action=\"show-recipes\" data-limit=\"5\">Show 5 matches</button>
-            <button class=\"pp-chip\" data-action=\"swap\" data-swap='{"from":"broccoli","to":"asparagus"}'>Suggest swap</button>
+            <button class="pp-chip" data-action="apply-filters" data-filters='{"protein":"high","time":"<=35"}'>Apply filters</button>
+            <button class="pp-chip" data-action="show-recipes" data-limit="5">Show 5 matches</button>
+            <button class="pp-chip" data-action="swap" data-swap='{"from":"broccoli","to":"asparagus"}'>Suggest swap</button>
           </div>`;
         if (/dairy|lactose/i.test(q)) {
           text = "Try these dairy‑free swaps: use unsweetened oat milk for creaminess, nutritional yeast for cheesy notes, and olive‑oil roux to thicken sauces.";
@@ -444,7 +473,7 @@
         return { text, actions };
       }
 
-      // Wire demo action buttons (emit CustomEvents for your page to listen to)
+      // Action events -> let recipes.js respond
       body.addEventListener('click', (e)=>{
         const chip = e.target.closest('.pp-chip');
         if (!chip) return;
@@ -470,7 +499,7 @@
         }
       });
 
-      // Optional: swipe down to close
+      // Swipe down to close (mobile)
       let startY = null, delta = 0;
       sheet.addEventListener('touchstart', (e)=>{ startY = e.touches[0].clientY; delta = 0; }, {passive:true});
       sheet.addEventListener('touchmove', (e)=>{ if(startY==null) return; delta = e.touches[0].clientY - startY; if (delta>0) { sheet.style.transform = `translateY(${Math.min(delta, window.innerHeight)}px)`; } }, {passive:true});
@@ -480,19 +509,18 @@
         startY = null; delta = 0;
       });
 
-      // Example listeners you can hook in your recipes page JS
+      // Hooks you can implement in recipes.js
       window.addEventListener('pantrypal:applyFilters', (e)=>{
-        // TODO: bridge to your existing filtering logic in recipes.js
-        // Example: window.applyRecipeFilters?.(e.detail)
+        // Example: window.applyRecipeFilters?.(e.detail);
       });
       window.addEventListener('pantrypal:showRecipes', (e)=>{
-        // TODO: scroll to grid & highlight cards
+        // Example: scroll to grid & highlight
+        document.getElementById('recipeContainer')?.scrollIntoView({behavior:'smooth', block:'start'});
       });
       window.addEventListener('pantrypal:suggestSwap', (e)=>{
-        // TODO: surface on recipe detail or modal
+        // Example: show a toast/modal with the swap suggestion
       });
     })();
   </script>
-
 </body>
 </html>

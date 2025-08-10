@@ -29,7 +29,7 @@ waitForSupabaseClient((supabaseClient) => {
     const showFavoritesToggle = document.getElementById("showFavoritesToggle");
 
     let currentPage = 1;
-    const pageSize = 9;
+    const pageSize = 9; // ✅ enforce 9 per page
 
     // Fetch and render recipes
     async function fetchRecipes() {
@@ -61,7 +61,11 @@ waitForSupabaseClient((supabaseClient) => {
       if (category) query = query.eq("category", category);
       if (diet) query = query.contains("diet_tags", [diet]);
 
+      // (Optional) If you later want the toggle to *filter* to only favorites:
+      // if (showFavorites && favoriteIds.length) query = query.in("id", favoriteIds);
+
       const { data, error, count } = await query;
+
       recipeContainer.innerHTML = "";
       pageInfo.textContent = `Page ${currentPage}`;
 
@@ -75,51 +79,61 @@ waitForSupabaseClient((supabaseClient) => {
 
       data.forEach(recipe => {
         const isFavorited = favoriteIds.includes(recipe.id);
-        // Always show all recipes regardless of favorite state
-
         const imagePath = `/static/assets/${recipe.image || "default.jpg"}`;
-        const isChecked = selectedIds.includes(recipe.id.toString());
+        const isChecked = selectedIds.includes(String(recipe.id));
 
-        const card = document.createElement("div");
-        card.className =
-          "relative bg-white rounded-xl shadow-md transition p-4 border border-gray-200";
+        // ✅ New card markup to match CSS: article.recipe-card + .thumb img
+        const card = document.createElement("article");
+        card.className = "recipe-card position-relative";
 
         card.innerHTML = `
-          <div class="absolute top-2 right-2 z-10 flex gap-2">
-            <label class="flex items-center bg-white border border-gray-300 px-3 py-2 rounded-xl shadow-md text-sm md:text-base text-gray-800 cursor-pointer" style="min-width: 150px;">
+          <div class="position-absolute" style="top:10px; right:10px; z-index:10; display:flex; gap:8px;">
+            <label class="d-inline-flex align-items-center bg-white border border-gray-300 px-3 py-2 rounded-3 shadow-sm text-sm text-gray-800" style="min-width: 150px; cursor:pointer;">
               <input 
                 type="checkbox" 
-                class="recipe-select mr-2 scale-150" 
+                class="recipe-select form-check-input me-2" 
                 data-id="${recipe.id}" 
                 ${isChecked ? "checked" : ""}
               />
               <span class="select-none">Add to List</span>
             </label>
             <button 
-              class="favorite-btn text-xl p-2" 
+              class="favorite-btn text-xl p-2 bg-white rounded-3 border"
+              title="${isFavorited ? "Unfavorite" : "Favorite"}"
               data-recipe-id="${recipe.id}">
               ${isFavorited ? "❤️" : "🤍"}
             </button>
           </div>
 
-          <a href="/recipes/${recipe.slug}" class="block mt-10">
-            <img src="${imagePath}" alt="${recipe.title}" class="mb-2 rounded-xl max-h-40 w-full object-cover" />
-            <h3 class="text-xl font-semibold text-teal-700 mb-1">${recipe.title}</h3>
-            <p class="text-sm text-gray-600">${recipe.description || ""}</p>
+          <a href="/recipes/${recipe.slug}" class="stretched-link text-decoration-none text-reset" style="display:block; margin-top:52px;">
+            <div class="thumb">
+              <img src="${imagePath}" alt="${escapeHtml(recipe.title || "Recipe")}" />
+            </div>
+            <h3>${escapeHtml(recipe.title || "Untitled")}</h3>
+            <div class="meta">
+              ${[
+                recipe.category || "",
+                recipe.total_time ? `${recipe.total_time} min` : ""
+              ].filter(Boolean).join(" · ")}
+            </div>
+            <p class="text-sm text-gray-600 mb-0">${escapeHtml(recipe.description || "")}</p>
           </a>
         `;
 
         recipeContainer.appendChild(card);
       });
 
-      nextPageBtn.disabled = currentPage >= Math.ceil(count / pageSize);
+      // Pagination state
+      const totalPages = Math.max(1, Math.ceil((count || 0) / pageSize));
+      nextPageBtn.disabled = currentPage >= totalPages;
       prevPageBtn.disabled = currentPage === 1;
 
+      // Wire up interactions
       setupCheckboxListeners();
       setupFavoriteListeners();
     }
 
-    // Checkbox listeners
+    // Checkbox listeners (localStorage)
     function setupCheckboxListeners() {
       document.querySelectorAll(".recipe-select").forEach(checkbox => {
         checkbox.addEventListener("change", () => {
@@ -133,11 +147,14 @@ waitForSupabaseClient((supabaseClient) => {
       });
     }
 
-    // Favorite button listeners
+    // Favorite button listeners (Supabase)
     function setupFavoriteListeners() {
       document.querySelectorAll(".favorite-btn").forEach(button => {
-        button.addEventListener("click", async () => {
-          // Fetch fresh session at click
+        button.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          // Fresh session at click
           const { data: { session: clickSession } } = await supabaseClient.auth.getSession();
           const currentUser = clickSession?.user;
           console.log("❤️ User at click time:", currentUser);
@@ -156,14 +173,16 @@ waitForSupabaseClient((supabaseClient) => {
               .delete()
               .match({ user_id: currentUser.id, recipe_id: recipeId });
             button.textContent = "🤍";
+            button.title = "Favorite";
           } else {
             await supabaseClient
               .from("favorite_recipes")
               .insert([{ user_id: currentUser.id, recipe_id: recipeId }]);
             button.textContent = "❤️";
+            button.title = "Unfavorite";
           }
 
-          // Refresh list if not filtering to favorites only
+          // If you later enable "favorites only" filter, you might refetch here based on toggle
           if (!showFavoritesToggle?.checked) fetchRecipes();
         });
       });
@@ -176,5 +195,24 @@ waitForSupabaseClient((supabaseClient) => {
 
     // Load recipes on page load
     fetchRecipes();
+
+    // ---- Helpers ----
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+      }[c]));
+    }
+
+    // (Optional) Hook PantryPal actions if you want basic behavior now:
+    window.addEventListener("pantrypal:showRecipes", () => {
+      document.getElementById("recipeContainer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    // Example for later:
+    // window.addEventListener("pantrypal:applyFilters", (e) => {
+    //   const detail = e.detail || {};
+    //   // Map AI-suggested filters to your UI (e.g., time/protein not yet in UI)
+    //   // For now, just refetch:
+    //   fetchRecipes();
+    // });
   });
 });
