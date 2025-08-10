@@ -77,6 +77,77 @@
       color: var(--accent-color);
     }
   </style>
+
+  <!-- ▶ PantryPal FAB + Bottom Sheet styles -->
+  <style>
+    :root {
+      --pp-teal: #008080; /* brand teal */
+      --pp-gold: #FFC72C; /* brand gold */
+      --pp-bg: #ffffff;
+      --pp-text: #0f172a; /* slate-900 */
+      --pp-muted: #6b7280; /* gray-500 */
+      --pp-border: #e5e7eb; /* gray-200 */
+      --pp-shadow-1: 0 2px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
+      --pp-shadow-2: 0 8px 24px rgba(0,0,0,.14), 0 16px 48px rgba(0,0,0,.12);
+    }
+
+    /* ——— Floating Action Button ——— */
+    .pp-fab {
+      position: fixed;
+      right: 20px;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0));
+      width: 64px; height: 64px;
+      border-radius: 999px;
+      border: 2px solid var(--pp-gold);
+      background: var(--pp-bg);
+      display: grid; place-items: center;
+      box-shadow: var(--pp-shadow-1);
+      cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+      z-index: 9999;
+      transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+    }
+    .pp-fab:hover { transform: translateY(-2px); box-shadow: var(--pp-shadow-2); }
+    .pp-fab:active { transform: translateY(0); }
+    .pp-fab[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+
+    /* Icon pulse when new */
+    .pp-fab.pulse::after {
+      content: ""; position: absolute; inset: 0; border-radius: 999px;
+      border: 2px solid var(--pp-gold); opacity: .6; animation: pp-pulse 1.6s ease-out infinite;
+    }
+    @keyframes pp-pulse { from { transform: scale(1); opacity: .7 } to { transform: scale(1.25); opacity: 0 } }
+
+    /* ——— Backdrop ——— */
+    .pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 9998; }
+    .pp-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    /* ——— Bottom Sheet ——— */
+    .pp-sheet { position: fixed; left: 0; right: 0; bottom: 0; transform: translateY(100%); background: var(--pp-bg); border-top-left-radius: 18px; border-top-right-radius: 18px; box-shadow: var(--pp-shadow-2); z-index: 10000; display: grid; grid-template-rows: auto 1fr auto; max-height: 92dvh; transition: transform .25s ease; }
+    .pp-sheet.open { transform: translateY(0); }
+
+    .pp-grabber { width: 48px; height: 5px; background: var(--pp-border); border-radius: 999px; margin: 8px auto 6px; }
+    .pp-header { display: flex; align-items: center; gap: 10px; padding: 8px 16px 10px; border-bottom: 1px solid var(--pp-border); }
+    .pp-title { font-weight: 700; color: var(--pp-text); font-size: 16px; line-height: 1.2; }
+    .pp-sub { font-size: 12px; color: var(--pp-muted); }
+    .pp-avatar { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; border: 2px solid var(--pp-gold); background: #f8fafc; }
+    .pp-body { padding: 12px 12px 4px; overflow: auto; }
+    .pp-msg { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 8px 0; }
+    .pp-msg .bubble { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--pp-border); box-shadow: 0 1px 0 rgba(0,0,0,.03); font-size: 14px; line-height: 1.35; }
+    .pp-msg.user { grid-template-columns: 1fr auto; }
+    .pp-msg.user .bubble { background: #f1fff8; border-color: #bbf7d0; }
+    .pp-msg.bot .bubble { background: #f9fafb; }
+    .pp-suggestions { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 12px 10px; }
+    .pp-chip { font-size: 13px; border: 1px solid var(--pp-border); background: #ffffff; border-radius: 999px; padding: 6px 10px; cursor: pointer; }
+    .pp-chip:hover { background: #f9fafb; }
+    .pp-inputbar { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--pp-border); }
+    .pp-input { border: 1px solid var(--pp-border); border-radius: 12px; padding: 10px 12px; font-size: 15px; outline: none; width: 100%; }
+    .pp-input:focus { border-color: var(--pp-teal); box-shadow: 0 0 0 3px rgba(0,128,128,.15); }
+    .pp-send { background: var(--pp-teal); color: white; border: none; border-radius: 12px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+    .pp-send:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Hide FAB while keyboard visible on mobile (best-effort) */
+    @media (max-width: 640px) { .pp-fab.hide-on-input:has(input:focus) { opacity: 0; pointer-events: none; } }
+  </style>
 </head>
 
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
@@ -146,10 +217,9 @@
       </div>
 
       <label class="flex items-center text-sm mt-2">
-  <input type="checkbox" id="showFavoritesToggle" class="mr-2" />
-  Show favorited recipes
-</label>
-
+        <input type="checkbox" id="showFavoritesToggle" class="mr-2" />
+        Show favorited recipes
+      </label>
 
       <!-- Recipe List -->
       <div id="recipeContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -170,19 +240,259 @@
     <div>The Happy Pantry © 2025</div>
   </footer>
 
+  <!-- ▶ PantryPal FAB Button -->
+  <button class="pp-fab" id="ppFab" aria-haspopup="dialog" aria-controls="ppSheet" aria-expanded="false" aria-label="Open PantryPal">
+    <!-- PantryPal Icon: friendly jar with smile -->
+    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="jar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ecfeff"/>
+          <stop offset="100%" stop-color="#e0f2f1"/>
+        </linearGradient>
+      </defs>
+      <!-- Lid -->
+      <rect x="14" y="10" width="36" height="8" rx="3" fill="var(--pp-teal)"/>
+      <!-- Jar body -->
+      <rect x="12" y="18" width="40" height="36" rx="8" fill="url(#jar)" stroke="var(--pp-teal)" stroke-width="2"/>
+      <!-- Gold ring -->
+      <rect x="10" y="16" width="44" height="40" rx="10" fill="none" stroke="var(--pp-gold)" stroke-width="2"/>
+      <!-- Smile -->
+      <path d="M24 42c3 4 13 4 16 0" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Eyes -->
+      <circle cx="28" cy="34" r="2" fill="#0f172a"/>
+      <circle cx="36" cy="34" r="2" fill="#0f172a"/>
+    </svg>
+  </button>
+
+  <!-- ▶ PantryPal Backdrop -->
+  <div class="pp-backdrop" id="ppBackdrop"></div>
+
+  <!-- ▶ PantryPal Bottom Sheet (Dialog) -->
+  <section class="pp-sheet" id="ppSheet" role="dialog" aria-modal="true" aria-labelledby="ppTitle" aria-describedby="ppDesc">
+    <div class="pp-grabber" aria-hidden="true"></div>
+    <header class="pp-header">
+      <div class="pp-avatar" aria-hidden="true">
+        <!-- Mini PantryPal icon -->
+        <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="14" y="10" width="36" height="8" rx="3" fill="var(--pp-teal)"/>
+          <rect x="12" y="18" width="40" height="36" rx="8" fill="#f0fdfa" stroke="var(--pp-teal)" stroke-width="2"/>
+          <path d="M24 42c3 4 13 4 16 0" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="pp-title" id="ppTitle">PantryPal</div>
+        <div class="pp-sub" id="ppDesc">Friendly, supportive help for swaps, filters, and ideas.</div>
+      </div>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <button id="ppClose" title="Close" aria-label="Close" style="background:transparent;border:0;cursor:pointer;padding:6px;border-radius:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="pp-body" id="ppBody">
+      <!-- Example welcome message -->
+      <div class="pp-msg bot">
+        <div class="bubble"><strong>Hi! I’m PantryPal.</strong><br/>Tell me what you have on hand or what you’re aiming for, and I’ll help you apply filters or suggest swaps—no full recipes, just quick, useful tips.</div>
+      </div>
+    </main>
+
+    <div class="pp-suggestions" id="ppSuggestions">
+      <button class="pp-chip" data-suggest="Show high‑protein dinners under 35 minutes">High‑protein &lt; 35 min</button>
+      <button class="pp-chip" data-suggest="I only have chicken, zucchini, and rice—what can I make from my saved recipes?">Use what I have</button>
+      <button class="pp-chip" data-suggest="Dairy‑free swaps for Alfredo‑style sauces">Dairy‑free swaps</button>
+    </div>
+
+    <footer class="pp-inputbar">
+      <input id="ppInput" class="pp-input" type="text" placeholder="Ask PantryPal… (e.g., ‘swap broccoli?’)" aria-label="Ask PantryPal" />
+      <button id="ppSend" class="pp-send" disabled>Send</button>
+    </footer>
+  </section>
+
   <!-- Scripts -->
-<!-- ✅ First: load the Supabase client setup -->
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <!-- ✅ First: load the Supabase client setup -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 
-<!-- ✅ Inject server-authenticated user ID for frontend use -->
-<script>window.USER_ID = "{{ USER_ID }}";</script>
+  <!-- ✅ Inject server-authenticated user ID for frontend use -->
+  <script>window.USER_ID = "{{ USER_ID }}";</script>
 
-<!-- ✅ Then: load the recipes logic that depends on the client -->
-<script src="{{ url_for('static', filename='js/recipes.js') }}"></script>
+  <!-- ✅ Then: load the recipes logic that depends on the client -->
+  <script src="{{ url_for('static', filename='js/recipes.js') }}"></script>
 
-<!-- (Optional) Bootstrap or other scripts can stay after -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- (Optional) Bootstrap or other scripts can stay after -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- ▶ PantryPal behavior (dependency-free) -->
+  <script>
+    (function(){
+      const fab = document.getElementById('ppFab');
+      const sheet = document.getElementById('ppSheet');
+      const backdrop = document.getElementById('ppBackdrop');
+      const closeBtn = document.getElementById('ppClose');
+      const input = document.getElementById('ppInput');
+      const send = document.getElementById('ppSend');
+      const body = document.getElementById('ppBody');
+      const suggestions = document.getElementById('ppSuggestions');
+
+      // ——— Open/Close helpers ———
+      function openSheet() {
+        sheet.classList.add('open');
+        backdrop.classList.add('open');
+        fab.setAttribute('aria-expanded', 'true');
+        setTimeout(()=> input.focus(), 200);
+        trapFocus();
+      }
+      function closeSheet() {
+        sheet.classList.remove('open');
+        backdrop.classList.remove('open');
+        fab.setAttribute('aria-expanded', 'false');
+        releaseFocus();
+        fab.focus();
+      }
+
+      fab.addEventListener('click', openSheet);
+      backdrop.addEventListener('click', closeSheet);
+      closeBtn.addEventListener('click', closeSheet);
+
+      // ——— Keyboard & focus mgmt ———
+      function onKeydown(e){ if (e.key === 'Escape') closeSheet(); }
+      document.addEventListener('keydown', onKeydown);
+
+      // Trap focus inside sheet for accessibility
+      let prevFocused = null;
+      function trapFocus(){ prevFocused = document.activeElement; sheet.addEventListener('keydown', handleTab); }
+      function releaseFocus(){ sheet.removeEventListener('keydown', handleTab); if (prevFocused) prevFocused.focus?.(); }
+      function handleTab(e){
+        if (e.key !== 'Tab') return;
+        const focusables = sheet.querySelectorAll('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
+        const list = Array.from(focusables).filter(el=>!el.hasAttribute('disabled'));
+        const first = list[0];
+        const last = list[list.length-1];
+        if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+        else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+      }
+
+      // ——— FAB hide on scroll down ———
+      let lastY = window.scrollY;
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        const goingDown = y > lastY + 10;
+        lastY = y;
+        if (goingDown) { fab.setAttribute('aria-hidden','true'); }
+        else { fab.setAttribute('aria-hidden','false'); }
+      }, { passive: true });
+
+      // ——— Input enable/disable ———
+      input.addEventListener('input', () => { send.disabled = input.value.trim().length === 0; });
+
+      // ——— Suggestions ———
+      suggestions.addEventListener('click', (e)=>{
+        const chip = e.target.closest('[data-suggest]');
+        if (!chip) return;
+        input.value = chip.getAttribute('data-suggest');
+        send.disabled = false;
+        input.focus();
+      });
+
+      // ——— Fake AI stub for now ———
+      function addUser(text){
+        const wrap = document.createElement('div');
+        wrap.className = 'pp-msg user';
+        wrap.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+        body.appendChild(wrap);
+        body.scrollTop = body.scrollHeight;
+      }
+      function addBot(text, actionsHtml=''){
+        const wrap = document.createElement('div');
+        wrap.className = 'pp-msg bot';
+        wrap.innerHTML = `<div class="bubble">${text}${actionsHtml}</div>`;
+        body.appendChild(wrap);
+        body.scrollTop = body.scrollHeight;
+      }
+      function escapeHtml(str){
+        return str.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      }
+
+      function handleSend(){
+        const q = input.value.trim();
+        if (!q) return;
+        addUser(q);
+        input.value = ''; send.disabled = true;
+        // Simulate thinking
+        setTimeout(()=>{
+          const demo = demoReply(q);
+          addBot(demo.text, demo.actions);
+        }, 450);
+      }
+      send.addEventListener('click', handleSend);
+      input.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handleSend(); });
+
+      function demoReply(q){
+        let text = "Here are a few ideas based on what you asked:";
+        let actions = `
+          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class=\"pp-chip\" data-action=\"apply-filters\" data-filters='{"protein":"high","time":"<=35"}'>Apply filters</button>
+            <button class=\"pp-chip\" data-action=\"show-recipes\" data-limit=\"5\">Show 5 matches</button>
+            <button class=\"pp-chip\" data-action=\"swap\" data-swap='{"from":"broccoli","to":"asparagus"}'>Suggest swap</button>
+          </div>`;
+        if (/dairy|lactose/i.test(q)) {
+          text = "Try these dairy‑free swaps: use unsweetened oat milk for creaminess, nutritional yeast for cheesy notes, and olive‑oil roux to thicken sauces.";
+        }
+        if (/chicken|zucchini|rice/i.test(q)) {
+          text = "You can filter to chicken + zucchini under 35 minutes. I can also show dishes that reuse rice for sides.";
+        }
+        return { text, actions };
+      }
+
+      // Wire demo action buttons (emit CustomEvents for your page to listen to)
+      body.addEventListener('click', (e)=>{
+        const chip = e.target.closest('.pp-chip');
+        if (!chip) return;
+        const action = chip.getAttribute('data-action');
+        if (!action) return;
+        e.preventDefault();
+        if (action === 'apply-filters') {
+          const detail = JSON.parse(chip.getAttribute('data-filters'));
+          window.dispatchEvent(new CustomEvent('pantrypal:applyFilters', { detail }));
+          addBot('✅ Filters applied. Scrolling to results…');
+          closeSheet();
+        }
+        if (action === 'show-recipes') {
+          const limit = parseInt(chip.getAttribute('data-limit')||'5',10);
+          window.dispatchEvent(new CustomEvent('pantrypal:showRecipes', { detail: { limit } }));
+          addBot(`✅ Showing ${limit} highlighted matches.`);
+          closeSheet();
+        }
+        if (action === 'swap') {
+          const swap = JSON.parse(chip.getAttribute('data-swap'));
+          window.dispatchEvent(new CustomEvent('pantrypal:suggestSwap', { detail: swap }));
+          addBot(`✅ Swap noted: ${swap.from} → ${swap.to}.`);
+        }
+      });
+
+      // Optional: swipe down to close
+      let startY = null, delta = 0;
+      sheet.addEventListener('touchstart', (e)=>{ startY = e.touches[0].clientY; delta = 0; }, {passive:true});
+      sheet.addEventListener('touchmove', (e)=>{ if(startY==null) return; delta = e.touches[0].clientY - startY; if (delta>0) { sheet.style.transform = `translateY(${Math.min(delta, window.innerHeight)}px)`; } }, {passive:true});
+      sheet.addEventListener('touchend', ()=>{
+        if (delta > 90) { sheet.style.transform = ''; closeSheet(); }
+        else { sheet.style.transform = ''; }
+        startY = null; delta = 0;
+      });
+
+      // Example listeners you can hook in your recipes page JS
+      window.addEventListener('pantrypal:applyFilters', (e)=>{
+        // TODO: bridge to your existing filtering logic in recipes.js
+        // Example: window.applyRecipeFilters?.(e.detail)
+      });
+      window.addEventListener('pantrypal:showRecipes', (e)=>{
+        // TODO: scroll to grid & highlight cards
+      });
+      window.addEventListener('pantrypal:suggestSwap', (e)=>{
+        // TODO: surface on recipe detail or modal
+      });
+    })();
+  </script>
 
 </body>
 </html>
