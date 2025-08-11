@@ -277,29 +277,30 @@
     <div>The Happy Pantry © 2025</div>
   </footer>
 
-  <!-- ▶ PantryPal FAB Button -->
-  <button class="pp-fab" id="ppFab" aria-haspopup="dialog" aria-controls="ppSheet" aria-expanded="false" aria-label="Open PantryPal">
-    <!-- PantryPal Icon: friendly jar with smile -->
-    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="jar" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ecfeff"/>
-          <stop offset="100%" stop-color="#e0f2f1"/>
-        </linearGradient>
-      </defs>
-      <!-- Lid -->
-      <rect x="14" y="10" width="36" height="8" rx="3" fill="var(--pp-teal)"/>
-      <!-- Jar body -->
-      <rect x="12" y="18" width="40" height="36" rx="8" fill="url(#jar)" stroke="var(--pp-teal)" stroke-width="2"/>
-      <!-- Gold ring -->
-      <rect x="10" y="16" width="44" height="40" rx="10" fill="none" stroke="var(--pp-gold)" stroke-width="2"/>
-      <!-- Smile -->
-      <path d="M24 42c3 4 13 4 16 0" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <!-- Eyes -->
-      <circle cx="28" cy="34" r="2" fill="#0f172a"/>
-      <circle cx="36" cy="34" r="2" fill="#0f172a"/>
-    </svg>
-  </button>
+  <<!-- ▶ PantryPal FAB Button -->
+<button class="pp-fab" id="ppFab" aria-haspopup="dialog" aria-controls="ppSheet" aria-expanded="false" aria-label="Open PantryPal">
+  <!-- PantryPal: Chef Hat Smiley -->
+  <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+    <!-- Hat puff -->
+    <rect x="14" y="4" width="36" height="16" rx="8" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
+    <!-- Hat band -->
+    <rect x="18" y="18" width="28" height="8" rx="4" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
+
+    <!-- Gold ring around face -->
+    <circle cx="32" cy="40" r="18" fill="var(--pp-bg)" stroke="var(--pp-gold)" stroke-width="2"/>
+
+    <!-- Face outline -->
+    <circle cx="32" cy="40" r="16" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
+
+    <!-- Eyes -->
+    <circle cx="26.5" cy="37" r="2" fill="#0f172a"/>
+    <circle cx="37.5" cy="37" r="2" fill="#0f172a"/>
+
+    <!-- Smile -->
+    <path d="M24 43c3.5 4 12.5 4 16 0" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+</button>
+
 
   <!-- ▶ PantryPal Backdrop -->
   <div class="pp-backdrop" id="ppBackdrop"></div>
