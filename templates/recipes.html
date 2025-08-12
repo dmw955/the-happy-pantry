@@ -49,105 +49,35 @@
       --pp-shadow-2: 0 8px 24px rgba(0,0,0,.14), 0 16px 48px rgba(0,0,0,.12);
     }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--background-light);
-      padding-top: 70px;
-    }
+    body { font-family: 'Segoe UI', sans-serif; background-color: var(--background-light); padding-top: 70px; }
 
-    .navbar {
-      background-color: var(--background-light);
-      border-bottom: 2px solid var(--accent-color);
-      padding: 10px 0;
-    }
+    .navbar { background-color: var(--background-light); border-bottom: 2px solid var(--accent-color); padding: 10px 0; }
     .navbar-brand img { height: 50px; width: auto; }
-    .navbar-nav .nav-link {
-      color: var(--text-dark);
-      font-weight: bold;
-      transition: color 0.3s ease-in-out;
-    }
+    .navbar-nav .nav-link { color: var(--text-dark); font-weight: bold; transition: color 0.3s ease-in-out; }
     .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
 
     /* ---------- Layout polish (centered search/filters, responsive grid) ---------- */
-    #searchInput {
-      max-width: 720px;
-      margin: 0 auto 16px;
-      display: block;
-    }
-    .filters-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-    #recipeContainer {
-      /* Force a predictable grid: 1 col on mobile, 3 cols md+ */
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 24px;
-      margin-bottom: 1.5rem;
-    }
-    @media (min-width: 768px) {
-      #recipeContainer { grid-template-columns: repeat(3, 1fr); }
-    }
+    #searchInput { max-width: 720px; margin: 0 auto 16px; display: block; }
+    .filters-bar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-bottom: 1.5rem; }
+    #recipeContainer { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 1.5rem; }
+    @media (min-width: 768px) { #recipeContainer { grid-template-columns: repeat(3, 1fr); } }
 
-    /* Card & image scaling (works even if JS doesn’t add classes) */
+    /* Card & image scaling */
     #recipeContainer article,
-    #recipeContainer .recipe-card {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 12px;
-      background: #fff;
-      box-shadow: 0 1px 3px rgba(0,0,0,.04);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
+    #recipeContainer .recipe-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.04); display: flex; flex-direction: column; height: 100%; }
     #recipeContainer .thumb { width: 100%; border-radius: 10px; overflow: hidden; background: #f3f4f6; }
-    /* Be robust: style any img inside the container */
-    #recipeContainer img {
-      width: 100%;
-      height: auto;              /* fallback */
-      aspect-ratio: 4 / 3;       /* consistent tiles */
-      object-fit: cover;         /* nice crop */
-      display: block;
-      border-radius: 10px;
-      background: #f3f4f6;
-    }
+    #recipeContainer img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; display: block; border-radius: 10px; background: #f3f4f6; }
     #recipeContainer h3 { font-size: 1.05rem; margin: 10px 0 6px; }
     #recipeContainer .meta { color: #6b7280; font-size: .9rem; margin-bottom: 6px; }
 
-    .pagination-wrap {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      align-items: center;
-    }
+    .pagination-wrap { display: flex; justify-content: center; gap: 12px; align-items: center; }
 
     /* ---------- PantryPal FAB + bottom sheet styles ---------- */
-    .pp-fab {
-      position: fixed;
-      right: 20px;
-      bottom: calc(20px + env(safe-area-inset-bottom, 0));
-      width: 64px; height: 64px;
-      border-radius: 999px;
-      border: 2px solid var(--pp-gold);
-      background: var(--pp-bg);
-      display: grid; place-items: center;
-      box-shadow: var(--pp-shadow-1);
-      cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
-      z-index: 9999;
-      transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
-    }
+    .pp-fab { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0)); width: 64px; height: 64px; border-radius: 999px; border: 2px solid var(--pp-gold); background: var(--pp-bg); display: grid; place-items: center; box-shadow: var(--pp-shadow-1); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; z-index: 9999; transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease; }
     .pp-fab:hover { transform: translateY(-2px); box-shadow: var(--pp-shadow-2); }
     .pp-fab:active { transform: translateY(0); }
     .pp-fab[aria-hidden="true"] { opacity: 0; pointer-events: none; }
-    .pp-fab.pulse::after {
-      content: ""; position: absolute; inset: 0; border-radius: 999px;
-      border: 2px solid var(--pp-gold); opacity: .6; animation: pp-pulse 1.6s ease-out infinite;
-    }
+    .pp-fab.pulse::after { content: ""; position: absolute; inset: 0; border-radius: 999px; border: 2px solid var(--pp-gold); opacity: .6; animation: pp-pulse 1.6s ease-out infinite; }
     @keyframes pp-pulse { from { transform: scale(1); opacity: .7 } to { transform: scale(1.25); opacity: 0 } }
 
     .pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 9998; }
@@ -211,9 +141,7 @@
     <div class="max-w-5xl mx-auto p-6">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h1 class="text-3xl fw-bold" style="color: var(--accent-color);">The Happy Pantry - Recipes</h1>
-        <a href="/shopping_list" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-100 shadow text-decoration-none">
-          🛒 Generate Shopping List
-        </a>
+        <a href="/shopping_list" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-100 shadow text-decoration-none">🛒 Generate Shopping List</a>
       </div>
 
       <!-- Search Bar -->
@@ -252,16 +180,7 @@
       </label>
 
       <!-- Recipe List -->
-      <div id="recipeContainer">
-        <!-- JS will populate 9 cards per page. 
-             For best look, render each as:
-             <article class="recipe-card">
-               <div class="thumb"><img src="/static/assets/default.jpg" alt="Title"></div>
-               <h3>Title</h3>
-               <div class="meta">Dinner · 30 min</div>
-             </article>
-        -->
-      </div>
+      <div id="recipeContainer"><!-- cards injected by JS --></div>
 
       <!-- Pagination Controls -->
       <div class="pagination-wrap">
@@ -277,30 +196,25 @@
     <div>The Happy Pantry © 2025</div>
   </footer>
 
-  <<!-- ▶ PantryPal FAB Button -->
-<button class="pp-fab" id="ppFab" aria-haspopup="dialog" aria-controls="ppSheet" aria-expanded="false" aria-label="Open PantryPal">
-  <!-- PantryPal: Chef Hat Smiley -->
-  <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-    <!-- Hat puff -->
-    <rect x="14" y="4" width="36" height="16" rx="8" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-    <!-- Hat band -->
-    <rect x="18" y="18" width="28" height="8" rx="4" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-
-    <!-- Gold ring around face -->
-    <circle cx="32" cy="40" r="18" fill="var(--pp-bg)" stroke="var(--pp-gold)" stroke-width="2"/>
-
-    <!-- Face outline -->
-    <circle cx="32" cy="40" r="16" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-
-    <!-- Eyes -->
-    <circle cx="26.5" cy="37" r="2" fill="#0f172a"/>
-    <circle cx="37.5" cy="37" r="2" fill="#0f172a"/>
-
-    <!-- Smile -->
-    <path d="M24 43c3.5 4 12.5 4 16 0" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
-  </svg>
-</button>
-
+  <!-- ▶ PantryPal FAB Button -->
+  <button class="pp-fab" id="ppFab" aria-haspopup="dialog" aria-controls="ppSheet" aria-expanded="false" aria-label="Open PantryPal">
+    <!-- PantryPal: Chef Hat Smiley -->
+    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <!-- Hat puff -->
+      <rect x="14" y="4" width="36" height="16" rx="8" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
+      <!-- Hat band -->
+      <rect x="18" y="18" width="28" height="8" rx="4" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
+      <!-- Gold ring around face -->
+      <circle cx="32" cy="40" r="18" fill="var(--pp-bg)" stroke="var(--pp-gold)" stroke-width="2"/>
+      <!-- Face outline -->
+      <circle cx="32" cy="40" r="16" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
+      <!-- Eyes -->
+      <circle cx="26.5" cy="37" r="2" fill="#0f172a"/>
+      <circle cx="37.5" cy="37" r="2" fill="#0f172a"/>
+      <!-- Smile -->
+      <path d="M24 43c3.5 4 12.5 4 16 0" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
 
   <!-- ▶ PantryPal Backdrop -->
   <div class="pp-backdrop" id="ppBackdrop"></div>
@@ -329,10 +243,8 @@
     </header>
 
     <main class="pp-body" id="ppBody">
-      <!-- Example welcome message -->
-      <div class="pp-msg bot">
-        <div class="bubble"><strong>Hi! I’m PantryPal.</strong><br/>Tell me what you have on hand or what you’re aiming for, and I’ll help you apply filters or suggest swaps—no full recipes, just quick, useful tips.</div>
-      </div>
+      <!-- Welcome message -->
+      <div class="pp-msg bot"><div class="bubble"><strong>Hi! I’m PantryPal.</strong><br/>Tell me what you have on hand or what you’re aiming for, and I’ll help you apply filters or suggest swaps—no full recipes, just quick, useful tips.</div></div>
     </main>
 
     <div class="pp-suggestions" id="ppSuggestions">
@@ -360,9 +272,11 @@
   <!-- (Optional) Bootstrap or other scripts can stay after -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- ▶ PantryPal behavior (dependency-free) -->
+  <!-- ▶ PantryPal behavior (now wired to /api/pantrypal) -->
   <script>
     (function(){
+      const endpoint = '/api/pantrypal';
+
       const fab = document.getElementById('ppFab');
       const sheet = document.getElementById('ppSheet');
       const backdrop = document.getElementById('ppBackdrop');
@@ -372,20 +286,8 @@
       const body = document.getElementById('ppBody');
       const suggestions = document.getElementById('ppSuggestions');
 
-      function openSheet() {
-        sheet.classList.add('open');
-        backdrop.classList.add('open');
-        fab.setAttribute('aria-expanded', 'true');
-        setTimeout(()=> input.focus(), 200);
-        trapFocus();
-      }
-      function closeSheet() {
-        sheet.classList.remove('open');
-        backdrop.classList.remove('open');
-        fab.setAttribute('aria-expanded', 'false');
-        releaseFocus();
-        fab.focus();
-      }
+      function openSheet() { sheet.classList.add('open'); backdrop.classList.add('open'); fab.setAttribute('aria-expanded', 'true'); setTimeout(()=> input.focus(), 200); trapFocus(); }
+      function closeSheet() { sheet.classList.remove('open'); backdrop.classList.remove('open'); fab.setAttribute('aria-expanded', 'false'); releaseFocus(); fab.focus(); }
 
       fab.addEventListener('click', openSheet);
       backdrop.addEventListener('click', closeSheet);
@@ -417,7 +319,6 @@
       }, { passive: true });
 
       input.addEventListener('input', () => { send.disabled = input.value.trim().length === 0; });
-
       suggestions.addEventListener('click', (e)=>{
         const chip = e.target.closest('[data-suggest]');
         if (!chip) return;
@@ -440,87 +341,103 @@
         body.appendChild(wrap);
         body.scrollTop = body.scrollHeight;
       }
-      function escapeHtml(str){
-        return str.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-      }
+      function escapeHtml(str){ return str.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-      function handleSend(){
+      async function handleSend(){
         const q = input.value.trim();
         if (!q) return;
         addUser(q);
         input.value = ''; send.disabled = true;
-        setTimeout(()=>{
-          const demo = demoReply(q);
-          addBot(demo.text, demo.actions);
-        }, 450);
+
+        // Build lightweight context from page
+        const context = {
+          filters: window.currentRecipeFilters || {},
+          pantry: window.userPantryItems || [],
+          page: 'recipes'
+        };
+
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: q, context })
+          });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+
+          // Validate minimal shape
+          if (!data || typeof data.text !== 'string') throw new Error('Invalid AI response');
+
+          // Render response text
+          let actionsHtml = '';
+          // Optional: render action chips from AI response
+          if (data.actions && typeof data.actions === 'object') {
+            const chips = [];
+            if (data.actions.applyFilters) {
+              chips.push(`<button class="pp-chip" data-action="apply-filters" data-filters='${JSON.stringify(data.actions.applyFilters)}'>Apply filters</button>`);
+            }
+            if (data.actions.showRecipes) {
+              const lim = data.actions.showRecipes.limit ?? 6;
+              chips.push(`<button class="pp-chip" data-action="show-recipes" data-limit="${lim}">Show ${lim} matches</button>`);
+            }
+            if (data.actions.suggestSwap) {
+              chips.push(`<button class="pp-chip" data-action="swap" data-swap='${JSON.stringify(data.actions.suggestSwap)}'>Suggest swap</button>`);
+            }
+            if (chips.length) actionsHtml = `<div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">${chips.join('')}</div>`;
+          }
+          addBot(data.text, actionsHtml);
+
+          // Immediately dispatch actions so the page can react without clicking chips
+          dispatchActions(data.actions || {});
+        } catch (err) {
+          console.error('PantryPal error:', err);
+          addBot('Sorry — I hit a snag. Try again in a moment.');
+        }
       }
+
       send.addEventListener('click', handleSend);
       input.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handleSend(); });
 
-      function demoReply(q){
-        let text = "Here are a few ideas based on what you asked:";
-        let actions = `
-          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="pp-chip" data-action="apply-filters" data-filters='{"protein":"high","time":"<=35"}'>Apply filters</button>
-            <button class="pp-chip" data-action="show-recipes" data-limit="5">Show 5 matches</button>
-            <button class="pp-chip" data-action="swap" data-swap='{"from":"broccoli","to":"asparagus"}'>Suggest swap</button>
-          </div>`;
-        if (/dairy|lactose/i.test(q)) {
-          text = "Try these dairy‑free swaps: use unsweetened oat milk for creaminess, nutritional yeast for cheesy notes, and olive‑oil roux to thicken sauces.";
-        }
-        if (/chicken|zucchini|rice/i.test(q)) {
-          text = "You can filter to chicken + zucchini under 35 minutes. I can also show dishes that reuse rice for sides.";
-        }
-        return { text, actions };
-      }
-
-      // Action events -> let recipes.js respond
+      // Chip click handlers → dispatch events
       body.addEventListener('click', (e)=>{
         const chip = e.target.closest('.pp-chip');
         if (!chip) return;
-        const action = chip.getAttribute('data-action');
-        if (!action) return;
         e.preventDefault();
+        const action = chip.getAttribute('data-action');
         if (action === 'apply-filters') {
-          const detail = JSON.parse(chip.getAttribute('data-filters'));
-          window.dispatchEvent(new CustomEvent('pantrypal:applyFilters', { detail }));
+          dispatchActions({ applyFilters: JSON.parse(chip.getAttribute('data-filters')) });
           addBot('✅ Filters applied. Scrolling to results…');
           closeSheet();
         }
         if (action === 'show-recipes') {
-          const limit = parseInt(chip.getAttribute('data-limit')||'5',10);
-          window.dispatchEvent(new CustomEvent('pantrypal:showRecipes', { detail: { limit } }));
+          const limit = parseInt(chip.getAttribute('data-limit')||'6',10);
+          dispatchActions({ showRecipes: { limit } });
           addBot(`✅ Showing ${limit} highlighted matches.`);
           closeSheet();
         }
         if (action === 'swap') {
-          const swap = JSON.parse(chip.getAttribute('data-swap'));
-          window.dispatchEvent(new CustomEvent('pantrypal:suggestSwap', { detail: swap }));
-          addBot(`✅ Swap noted: ${swap.from} → ${swap.to}.`);
+          dispatchActions({ suggestSwap: JSON.parse(chip.getAttribute('data-swap')) });
         }
       });
+
+      function dispatchActions(actions){
+        if (!actions || typeof actions !== 'object') return;
+        if (actions.applyFilters) window.dispatchEvent(new CustomEvent('pantrypal:applyFilters', { detail: actions.applyFilters }));
+        if (actions.showRecipes) window.dispatchEvent(new CustomEvent('pantrypal:showRecipes', { detail: actions.showRecipes }));
+        if (actions.suggestSwap) window.dispatchEvent(new CustomEvent('pantrypal:suggestSwap', { detail: actions.suggestSwap }));
+        // Convenience: scroll to grid if we showed recipes
+        if (actions.showRecipes) document.getElementById('recipeContainer')?.scrollIntoView({behavior:'smooth', block:'start'});
+      }
 
       // Swipe down to close (mobile)
       let startY = null, delta = 0;
       sheet.addEventListener('touchstart', (e)=>{ startY = e.touches[0].clientY; delta = 0; }, {passive:true});
       sheet.addEventListener('touchmove', (e)=>{ if(startY==null) return; delta = e.touches[0].clientY - startY; if (delta>0) { sheet.style.transform = `translateY(${Math.min(delta, window.innerHeight)}px)`; } }, {passive:true});
-      sheet.addEventListener('touchend', ()=>{
-        if (delta > 90) { sheet.style.transform = ''; closeSheet(); }
-        else { sheet.style.transform = ''; }
-        startY = null; delta = 0;
-      });
+      sheet.addEventListener('touchend', ()=>{ if (delta > 90) { sheet.style.transform = ''; closeSheet(); } else { sheet.style.transform = ''; } startY = null; delta = 0; });
 
-      // Hooks you can implement in recipes.js
-      window.addEventListener('pantrypal:applyFilters', (e)=>{
-        // Example: window.applyRecipeFilters?.(e.detail);
-      });
-      window.addEventListener('pantrypal:showRecipes', (e)=>{
-        // Example: scroll to grid & highlight
-        document.getElementById('recipeContainer')?.scrollIntoView({behavior:'smooth', block:'start'});
-      });
-      window.addEventListener('pantrypal:suggestSwap', (e)=>{
-        // Example: show a toast/modal with the swap suggestion
-      });
+      // Hooks your recipes.js can implement
+      window.addEventListener('pantrypal:applyFilters', (e)=>{ /* window.applyRecipeFilters?.(e.detail); */ });
+      window.addEventListener('pantrypal:showRecipes', (e)=>{ document.getElementById('recipeContainer')?.scrollIntoView({behavior:'smooth', block:'start'}); });
+      window.addEventListener('pantrypal:suggestSwap', (e)=>{ /* show toast/modal with e.detail */ });
     })();
   </script>
 </body>
