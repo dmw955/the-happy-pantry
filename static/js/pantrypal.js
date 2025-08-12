@@ -1,0 +1,191 @@
+
+const PantryPal = (() => {
+  const state = {
+    endpoint: "/api/pantrypal",
+    els: { form: null, input: null, messages: null, typing: null },
+    getContext: () => ({}),
+    sending: false,
+  };
+
+  function $(sel) { return document.querySelector(sel); }
+
+  function ensureEls(selectors) {
+    state.els.form = $(selectors.form);
+    state.els.input = $(selectors.input);
+    state.els.messages = $(selectors.messages);
+    state.els.typing = $(selectors.typing);
+
+    if (!state.els.form || !state.els.input || !state.els.messages) {
+      throw new Error("PantryPal: Missing required elements (form/input/messages)");
+    }
+  }
+
+  function renderBubble(text, who = "user") {
+    const wrap = document.createElement("div");
+    wrap.className = `pp-bubble pp-${who}`;
+    wrap.setAttribute("role", "status");
+    wrap.textContent = text;
+    state.els.messages.appendChild(wrap);
+    state.els.messages.scrollTop = state.els.messages.scrollHeight;
+  }
+
+  function setTyping(on) {
+    if (!state.els.typing) return;
+    state.els.typing.hidden = !on;
+  }
+
+  async function sendToBackend(message) {
+    const payload = {
+      message,
+      context: safeContext(state.getContext()),
+    };
+
+    const res = await fetch(state.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function safeContext(ctx) {
+    // Prevent accidental circular/huge payloads
+    try {
+      return JSON.parse(JSON.stringify(ctx || {}));
+    } catch { return {}; }
+  }
+
+  function validateResponse(data) {
+    // Expected shape: { text: string, actions?: { applyFilters?, showRecipes?, suggestSwap? } }
+    if (!data || typeof data.text !== "string") {
+      throw new Error("Invalid AI response shape: missing text");
+    }
+    if (data.actions && typeof data.actions !== "object") {
+      throw new Error("Invalid AI response shape: actions must be an object if present");
+    }
+    return data;
+  }
+
+  function dispatchActions(actions) {
+    if (!actions || typeof actions !== "object") return;
+
+    // 1) Apply filters
+    if (actions.applyFilters) {
+      const detail = actions.applyFilters;
+      window.dispatchEvent(new CustomEvent("pp:applyFilters", { detail }));
+    }
+
+    // 2) Show recipes (limit)
+    if (actions.showRecipes) {
+      const detail = actions.showRecipes; // e.g., { limit: 5 }
+      window.dispatchEvent(new CustomEvent("pp:showRecipes", { detail }));
+    }
+
+    // 3) Suggest ingredient swap
+    if (actions.suggestSwap) {
+      const detail = actions.suggestSwap; // e.g., { from: "broccoli", to: "asparagus" }
+      window.dispatchEvent(new CustomEvent("pp:suggestSwap", { detail }));
+    }
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (state.sending) return;
+
+    const message = (state.els.input.value || "").trim();
+    if (!message) return;
+
+    state.sending = true;
+    renderBubble(message, "user");
+    state.els.input.value = "";
+    setTyping(true);
+
+    try {
+      const data = await sendToBackend(message);
+      const valid = validateResponse(data);
+      renderBubble(valid.text, "ai");
+      dispatchActions(valid.actions);
+    } catch (err) {
+      console.error("PantryPal error:", err);
+      renderBubble("Sorry — I hit a snag. Try again in a moment.", "ai");
+    } finally {
+      setTyping(false);
+      state.sending = false;
+    }
+  }
+
+  function installStylesOnce() {
+    if (document.getElementById("pp-styles")) return;
+    const css = document.createElement("style");
+    css.id = "pp-styles";
+    css.textContent = `
+      .pp-bubble { max-width: 85%; margin: 8px 0; padding: 10px 12px; border-radius: 14px; line-height: 1.35; }
+      .pp-user { margin-left: auto; background: #e8f7ff; }
+      .pp-ai { margin-right: auto; background: #f0fdfa; border: 1px solid rgba(0,0,0,.06); }
+      #ppTyping { font-size: .9rem; opacity: .8; margin-top: 6px; }
+    `;
+    document.head.appendChild(css);
+  }
+
+  function init(opts = {}) {
+    state.endpoint = opts.endpoint || state.endpoint;
+    state.getContext = typeof opts.getContext === "function" ? opts.getContext : state.getContext;
+    ensureEls(opts.selectors || {});
+    installStylesOnce();
+
+    state.els.form.addEventListener("submit", handleSubmit);
+  }
+
+  return { init };
+})();
+
+// ---------------------------
+// Example wiring (listeners)
+// ---------------------------
+// Place these in a page-specific script OR keep here and call your real functions inside.
+// They listen for PantryPal's action events and bridge to your existing UI logic.
+
+window.addEventListener("pp:applyFilters", (e) => {
+  // e.detail might look like: { diet: "high-protein", exclude: ["broccoli"], timeMax: 30 }
+  if (window.applyRecipeFilters) {
+    window.applyRecipeFilters(e.detail);
+  } else {
+    console.debug("pp:applyFilters", e.detail);
+  }
+});
+
+window.addEventListener("pp:showRecipes", (e) => {
+  // e.detail might look like: { limit: 5 }
+  if (window.showRecipesLimit) {
+    window.showRecipesLimit(e.detail.limit || 6);
+  } else {
+    console.debug("pp:showRecipes", e.detail);
+  }
+});
+
+window.addEventListener("pp:suggestSwap", (e) => {
+  // e.detail might look like: { from: "broccoli", to: "asparagus" }
+  if (window.showSwapSuggestion) {
+    window.showSwapSuggestion(e.detail);
+  } else {
+    console.debug("pp:suggestSwap", e.detail);
+    // Example fallback UI (toast-like)
+    try {
+      const msg = document.createElement("div");
+      msg.textContent = `Swap suggestion: ${e.detail.from} → ${e.detail.to}`;
+      msg.style.position = "fixed";
+      msg.style.bottom = "16px";
+      msg.style.left = "50%";
+      msg.style.transform = "translateX(-50%)";
+      msg.style.padding = "10px 12px";
+      msg.style.borderRadius = "12px";
+      msg.style.background = "#111";
+      msg.style.color = "#fff";
+      msg.style.zIndex = "9999";
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 3000);
+    } catch {}
+  }
+});
