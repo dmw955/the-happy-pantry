@@ -230,17 +230,24 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # set this in your env
 
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
-    if not OPENAI_API_KEY:
-        return jsonify({"error": "Server misconfigured: missing OPENAI_API_KEY"}), 500
+    # Read the key at request time so redeploys / env changes are picked up
+    openai_key = os.getenv("OPENAI_API_KEY")
+
+    if not openai_key:
+        # Clear, user-friendly message instead of a vague 500
+        return jsonify({
+            "error": "PantryPal isn’t fully configured on the server.",
+            "hint": "Set OPENAI_API_KEY in your hosting environment and redeploy."
+        }), 500
 
     payload = request.get_json(silent=True) or {}
     user_msg = (payload.get("message") or "").strip()
-    context = payload.get("context") or {}  # optional: filters, user prefs, pantry, etc.
+    context = payload.get("context") or {}
 
     if not user_msg:
         return jsonify({"error": "Missing 'message'"}), 400
 
-    # System guardrails
+    # Guardrails
     system_prompt = (
         "You are PantryPal, a friendly, concise cooking assistant for The Happy Pantry. "
         "RULES:\n"
@@ -250,12 +257,12 @@ def pantrypal_api():
         "- Keep it supportive, upbeat, and brief.\n"
         "- Return JSON with keys: text (string), actions (object with applyFilters, showRecipes, suggestSwap). "
         "Any of those can be null if not relevant.\n"
-        "Examples:\n"
+        "Example:\n"
         "{ \"text\": \"Try dairy-free swaps like oat milk + nutritional yeast.\", "
         "\"actions\": {\"applyFilters\": {\"diet\":\"dairy-free\"}, \"showRecipes\": {\"limit\":5}, \"suggestSwap\": {\"from\":\"butter\",\"to\":\"olive oil\"}} }"
     )
 
-    # Build a compact user/context message for the model
+    # Compact user/context
     user_prompt = {
         "message": user_msg,
         "context": {
@@ -265,15 +272,14 @@ def pantrypal_api():
         }
     }
 
-    # Call OpenAI (simple JSON response, non-streaming)
-    # Using Chat Completions-style JSON mode for structured output
+    # OpenAI Chat Completions (JSON mode)
     url = "https://api.openai.com/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Authorization": f"Bearer {openai_key}",
         "Content-Type": "application/json",
     }
     body = {
-        "model": "gpt-4o-mini",  # fast & cheap; swap if you prefer
+        "model": "gpt-4o-mini",
         "response_format": {"type": "json_object"},
         "temperature": 0.3,
         "messages": [
@@ -281,18 +287,36 @@ def pantrypal_api():
             {"role": "user", "content": json.dumps(user_prompt)}
         ],
     }
-    r = requests.post(url, headers=headers, json=body, timeout=20)
+
+    try:
+        r = requests.post(url, headers=headers, json=body, timeout=20)
+    except requests.Timeout:
+        return jsonify({"error": "AI service timeout. Please try again."}), 504
+    except requests.RequestException as e:
+        # Network/SSL/etc.
+        return jsonify({"error": "AI service unavailable.", "details": str(e)}), 502
+
     if r.status_code != 200:
-        return jsonify({"error": "AI call failed", "details": r.text}), 502
+        # Log raw response server-side for debugging
+        try:
+            print("OpenAI error:", r.status_code, r.text[:1000])
+        except Exception:
+            pass
+        return jsonify({"error": "AI call failed", "status": r.status_code}), 502
 
     try:
         content = r.json()["choices"][0]["message"]["content"]
-        data = json.loads(content)
+        data = json.loads(content)  # must be JSON per response_format
+        if not isinstance(data, dict) or "text" not in data:
+            raise ValueError("Invalid JSON shape from AI")
     except Exception as e:
-        # Fallback shape
-        data = {"text": "I’m here to help with quick swaps and filters!", "actions": None}
+        # Fallback shape if parsing fails
+        print("AI parse error:", e)
+        data = {
+            "text": "I’m here to help with quick swaps and filters! Try asking for a dairy‑free swap or a time limit.",
+            "actions": None
+        }
 
-    # Optional: log an event to Supabase later
     return jsonify(data), 200
 
 @app.route('/error')
