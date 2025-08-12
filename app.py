@@ -221,6 +221,79 @@ def usda_detail():
         params={"api_key": USDA_API_KEY}
     )
     return jsonify(res.json())
+# ---- PantryPal AI endpoint -----------------------------------------------
+import os, json
+from flask import request, jsonify
+import requests
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # set this in your env
+
+@app.route("/api/pantrypal", methods=["POST"])
+def pantrypal_api():
+    if not OPENAI_API_KEY:
+        return jsonify({"error": "Server misconfigured: missing OPENAI_API_KEY"}), 500
+
+    payload = request.get_json(silent=True) or {}
+    user_msg = (payload.get("message") or "").strip()
+    context = payload.get("context") or {}  # optional: filters, user prefs, pantry, etc.
+
+    if not user_msg:
+        return jsonify({"error": "Missing 'message'"}), 400
+
+    # System guardrails
+    system_prompt = (
+        "You are PantryPal, a friendly, concise cooking assistant for The Happy Pantry. "
+        "RULES:\n"
+        "- Do NOT generate full recipes or instructions; give short tips only (1–3 bullets).\n"
+        "- Prefer actionable outputs the UI can apply: filters (tags/time/macros), simple ingredient swaps, and short justifications.\n"
+        "- Stay within site content. No external links. No medical advice.\n"
+        "- Keep it supportive, upbeat, and brief.\n"
+        "- Return JSON with keys: text (string), actions (object with applyFilters, showRecipes, suggestSwap). "
+        "Any of those can be null if not relevant.\n"
+        "Examples:\n"
+        "{ \"text\": \"Try dairy-free swaps like oat milk + nutritional yeast.\", "
+        "\"actions\": {\"applyFilters\": {\"diet\":\"dairy-free\"}, \"showRecipes\": {\"limit\":5}, \"suggestSwap\": {\"from\":\"butter\",\"to\":\"olive oil\"}} }"
+    )
+
+    # Build a compact user/context message for the model
+    user_prompt = {
+        "message": user_msg,
+        "context": {
+            "activeFilters": context.get("activeFilters"),
+            "pantry": context.get("pantry"),
+            "favoritesCount": context.get("favoritesCount"),
+        }
+    }
+
+    # Call OpenAI (simple JSON response, non-streaming)
+    # Using Chat Completions-style JSON mode for structured output
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    body = {
+        "model": "gpt-4o-mini",  # fast & cheap; swap if you prefer
+        "response_format": {"type": "json_object"},
+        "temperature": 0.3,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": json.dumps(user_prompt)}
+        ],
+    }
+    r = requests.post(url, headers=headers, json=body, timeout=20)
+    if r.status_code != 200:
+        return jsonify({"error": "AI call failed", "details": r.text}), 502
+
+    try:
+        content = r.json()["choices"][0]["message"]["content"]
+        data = json.loads(content)
+    except Exception as e:
+        # Fallback shape
+        data = {"text": "I’m here to help with quick swaps and filters!", "actions": None}
+
+    # Optional: log an event to Supabase later
+    return jsonify(data), 200
 
 @app.route('/error')
 def error():
