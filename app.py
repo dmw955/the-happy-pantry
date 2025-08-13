@@ -222,102 +222,125 @@ def usda_detail():
     )
     return jsonify(res.json())
 # ---- PantryPal AI endpoint -----------------------------------------------
-import os, json
 from flask import request, jsonify
-import requests
-
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # set this in your env
+import os, json, requests, traceback
 
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
-    # Read the key at request time so redeploys / env changes are picked up
-    openai_key = os.getenv("OPENAI_API_KEY")
-
-    if not openai_key:
-        # Clear, user-friendly message instead of a vague 500
-        return jsonify({
-            "error": "PantryPal isn’t fully configured on the server.",
-            "hint": "Set OPENAI_API_KEY in your hosting environment and redeploy."
-        }), 500
-
-    payload = request.get_json(silent=True) or {}
-    user_msg = (payload.get("message") or "").strip()
-    context = payload.get("context") or {}
-
-    if not user_msg:
-        return jsonify({"error": "Missing 'message'"}), 400
-
-    # Guardrails
-    system_prompt = (
-        "You are PantryPal, a friendly, concise cooking assistant for The Happy Pantry. "
-        "RULES:\n"
-        "- Do NOT generate full recipes or instructions; give short tips only (1–3 bullets).\n"
-        "- Prefer actionable outputs the UI can apply: filters (tags/time/macros), simple ingredient swaps, and short justifications.\n"
-        "- Stay within site content. No external links. No medical advice.\n"
-        "- Keep it supportive, upbeat, and brief.\n"
-        "- Return JSON with keys: text (string), actions (object with applyFilters, showRecipes, suggestSwap). "
-        "Any of those can be null if not relevant.\n"
-        "Example:\n"
-        "{ \"text\": \"Try dairy-free swaps like oat milk + nutritional yeast.\", "
-        "\"actions\": {\"applyFilters\": {\"diet\":\"dairy-free\"}, \"showRecipes\": {\"limit\":5}, \"suggestSwap\": {\"from\":\"butter\",\"to\":\"olive oil\"}} }"
-    )
-
-    # Compact user/context
-    user_prompt = {
-        "message": user_msg,
-        "context": {
-            "activeFilters": context.get("activeFilters"),
-            "pantry": context.get("pantry"),
-            "favoritesCount": context.get("favoritesCount"),
-        }
-    }
-
-    # OpenAI Chat Completions (JSON mode)
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {openai_key}",
-        "Content-Type": "application/json",
-    }
-    body = {
-        "model": "gpt-4o-mini",
-        "response_format": {"type": "json_object"},
-        "temperature": 0.3,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": json.dumps(user_prompt)}
-        ],
-    }
-
     try:
-        r = requests.post(url, headers=headers, json=body, timeout=20)
-    except requests.Timeout:
-        return jsonify({"error": "AI service timeout. Please try again."}), 504
-    except requests.RequestException as e:
-        # Network/SSL/etc.
-        return jsonify({"error": "AI service unavailable.", "details": str(e)}), 502
+        # Read key at request time (so restarts/env changes are picked up)
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            return jsonify({
+                "error": "Server misconfig: OPENAI_API_KEY missing",
+                "hint": "Add OPENAI_API_KEY in Render → Environment and restart the service."
+            }), 500
 
-    if r.status_code != 200:
-        # Log raw response server-side for debugging
+        # Validate input
+        payload = request.get_json(force=True, silent=False)
+        user_msg = (payload.get("message") or "").strip()
+        context = payload.get("context") or {}
+        if not user_msg:
+            return jsonify({"error": "Missing 'message'"}), 400
+
+        # Guardrails/system prompt
+        system_prompt = (
+            "You are PantryPal, a concise assistant for The Happy Pantry.\n"
+            "RULES:\n"
+            "- Do NOT generate full recipes or step-by-steps; reply in 1–3 short bullets.\n"
+            "- Prefer actionable outputs the UI can apply: filters (diet/tags/time/macros), simple ingredient swaps, brief rationale.\n"
+            "- Stay within site content. No external links. No medical advice.\n"
+            "- Respond as strict JSON (response_format=json_object) with keys:\n"
+            "  text: string\n"
+            "  actions: object | null  # e.g. { applyFilters:{diet:'dairy-free'}, showRecipes:{limit:5}, suggestSwap:{from:'butter',to:'olive oil'} }\n"
+        )
+
+        # Compact user/context
+        user_prompt = {
+            "message": user_msg,
+            "context": {
+                "activeFilters": context.get("activeFilters"),
+                "pantry": context.get("pantry"),
+                "favoritesCount": context.get("favoritesCount"),
+            }
+        }
+
+        # OpenAI Chat Completions (JSON mode)
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {openai_key}",
+            "Content-Type": "application/json",
+        }
+        body = {
+            "model": "gpt-4o-mini",
+            "response_format": {"type": "json_object"},
+            "temperature": 0.3,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(user_prompt)},
+            ],
+            "max_tokens": 350,
+        }
+
         try:
-            print("OpenAI error:", r.status_code, r.text[:1000])
-        except Exception:
-            pass
-        return jsonify({"error": "AI call failed", "status": r.status_code}), 502
+            r = requests.post(url, headers=headers, json=body, timeout=20)
+        except requests.Timeout:
+            return jsonify({"error": "Upstream timeout contacting OpenAI"}), 504
+        except requests.RequestException as e:
+            return jsonify({"error": "Network error contacting OpenAI", "details": str(e)}), 502
 
-    try:
-        content = r.json()["choices"][0]["message"]["content"]
-        data = json.loads(content)  # must be JSON per response_format
-        if not isinstance(data, dict) or "text" not in data:
-            raise ValueError("Invalid JSON shape from AI")
-    except Exception as e:
-        # Fallback shape if parsing fails
-        print("AI parse error:", e)
-        data = {
-            "text": "I’m here to help with quick swaps and filters! Try asking for a dairy‑free swap or a time limit.",
-            "actions": None
-        }
+        if r.status_code != 200:
+            # Surface OpenAI's error payload so you can see invalid_key/quota/etc.
+            details = None
+            try:
+                details = r.json()
+            except Exception:
+                details = r.text
+            print("OpenAI error:", r.status_code, details)
+            return jsonify({
+                "error": "OpenAI error",
+                "status": r.status_code,
+                "details": details
+            }), 502
+
+        # Parse JSON-mode content
+        try:
+            content = r.json()["choices"][0]["message"]["content"]
+            data = json.loads(content)  # must be JSON per response_format
+            if not isinstance(data, dict) or "text" not in data:
+                raise ValueError("Invalid JSON shape from AI")
+        except Exception as e:
+            print("AI parse error:", e, "\nRaw:", r.text[:1000])
+            data = {
+                "text": "I’m here to help with quick swaps and filters! Try asking for a dairy‑free swap or a time limit.",
+                "actions": None
+            }
+
+        return jsonify(data), 200
+
+    except Exception:
+        print("PantryPal unhandled error:\n", traceback.format_exc())
+        return jsonify({"error": "Unhandled server error"}), 500
+
 
     return jsonify(data), 200
+@app.route("/healthz")
+def healthz():
+    import os
+    return {
+        "ok": True,
+        "openai_key_present": bool(os.getenv("OPENAI_API_KEY")),
+    }, 200
+
+@app.route("/api/pantrypal/echo", methods=["POST"])
+def pantrypal_echo():
+    from flask import request
+    try:
+        payload = request.get_json(force=True, silent=False)
+        return {"ok": True, "payload": payload}, 200
+    except Exception as e:
+        return {"ok": False, "error": f"Invalid JSON: {str(e)}"}, 400
+
 
 @app.route('/error')
 def error():
