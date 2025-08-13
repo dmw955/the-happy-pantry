@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from supabase import create_client
-import os
 from dotenv import load_dotenv
+import os
 import json
 import requests
+import traceback
 
 # Load environment variables
 load_dotenv()
@@ -11,51 +12,58 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
+# --- Env vars ---
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 USDA_API_KEY = os.getenv("USDA_API_KEY")
 
-# Create Supabase clients
-supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+# --- Supabase clients ---
+# Use ANON for general client operations; SERVICE for admin-only actions.
+supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)              # public client
+supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)     # admin client
 
+# -------------------- Core pages --------------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route('/dashboard')
+@app.route("/dashboard")
 def dashboard():
-    return render_template('dashboard.html')
+    return render_template("dashboard.html")
 
 @app.route("/auth-redirect")
 def auth_redirect():
-    return render_template("auth-redirect.html", 
-        SUPABASE_URL=SUPABASE_URL, 
+    return render_template(
+        "auth-redirect.html",
+        SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
-@app.route('/login', methods=['GET', 'POST'])
+# -------------------- Auth flow --------------------
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
         try:
             response = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            if response and hasattr(response, 'user') and response.user:
-                session['user_id'] = response.user.id
-                session['email'] = response.user.email
-                session['member_since'] = response.user.created_at.strftime("%B %Y") if response.user.created_at else "Unknown"
-                session['access_token'] = response.session.access_token if response.session else None
-                session['refresh_token'] = response.session.refresh_token if response.session else None
+            if response and hasattr(response, "user") and response.user:
+                session["user_id"] = response.user.id
+                session["email"] = response.user.email
+                session["member_since"] = (
+                    response.user.created_at.strftime("%B %Y") if response.user.created_at else "Unknown"
+                )
+                session["access_token"] = response.session.access_token if response.session else None
+                session["refresh_token"] = response.session.refresh_token if response.session else None
                 session.permanent = True
                 flash("✅ Login Successful!", "success")
-                return redirect(url_for('dashboard'))
+                return redirect(url_for("dashboard"))
             flash("❌ Invalid email or password. Please try again.", "danger")
         except Exception as e:
             print("Login error:", e)
             flash("❌ Something went wrong. Please try again later.", "danger")
-    return render_template('login.html', SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
+    return render_template("login.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
 @app.route("/session", methods=["POST"])
 def store_session():
@@ -72,121 +80,124 @@ def store_session():
         print("❌ No user_id provided in /session")
         return jsonify({"error": "user_id missing"}), 400
 
-@app.route('/logout')
+@app.route("/logout")
 def logout():
     session.clear()
     flash("✅ Logged out successfully.", "info")
-    return redirect(url_for('home'))
+    return redirect(url_for("home"))
 
-@app.route('/profile')
+@app.route("/profile")
 def profile():
     return render_template(
-        'profile.html',
+        "profile.html",
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
-        user={}  # ← This prevents template crash
+        user={}  # Prevents template crash if no user loaded
     )
 
-@app.route('/update_profile', methods=['POST'])
+@app.route("/update_profile", methods=["POST"])
 def update_profile():
-    user_id = session.get('user_id')
+    user_id = session.get("user_id")
     if not user_id:
         flash("⚠️ Please log in to update your profile.", "warning")
         return render_template("profile.html")
 
-    email = request.form.get('email')
-    new_password = request.form.get('new_password')
-    confirm_password = request.form.get('confirm_password')
-    email_notifications = 'email_notifications' in request.form
+    email = request.form.get("email")
+    new_password = request.form.get("new_password")
+    confirm_password = request.form.get("confirm_password")
+    email_notifications = "email_notifications" in request.form
 
     if new_password and new_password != confirm_password:
         flash("❌ Passwords do not match. Try again.", "danger")
-        return redirect(url_for('profile'))
+        return redirect(url_for("profile"))
 
     try:
         updates = {}
-        if email and email != session.get('email'):
-            updates['email'] = email
+        if email and email != session.get("email"):
+            updates["email"] = email
         if new_password:
-            updates['password'] = new_password
+            updates["password"] = new_password
 
         if updates:
             supabase_admin.auth.admin.update_user_by_id(user_id, updates)
-            if 'email' in updates:
-                session['email'] = updates['email']
+            if "email" in updates:
+                session["email"] = updates["email"]
                 flash("✅ Email updated successfully!", "success")
-            if 'password' in updates:
+            if "password" in updates:
                 flash("✅ Password updated successfully!", "success")
 
-        session['email_notifications'] = email_notifications
+        session["email_notifications"] = email_notifications
         flash("✅ Preferences updated successfully!", "success")
-    except Exception:
+    except Exception as e:
+        print("Update profile error:", e)
         flash("❌ Something went wrong. Please try again.", "danger")
 
-    return redirect(url_for('profile'))
+    return redirect(url_for("profile"))
 
-@app.route('/forgot_password', methods=['GET', 'POST'])
+@app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
-    if request.method == 'POST':
-        email = request.form.get('email')
+    if request.method == "POST":
+        email = request.form.get("email")
         try:
             supabase.auth.reset_password_for_email(
                 email,
                 options={"redirect_to": "http://127.0.0.1:5000/reset_password"}
             )
             flash("✅ If an account with that email exists, a reset link has been sent.", "success")
-            return redirect(url_for('login'))
-        except Exception:
+            return redirect(url_for("login"))
+        except Exception as e:
+            print("Forgot password error:", e)
             flash("❌ Something went wrong. Please try again later.", "danger")
-    return render_template('forgot_password.html')
+    return render_template("forgot_password.html")
 
-@app.route('/reset_password')
+@app.route("/reset_password")
 def reset_password():
     return render_template(
-        'reset_password.html',
+        "reset_password.html",
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
-@app.route('/about')
+# -------------------- Static pages --------------------
+@app.route("/about")
 def about():
-    return render_template('about.html')
+    return render_template("about.html")
 
-@app.route('/contact')
+@app.route("/contact")
 def contact():
-    return render_template('contact.html')
+    return render_template("contact.html")
 
-@app.route('/signup')
+@app.route("/signup")
 def signup():
-    return render_template('signup.html')
+    return render_template("signup.html")
 
-@app.route('/shopping_list')
+@app.route("/shopping_list")
 def shopping_list():
-    return render_template('shopping_list.html')
+    return render_template("shopping_list.html")
 
-@app.route('/planselection')
+@app.route("/planselection")
 def planselection():
-    return render_template('planselection.html')
+    return render_template("planselection.html")
 
-@app.route('/pantrypost')
+@app.route("/pantrypost")
 def pantrypost():
-    return render_template('pantry_post.html')
+    return render_template("pantry_post.html")
 
-@app.route('/whyitworks')
+@app.route("/whyitworks")
 def whyitworks():
-    return render_template('whyitworks.html')
+    return render_template("whyitworks.html")
 
-@app.route('/pantry_project')
+@app.route("/pantry_project")
 def pantry_project():
-    return render_template('pantry_project.html')
+    return render_template("pantry_project.html")
 
-@app.route('/paymentprocessing')
+@app.route("/paymentprocessing")
 def payment_processing():
-    return render_template('paymentprocessing.html')
+    return render_template("paymentprocessing.html")
 
-@app.route('/success')
+@app.route("/success")
 def success():
-    return render_template('success.html')
+    return render_template("success.html")
 
 @app.route("/macrotracking")
 def macro_tracking():
@@ -204,31 +215,32 @@ def macro_goals():
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
-@app.route('/usda/search')
+# -------------------- USDA endpoints --------------------
+@app.route("/usda/search")
 def usda_search():
-    query = request.args.get('query')
+    query = request.args.get("query")
     res = requests.get(
         "https://api.nal.usda.gov/fdc/v1/foods/search",
-        params={"query": query, "api_key": USDA_API_KEY, "pageSize": 10}
+        params={"query": query, "api_key": USDA_API_KEY, "pageSize": 10},
+        timeout=15
     )
     return jsonify(res.json())
 
-@app.route('/usda/detail')
+@app.route("/usda/detail")
 def usda_detail():
-    fdc_id = request.args.get('fdcId')
+    fdc_id = request.args.get("fdcId")
     res = requests.get(
         f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}",
-        params={"api_key": USDA_API_KEY}
+        params={"api_key": USDA_API_KEY},
+        timeout=15
     )
     return jsonify(res.json())
-# ---- PantryPal AI endpoint -----------------------------------------------
-from flask import request, jsonify
-import os, json, requests, traceback
 
+# -------------------- PantryPal AI endpoint --------------------
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
     try:
-        # Read key at request time (so restarts/env changes are picked up)
+        # Read key at request time (picks up restarts/env changes)
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key:
             return jsonify({
@@ -290,8 +302,7 @@ def pantrypal_api():
             return jsonify({"error": "Network error contacting OpenAI", "details": str(e)}), 502
 
         if r.status_code != 200:
-            # Surface OpenAI's error payload so you can see invalid_key/quota/etc.
-            details = None
+            # Surface OpenAI error payload (invalid key, quota, bad payload, etc.)
             try:
                 details = r.json()
             except Exception:
@@ -322,11 +333,9 @@ def pantrypal_api():
         print("PantryPal unhandled error:\n", traceback.format_exc())
         return jsonify({"error": "Unhandled server error"}), 500
 
-
-    return jsonify(data), 200
+# -------------------- Diagnostics --------------------
 @app.route("/healthz")
 def healthz():
-    import os
     return {
         "ok": True,
         "openai_key_present": bool(os.getenv("OPENAI_API_KEY")),
@@ -334,46 +343,26 @@ def healthz():
 
 @app.route("/api/pantrypal/echo", methods=["POST"])
 def pantrypal_echo():
-    from flask import request
     try:
         payload = request.get_json(force=True, silent=False)
         return {"ok": True, "payload": payload}, 200
     except Exception as e:
         return {"ok": False, "error": f"Invalid JSON: {str(e)}"}, 400
 
-
-@app.route('/error')
-def error():
-    message = request.args.get('message', 'An error occurred during your transaction.')
-    return render_template('error.html', message=message)
-
-@app.route('/local-resources')
-def local_resources():
-    return render_template(
-        'local_resources.html',
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-    )
-
-@app.route('/subscribe/<plan_type>')
-def subscribe(plan_type):
-    if plan_type not in ['monthly', 'yearly']:
-        return "Invalid Plan", 404
-    return render_template('subscribe.html', plan_type=plan_type)
-
-@app.route('/recipes')
+# -------------------- Recipes pages --------------------
+@app.route("/recipes")
 def recipes():
     return render_template(
-        'recipes.html',
+        "recipes.html",
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
-        USER_ID=session.get('user_id')
+        USER_ID=session.get("user_id")
     )
 
-@app.route('/recipes/<slug>')
+@app.route("/recipes/<slug>")
 def recipe_page(slug):
     try:
-        response = supabase.table('recipes').select('*').eq('slug', slug).execute()
+        response = supabase.table("recipes").select("*").eq("slug", slug).execute()
         data = response.data
         if not data:
             return "❌ No recipe found for that slug.", 404
@@ -385,9 +374,17 @@ def recipe_page(slug):
             if isinstance(recipe.get(field), list):
                 recipe[field] = [json.loads(i) if isinstance(i, str) else i for i in recipe[field]]
 
-        return render_template('recipe.html', recipe=recipe)
-    except Exception:
+        return render_template("recipe.html", recipe=recipe)
+    except Exception as e:
+        print("Recipe load error:", e)
         return "An error occurred while loading the recipe.", 500
 
+# -------------------- Error page --------------------
+@app.route("/error")
+def error():
+    message = request.args.get("message", "An error occurred during your transaction.")
+    return render_template("error.html", message=message)
+
+# -------------------- Main --------------------
 if __name__ == "__main__":
     app.run(debug=False)
