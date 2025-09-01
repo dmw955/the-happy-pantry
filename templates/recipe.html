@@ -1,168 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Macro Goals</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <meta name="description" content="Recipe • The Happy Pantry"/>
+  <title>{{ recipe.title | default('Recipe') }} - The Happy Pantry</title>
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}"/>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
-
-  <!-- ✅ Load Supabase JS Library -->
+  <!-- ✅ Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
 
-  <!-- ✅ Inject environment config -->
+  <!-- ✅ Supabase Initialization from env -->
   <script>
-    window.SUPABASE_URL = "{{ SUPABASE_URL }}";
-    window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+    const SUPABASE_URL = "{{ SUPABASE_URL }}";
+    const SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   </script>
 
-  <!-- ✅ Load auth.js for session enforcement -->
+  <!-- ✅ Auth -->
   <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
-  <!-- Your custom page logic -->
-  <script src="{{ url_for('static', filename='js/macrogoals.js') }}" defer></script>
-
-  <!-- Optional CSS Styling -->
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
-      padding-top: 70px;
-    }
-  </style>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-    }
-    html, body {
-      height: 100%;
-    }
-    .slide-in-left {
-      animation: slideLeft 0.8s ease-out forwards;
-    }
-    .slide-in-right {
-      animation: slideRight 0.8s ease-out forwards;
-    }
-    @keyframes slideLeft {
-      from { transform: translateX(-100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
+    :root { --primary:#008080; --accent:#FFC72C; }
+    .rounded-xl { border-radius: 1rem; }
+    .brand-teal { color: var(--primary); }
+    .brand-gold { color: var(--accent); }
+    .navbar { background:#fff; border-bottom:2px solid var(--accent); }
+    .navbar-nav .nav-link { font-weight:600; }
+    .navbar-nav .nav-link:hover { color: var(--accent); text-decoration: underline; }
+    .hero-gap { margin-top: 1rem; }
   </style>
 </head>
-<body class="bg-white text-gray-800 m-0 p-0 relative min-h-screen">
 
-   <!-- Header -->
-  <header class="bg-white shadow-sm border-b border-gray-200 relative z-20">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-      <a href="/" class="flex items-center space-x-2">
-        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="h-10 w-auto" />
+<body>
+  <!-- Navbar (copied structure from your working page) -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container px-5">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo" style="height:50px;width:auto;">
       </a>
-      <nav class="space-x-4 text-sm md:text-base">
-        <a href="/" class="text-gray-600 hover:text-teal-600">Home</a>
-        <a href="/dashboard" class="text-gray-600 hover:text-teal-600">Dashboard</a>
-        <a href="/recipes" class="text-gray-600 hover:text-teal-600 font-semibold">Recipes</a>
-        <a href="/shopping_list" class="text-gray-600 hover:text-teal-600">Shopping List</a>
-        <a href="/profile" class="text-gray-600 hover:text-teal-600">Profile</a>
-        <a href="/logout" class="text-gray-600 hover:text-red-500">Logout</a>
-      </nav>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">My Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('local_resources') }}">Local Resources</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('macro_tracking') }}">Macro Tracking</a></li>
+          <li class="nav-item"><a class="logout-btn nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+        </ul>
+      </div>
     </div>
-  </header>
+  </nav>
 
-  <div class="flex w-full relative z-10">
-    <div class="w-12 flex-shrink-0"></div>
+  <!-- Main -->
+  <main class="py-4">
+    <div class="container" style="max-width:960px;">
 
-    <!-- Main Content -->
-    <main class="flex-1 px-4 sm:px-6 py-10 bg-white">
-      <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold text-teal-600 mb-2">{{ recipe.title }}</h1>
-        <p class="italic mb-6">{{ recipe.description }}</p>
+      <!-- Title & description -->
+      <h1 class="h2 fw-bold brand-teal mb-1">{{ recipe.title | default('Recipe') }}</h1>
+      <p class="text-secondary fst-italic mb-3">{{ recipe.description | default('') }}</p>
 
-        {% if recipe.image_url %}
-        <div class="mb-6">
-          <img src="{{ url_for('static', filename='assets/' + recipe.image_url) }}" alt="{{ recipe.title }}" class="rounded-xl shadow w-full max-w-xl mx-auto" />
-        </div>
-        {% endif %}
+      <!-- Meta badges -->
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <span class="badge text-bg-light border"><i class="bi bi-people me-1"></i>Servings: {{ recipe.servings | default('4') }}</span>
+        <span class="badge text-bg-light border"><i class="bi bi-stopwatch me-1"></i>Prep: {{ recipe.prep_time | default('—') }}</span>
+        <span class="badge text-bg-light border"><i class="bi bi-fire me-1"></i>Cook: {{ recipe.cook_time | default('—') }}</span>
+        <span class="badge text-bg-light border"><i class="bi bi-hourglass-split me-1"></i>Total: {{ recipe.total_time | default('—') }}</span>
+      </div>
 
-        {% if recipe.ingredients %}
-        <h2 class="text-2xl font-semibold text-yellow-400 mb-2">Ingredients</h2>
-        <ul class="list-disc pl-6 mb-6 space-y-1">
-          {% for ing in recipe.ingredients %}
-          <li>
+      <!-- Image (use image first; fallback to image_url). Do not modify filenames. -->
+      {% set _img = recipe.image or recipe.image_url %}
+      {% if _img %}
+      <div class="text-center mb-4">
+        <img
+          src="{{ url_for('static', filename='assets/' + _img) }}"
+          alt="{{ recipe.title | default('Recipe image') }}"
+          class="img-fluid rounded-xl shadow-sm"
+          loading="lazy" decoding="async" style="max-width:720px;">
+      </div>
+      {% endif %}
+
+      <!-- Ingredients -->
+      {% if recipe.ingredients %}
+      <h2 class="h4 fw-semibold brand-gold mb-2">Ingredients</h2>
+      <ul class="ps-4 mb-4">
+        {% for ing in recipe.ingredients %}
+          <li
+            data-item="{{ ing.item }}"
+            data-unit="{{ ing.unit or '' }}"
+            data-quantity="{{ ing.quantity or '' }}"
+          >
             {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
-            {% if ing.notes %} <em>({{ ing.notes }})</em>{% endif %}
+            {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
           </li>
-          {% endfor %}
-        </ul>
-        {% endif %}
+        {% endfor %}
+      </ul>
+      {% endif %}
 
-        {% if recipe.dressing %}
-        <h3 class="text-xl font-semibold text-yellow-400 mb-2">Dressing:</h3>
-        <ul class="list-disc pl-6 mb-6 space-y-1">
-          {% for ing in recipe.dressing %}
-          <li>
+      <!-- Dressing (optional) -->
+      {% if recipe.dressing %}
+      <h3 class="h5 fw-semibold brand-gold mb-2">Dressing</h3>
+      <ul class="ps-4 mb-4">
+        {% for ing in recipe.dressing %}
+          <li
+            data-item="{{ ing.item }}"
+            data-unit="{{ ing.unit or '' }}"
+            data-quantity="{{ ing.quantity or '' }}"
+          >
             {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
-            {% if ing.notes %} <em>({{ ing.notes }})</em>{% endif %}
+            {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
           </li>
-          {% endfor %}
-        </ul>
-        {% endif %}
+        {% endfor %}
+      </ul>
+      {% endif %}
 
-        {% if recipe.instructions %}
-        <h2 class="text-2xl font-semibold text-teal-600 mb-2">Instructions</h2>
-        <ol class="list-decimal pl-6 mb-6 space-y-1">
-          {% for step in recipe.instructions %}
+      <!-- Instructions -->
+      {% if recipe.instructions %}
+      <h2 class="h4 fw-semibold brand-teal mb-2">Instructions</h2>
+      <ol class="ps-4 mb-4">
+        {% for step in recipe.instructions %}
           <li>{{ step }}</li>
-          {% endfor %}
-        </ol>
-        {% endif %}
+        {% endfor %}
+      </ol>
+      {% endif %}
 
-        {% if recipe.nutrition %}
-        <h2 class="text-2xl font-semibold text-yellow-400 mb-2">Nutrition Breakdown (Per Serving)</h2>
-        <table class="w-full border-collapse border border-gray-300 text-left">
-          <thead>
-            <tr class="bg-gray-100">
-              <th class="p-2 border border-gray-300">Nutrient</th>
-              <th class="p-2 border border-gray-300">Amount</th>
+      <!-- Portion guidance -->
+      {% if recipe.portion_note %}
+      <div class="alert alert-secondary py-2">
+        <strong>Portion size:</strong> {{ recipe.portion_note }}
+      </div>
+      {% endif %}
+
+      <!-- Nutrition (per serving) -->
+      {% if recipe.nutrition %}
+      <h2 class="h4 fw-semibold brand-gold mb-2">Nutrition Breakdown (Per Serving)</h2>
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Nutrient</th>
+              <th scope="col">Amount</th>
             </tr>
           </thead>
           <tbody>
-            {% for key, value in recipe.nutrition.items() %}
-            <tr>
-              <td class="p-2 border border-gray-300">{{ key }}</td>
-              <td class="p-2 border border-gray-300">{{ value }}</td>
-            </tr>
-            {% endfor %}
+            <tr><td>Calories</td><td>{{ recipe.nutrition.Calories | default('') }}</td></tr>
+            <tr><td>Protein</td><td>{{ recipe.nutrition.Protein | default('') }}</td></tr>
+            <tr><td>Carbs</td><td>{{ recipe.nutrition.Carbs | default('') }}</td></tr>
+            <tr><td>Fat</td><td>{{ recipe.nutrition.Fat | default('') }}</td></tr>
           </tbody>
         </table>
-        {% endif %}
-
-        <div class="mt-8 text-center">
-          <a href="{{ url_for('recipes') }}" class="text-teal-600 hover:underline text-lg">
-            ← Back to Recipes
-          </a>
-        </div>
       </div>
-    </main>
+      {% endif %}
 
-    <div class="w-12 flex-shrink-0"></div>
-  </div>
+      <div class="text-center">
+        <a href="{{ url_for('recipes') }}" class="text-decoration-none" style="color:var(--primary);">
+          &larr; Back to Recipes
+        </a>
+      </div>
+    </div>
+  </main>
 
-  <!-- Footer -->
-  <footer class="bg-gray-100 border-t border-gray-300 text-center text-sm py-4 relative z-20">
-    <div class="container mx-auto px-5">
-      <p class="text-gray-600 m-0">&copy; 2025 The Happy Pantry</p>
+  <!-- Footer (same structure as your working page) -->
+  <footer class="footer-bg text-white">
+    <div class="container py-2 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+      <p class="m-0">&copy; 2025 The Happy Pantry</p>
+      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer" class="text-white">
+        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width:30px;height:30px;transition:transform .3s;">
+      </a>
     </div>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
