@@ -13,16 +13,14 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
 
   <style>
-    /* Global Color Variables (keep your tokens + align with dashboard usage) */
     :root {
-      --primary-color: #008080;
-      --accent-color: #FFC72C;
-      --text-dark: #2E2E2E;
-      --text-light: #FFFFFF;
+      --primary-color: #008080;   /* Teal */
+      --accent-color:  #FFC72C;   /* Bright Gold */
+      --text-dark:     #2E2E2E;
+      --text-light:    #FFFFFF;
       --background-light: #FFFFFF;
     }
 
-    /* Typography / base */
     body {
       font-family: 'Segoe UI', sans-serif;
       color: var(--text-dark);
@@ -30,7 +28,7 @@
     }
     h1, h2, h3 { color: var(--primary-color); }
 
-    /* Navbar — match Dashboard */
+    /* Navbar */
     .navbar {
       background-color: var(--background-light);
       border-bottom: 2px solid var(--accent-color);
@@ -39,66 +37,49 @@
     .navbar-brand img { height: 50px; width: auto; }
     .navbar-nav .nav-link {
       color: var(--text-dark);
-      font-weight: bold;
-      transition: color 0.3s;
+      font-weight: 600;
+      transition: color 0.2s ease;
     }
-    .navbar-nav .nav-link:hover {
-      color: var(--accent-color);
-      text-decoration: underline;
-    }
+    .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
 
     /* Buttons */
-    .btn-accent {
-      background-color: var(--accent-color);
-      color: #000;
-    }
-    .btn-accent:hover {
-      background-color: #e6b800;
-      color: #000;
-    }
+    .btn-accent { background-color: var(--accent-color); color: #000; font-weight: 700; }
+    .btn-accent:hover { background-color: #e6b800; color: #000; }
 
     /* Sections */
     .section-light { background-color: #f4f4f4; }
     .section-white { background-color: #ffffff; }
 
     /* Cards / images */
-    .rounded-shadow {
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+    .rounded-shadow { border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
-    /* Footer — match Dashboard */
-    .footer-bg {
-      background-color: var(--primary-color);
-      color: var(--text-light);
-      padding: 20px 0;
-      text-align: center;
-      font-size: .9rem;
-    }
+    /* Footer */
+    .footer-bg { background-color: var(--primary-color); color: var(--text-light); padding: 20px 0; text-align: center; font-size: .9rem; }
+
+    /* Small print */
+    .smallprint { color: #6b7280; font-size: .9rem; }
   </style>
 </head>
 <body>
 
-  <!-- Navbar (copied structure to match Dashboard) -->
+  <!-- Navbar (fixed structure) -->
   <nav class="navbar navbar-expand-lg">
     <div class="container px-5">
       <a class="navbar-brand" href="{{ url_for('home') }}">
         <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">The Pantry Project</a>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('whyitworks') }}">Why It Works</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-            <i class="bi bi-box-arrow-right"></i> Logout
-          </a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
+          <li class="nav-item"><a class="nav-link active" aria-current="page" href="{{ url_for('pantry_project') }}">The Pantry Project</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('whyitworks') }}">Why It Works</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
         </ul>
       </div>
     </div>
@@ -109,21 +90,27 @@
     <div class="container">
       <h1 class="display-5 fw-bold">The Pantry Project</h1>
       <p class="lead">A giving mission powered by The Happy Pantry community.</p>
-      <p class="fs-5">Every month, our members can choose to donate directly to a cause that delivers the most needed — and least donated — foods to local pantries.</p>
+      <p class="fs-5">
+        A portion of every subscription goes directly to <strong>The Pantry Project</strong> — funding fresh, high-protein foods for local pantries.
+        Members can also choose to add a little extra each month to make an even bigger impact.
+      </p>
+      <p class="smallprint mt-3">
+        Note: Donations are facilitated by The Happy Pantry and are <em>not tax-deductible</em> at this time.
+      </p>
     </div>
   </section>
 
   <!-- MISSION -->
   <section class="py-5 section-white border-top">
     <div class="container">
-      <div class="row align-items-center">
+      <div class="row align-items-center g-4">
         <div class="col-md-6">
           <h2 class="fw-bold">Filling the Gaps Left Behind</h2>
           <p class="fs-5">Canned goods are helpful, but they’re not enough. Fresh produce, meats, high-protein options, and culturally inclusive staples are what families actually need — but rarely receive.</p>
-          <p class="fs-5">The Pantry Project sources these exact items and partners directly with food pantries to distribute them where they’ll make the most impact.</p>
+          <p class="fs-5">Together with our Pantry Fam, we direct a portion of every subscription to source these exact items and partner directly with food pantries to distribute them where they’ll make the most impact.</p>
         </div>
         <div class="col-md-6">
-          <img src="{{ url_for('static', filename='assets/default.jpg') }}" class="img-fluid rounded-shadow" alt="Pantry Delivery">
+          <img src="{{ url_for('static', filename='assets/default.jpg') }}" class="img-fluid rounded-shadow" alt="Pantry delivery of fresh staples">
         </div>
       </div>
     </div>
@@ -137,19 +124,19 @@
         <div class="col-md-4">
           <div class="p-4 bg-white rounded-shadow h-100">
             <h3 class="fs-4 fw-bold">Step 1</h3>
-            <p>When you sign up, you can optionally add $1, $3, $5, or more to your monthly subscription.</p>
+            <p>Every subscription includes a built-in donation to The Pantry Project.</p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="p-4 bg-white rounded-shadow h-100">
             <h3 class="fs-4 fw-bold">Step 2</h3>
-            <p>We use 100% of these donations to source essential foods — not snacks, but staples like fresh produce and proteins.</p>
+            <p>Members can optionally add $1, $3, $5, or more each month to increase their impact.</p>
           </div>
         </div>
         <div class="col-md-4">
           <div class="p-4 bg-white rounded-shadow h-100">
             <h3 class="fs-4 fw-bold">Step 3</h3>
-            <p>Each month, we deliver these items directly to community food pantries across the country.</p>
+            <p>Funds are combined to source essentials — staples like fresh produce and proteins — and delivered directly to local pantries.</p>
           </div>
         </div>
       </div>
@@ -160,8 +147,8 @@
   <section class="py-5 section-white border-top">
     <div class="container text-center">
       <h2 class="fw-bold mb-3">See the Difference You Make</h2>
-      <p class="fs-5">Every month, we’ll share reports on where donations went — what foods were delivered, which pantries were served, and how your support created real change.</p>
-      <img src="{{ url_for('static', filename='assets/default.jpg') }}" class="img-fluid rounded-shadow mt-4" alt="Donation Impact">
+      <p class="fs-5">Each month, we’ll share updates on how a portion of proceeds and member add-ons were used — what foods were delivered, which pantries were served, and how your support created real change.</p>
+      <img src="{{ url_for('static', filename='assets/default.jpg') }}" class="img-fluid rounded-shadow mt-4" alt="Donation impact examples">
     </div>
   </section>
 
@@ -169,26 +156,25 @@
   <section class="py-5 text-center section-light border-top">
     <div class="container">
       <h2 class="fw-bold">Want to Help?</h2>
-      <p class="fs-5">The Pantry Project is exclusive to Happy Pantry members. When you subscribe, you’ll have the option to give monthly.</p>
-      <a href="{{ url_for('planselection') }}" class="btn btn-lg btn-accent mt-2">Join & Give Back</a>
+      <p class="fs-5">When you subscribe to The Happy Pantry, you’re not just planning better meals — you’re also fueling The Pantry Project and filling shelves at local food pantries.</p>
+      <a href="{{ url_for('planselection') }}" class="btn btn-lg btn-accent mt-2">Subscribe &amp; Give Back</a>
+      <div class="smallprint mt-3">Prefer to support without subscribing? We’ll add standalone giving soon.</div>
     </div>
   </section>
 
-  <!-- Footer (match Dashboard) -->
+  <!-- Footer -->
   <footer class="footer-bg text-white text-xs">
-    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p class="m-0 leading-none">&copy; 2025 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
+    <div class="container mx-auto px-4 py-2 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+      <p class="m-0">&copy; 2025 The Happy Pantry</p>
+      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
         <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
       </a>
     </div>
   </footer>
 
-  <!-- Bootstrap Bundle (JS) — required for navbar toggler -->
+  <!-- Bootstrap Bundle (JS) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Optional: your site script (kept for parity) -->
+  <!-- Site Script -->
   <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </body>
 </html>
