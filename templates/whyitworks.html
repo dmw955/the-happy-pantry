@@ -6,17 +6,14 @@
   <meta name="description" content="The Happy Pantry - Why It Works">
   <title>Why It Works | The Happy Pantry</title>
 
- <!-- Bootstrap Icons (same as index) -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
 
-<!-- Core theme CSS (includes Bootstrap) — EXACTLY like index.html -->
-<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-<!-- Tailwind for page content, but disable preflight so Bootstrap isn’t reset -->
-<script>
-  tailwind = { config: { corePlugins: { preflight: false } } };
-</script>
-<script src="https://cdn.tailwindcss.com"></script>
+    <!-- Core theme CSS (includes Bootstrap) -->
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 
 
   <style>
