@@ -369,6 +369,16 @@ def recipes():
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
         USER_ID=session.get('user_id')
     )
+@app.route("/blog/macro/<slug>")
+def blog_macro(slug):
+    post = get_post(slug)  # your DB fetch
+    prev_post, next_post = get_siblings(slug)
+    # post should include: title, subtitle, author_name, author_avatar,
+    # published_at (datetime), read_time (int), hero_image or image,
+    # html (trusted), macro_summary (optional), related_recipes (optional)
+    return render_template("blog_macro.html",
+                           post=post, prev_post=prev_post, next_post=next_post)
+
 
 @app.route('/recipes/<slug>')
 def recipe_page(slug):

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Macro Manipulation — The Pantry Post">
+  <title>{{ post.title or 'Macro Manipulation' }} | The Pantry Post</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Core theme CSS (includes Bootstrap) -->
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #008080; /* Teal Green */
+      --accent-color: #FFC72C;  /* Bright Gold */
+      --text-dark: #2E2E2E;
+      --text-light: #FFFFFF;
+      --background-light: #FFFFFF;
+    }
+
+    /* Navbar & footer — match homepage */
+    .navbar { background-color: var(--background-light); border-bottom: 2px solid var(--accent-color); padding: 10px 0; }
+    .navbar-brand img { height: 50px; width: auto; }
+    .navbar-nav .nav-link { color: var(--text-dark); font-weight: bold; transition: color 0.3s ease-in-out; }
+    .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
+    .footer-bg { background-color: var(--primary-color); color: var(--text-light); padding: 30px 0; text-align: center; }
+
+    /* Hero (reuses your hero pattern) */
+    .hero-banner {
+      background-image: url("{{ url_for('static', filename='assets/blog/' ~ (post.hero_image or post.image or 'default.jpg')) }}");
+      background-size: cover; background-position: center; background-attachment: fixed;
+      width: 100%; height: 360px; display: flex; align-items: center; justify-content: center; position: relative;
+    }
+    .hero-overlay { background: rgba(0, 128, 128, 0.65); color: #fff; padding: 36px; text-align: left; border-radius: 8px; max-width: 900px; }
+    .hero-title { font-size: 2.25rem; font-weight: bold; margin-bottom: 10px; }
+    .hero-subtitle { font-size: 1.15rem; margin: 0; }
+    .byline { font-size: .95rem; opacity: .95; }
+
+    /* Read progress */
+    #readProgress { position: fixed; top: 0; left: 0; height: 4px; background: var(--accent-color); width: 0; z-index: 1040; }
+
+    /* Body */
+    .article-wrap { max-width: 1100px; margin: 0 auto; }
+    .article-body { max-width: 900px; }
+    .article-body h2 { margin-top: 2rem; border-left: 5px solid var(--accent-color); padding-left: .75rem; }
+    .article-body img { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .callout { border-left: 4px solid var(--primary-color); background: #f6fdfd; padding: 16px; border-radius: 8px; }
+
+    /* TOC */
+    .toc { position: sticky; top: 100px; }
+    .toc a { display: block; color: #555; text-decoration: none; padding: .25rem 0; }
+    .toc a.active { color: var(--primary-color); font-weight: 700; }
+
+    /* Share + Prev/Next */
+    .share a { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid #e6e6e6; border-radius: 999px; padding: .45rem .9rem; text-decoration: none; color: #222; }
+    .share a:hover { border-color: var(--primary-color); }
+    .np a { display: block; border: 1px solid #eee; border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; }
+    .np a:hover { border-color: var(--primary-color); }
+
+    @media (max-width: 991px) { .toc { position: static; margin-bottom: 1rem; } .hero-title { font-size: 1.9rem; } }
+  </style>
+</head>
+<body>
+
+  <div id="readProgress"></div>
+
+  <!-- Navbar (same markup as homepage) -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container px-5">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">The Pantry Project</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-banner">
+    <div class="hero-overlay">
+      <nav aria-label="breadcrumb" class="mb-2">
+        <ol class="breadcrumb m-0">
+          <li class="breadcrumb-item"><a class="text-warning text-decoration-none" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+          <li class="breadcrumb-item"><a class="text-warning text-decoration-none" href="{{ url_for('blog_topic', topic_slug='macro-manipulation') }}">Macro Manipulation</a></li>
+          <li class="breadcrumb-item active text-white-50" aria-current="page">Article</li>
+        </ol>
+      </nav>
+      <h1 class="hero-title">{{ post.title or 'Macro Manipulation 101' }}</h1>
+      {% if post.subtitle %}<p class="hero-subtitle">{{ post.subtitle }}</p>{% endif %}
+      <div class="byline mt-2 d-flex flex-wrap align-items-center gap-2">
+        <img src="{{ url_for('static', filename='assets/avatars/' ~ (post.author_avatar or 'author_default.png')) }}" alt="{{ post.author_name or 'Author' }}" class="rounded-circle" width="32" height="32">
+        <span>{{ post.author_name or 'The Happy Pantry' }}</span>
+        <span>•</span>
+        <time datetime="{{ (post.published_at or now).isoformat() }}">{{ (post.published_at or now).strftime('%b %d, %Y') }}</time>
+        <span>•</span>
+        <span>{{ post.read_time or 6 }} min read</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Body -->
+  <main class="py-5">
+    <div class="container px-5 article-wrap">
+      <div class="row g-4">
+        <!-- TOC -->
+        <aside class="col-lg-3">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <h2 class="h6 mb-3">On this page</h2>
+              <nav id="toc" class="toc small"></nav>
+            </div>
+          </div>
+          <div class="mt-3 share d-flex gap-2 flex-wrap">
+            <a target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}"><i class="bi bi-facebook"></i> Share</a>
+            <a target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url={{ request.url }}&text={{ post.title or 'Macro Manipulation' }}"><i class="bi bi-twitter-x"></i> Post</a>
+            <a href="#" onclick="window.print();return false;"><i class="bi bi-printer"></i> Print</a>
+          </div>
+        </aside>
+
+        <!-- Article -->
+        <article class="col-lg-9">
+          <div class="article-body mx-auto">
+            {% if post.macro_summary %}
+            <div class="callout mb-4"><strong>Macro snapshot:</strong> {{ post.macro_summary }}</div>
+            {% endif %}
+
+            <!-- Rendered HTML content -->
+            <div id="articleContent">{{ post.html|safe }}</div>
+
+            {% if post.related_recipes %}
+            <hr class="my-5">
+            <h3 class="h5 mb-3">Try these next</h3>
+            <div class="row g-3">
+              {% for r in post.related_recipes %}
+              <div class="col-sm-6 col-md-4">
+                <a class="card text-decoration-none text-dark h-100" href="{{ url_for('recipe_detail', slug=r.slug) }}">
+                  <img class="card-img-top" src="{{ url_for('static', filename='assets/' ~ r.image) }}" alt="{{ r.title }}">
+                  <div class="card-body">
+                    <h4 class="h6 m-0">{{ r.title }}</h4>
+                  </div>
+                </a>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="np mt-5 row g-3">
+              <div class="col-md-6">
+                {% if prev_post %}
+                <a href="{{ url_for('blog_post', slug=prev_post.slug) }}" class="d-block">
+                  <div class="small text-muted">Previous</div>
+                  <div class="fw-semibold">{{ prev_post.title }}</div>
+                </a>
+                {% endif %}
+              </div>
+              <div class="col-md-6 text-md-end">
+                {% if next_post %}
+                <a href="{{ url_for('blog_post', slug=next_post.slug) }}" class="d-block">
+                  <div class="small text-muted">Next</div>
+                  <div class="fw-semibold">{{ next_post.title }}</div>
+                </a>
+                {% endif %}
+              </div>
+            </div>
+
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer (same as homepage) -->
+  <footer class="footer-bg text-white text-xs">
+    <div class="container mx-auto px-4 py-2 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+      <p class="m-0">&copy; 2025 The Happy Pantry</p>
+      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
+        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
+      </a>
+    </div>
+  </footer>
+
+  <style> a:hover img { transform: scale(1.1); filter: brightness(1.2); } </style>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Tiny JS: read progress + auto TOC + active section highlight -->
+  <script>
+    // read progress
+    document.addEventListener('scroll', function(){
+      const d=document.documentElement;
+      const p=(d.scrollTop)/(d.scrollHeight-d.clientHeight)*100;
+      document.getElementById('readProgress').style.width=p+'%';
+    });
+    // build TOC from h2/h3
+    (function(){
+      const content=document.getElementById('articleContent'); if(!content) return;
+      const headings=[...content.querySelectorAll('h2, h3')];
+      const toc=document.getElementById('toc'); const ids=new Set();
+      function slugify(t){return (t||'').toLowerCase().replace(/[^a-z0-9\\s-]/g,'').trim().replace(/\\s+/g,'-')}
+      headings.forEach(h=>{
+        if(!h.id){
+          let base=slugify(h.textContent||h.innerText);
+          let unique=base; let i=2;
+          while(ids.has(unique)||!unique){ unique=base+'-'+i++; }
+          h.id=unique; ids.add(unique);
+        }
+        const a=document.createElement('a');
+        a.href='#'+h.id; a.textContent=h.textContent||h.innerText;
+        a.className=h.tagName==='H3'?'ms-3':'';
+        toc.appendChild(a);
+      });
+      // highlight active section
+      const opts={root:null, rootMargin:'0px 0px -70% 0px', threshold:0};
+      const map=new Map(); toc.querySelectorAll('a').forEach(a=>map.set(a.getAttribute('href').slice(1), a));
+      const io=new IntersectionObserver(entries=>{
+        entries.forEach(e=>{
+          const a=map.get(e.target.id); if(!a) return;
+          if(e.isIntersecting){
+            toc.querySelectorAll('a').forEach(x=>x.classList.remove('active'));
+            a.classList.add('active');
+          }
+        })
+      }, opts);
+      headings.forEach(h=>io.observe(h));
+    })();
+  </script>
+</body>
+</html>
