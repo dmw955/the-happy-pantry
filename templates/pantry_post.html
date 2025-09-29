@@ -143,22 +143,21 @@
       <div id="bookViewport" class="overflow-hidden rounded-2xl shadow ring-1 ring-gray-100 bg-white">
         <div id="bookTrack" class="d-flex no-scrollbar">
           <!-- PAGE 1 -->
-<article class="w-100 flex-shrink-0 p-3 p-md-4">
-  <div class="hero-wrap mb-3">
-    <img src="{{ url_for('static', filename='assets/macromanipulation.png') }}" alt="Macro Manipulation">
-  </div>
-  <h2 class="fw-extrabold" style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
-    Macro Manipulation
-  </h2>
-  <p class="text-secondary small mb-2">November 1, 2025</p>
-  <p class="lh-170 text-dark">
-    How to cut through the label games: serving sizes, protein counts, and the math companies don’t want you to notice.
-  </p>
-  <a href="blog_macro.html" class="fw-semibold" style="color:var(--hp-gold); text-decoration: none;">
-    Read more →
-  </a>
-</article>
-
+          <article class="w-100 flex-shrink-0 p-3 p-md-4">
+            <div class="hero-wrap mb-3">
+              <img src="{{ url_for('static', filename='assets/macromanipulation.png') }}" alt="Macro Manipulation">
+            </div>
+            <h2 class="fw-extrabold" style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
+              Macro Manipulation
+            </h2>
+            <p class="text-secondary small mb-2">November 1, 2025</p>
+            <p class="lh-170 text-dark">
+              How to cut through the label games: serving sizes, protein counts, and the math companies don’t want you to notice.
+            </p>
+            <a href="{{ url_for('blog_macro') }}" class="fw-semibold" style="color:var(--hp-gold); text-decoration: none;">
+              Read more →
+            </a>
+          </article>
 
           <!-- Add more <article> pages here -->
         </div>
@@ -180,7 +179,7 @@
       <p class="m-0">&copy; 2025 The Happy Pantry</p>
       <a href="https://www.facebook.com/profile.php?id=61576743170575"
          target="_blank" rel="noopener noreferrer" class="d-inline-block mt-2">
-        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook"
+        <img src="{{ url_for('static', filename='assets/facebook-icon-gold.svg') }}" alt="Facebook"
              style="width:30px;height:30px;">
       </a>
     </div>
