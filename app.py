@@ -33,7 +33,7 @@ def auth_redirect():
     return render_template("auth-redirect.html", 
         SUPABASE_URL=SUPABASE_URL, 
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-    )
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
