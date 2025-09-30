@@ -408,7 +408,16 @@ def pantrypal_echo():
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/blog_macro")
 def blog_macro():
-    return render_template("blog_macro.html")
+    post = {
+        "title": "Macro-Friendly Eating: Simple Ratios That Work",
+        "slug": "macro-friendly-eating",
+        "author": "The Happy Pantry",
+        "date": "2025-09-30",
+        "hero": url_for('static', filename='assets/blog/macro-hero.jpg'),
+        "summary": "A quick-start guide to protein/carb/fat ratios and portioning.",
+        "content": []  # you can fill this later
+    }
+    return render_template("blog_macro.html", post=post)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Recipes
