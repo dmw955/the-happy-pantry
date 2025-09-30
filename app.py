@@ -1,11 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+# app.py
+from flask import (
+    Flask, render_template, request, redirect, url_for,
+    session, flash, jsonify, send_from_directory
+)
 from supabase import create_client
-import os
+import os, json, requests, traceback
 from dotenv import load_dotenv
-import json
-import requests
 
-# Load environment variables
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment / App
+# ─────────────────────────────────────────────────────────────────────────────
 load_dotenv()
 
 app = Flask(__name__)
@@ -16,10 +20,58 @@ SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 USDA_API_KEY = os.getenv("USDA_API_KEY")
 
-# Create Supabase clients
-supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+# ─────────────────────────────────────────────────────────────────────────────
+# Lazy Supabase clients (prevents boot crashes if env vars are missing)
+# ─────────────────────────────────────────────────────────────────────────────
+_supabase = None
+_supabase_admin = None
 
+def get_supabase():
+    """Public supabase client; prefers SERVICE key, falls back to ANON."""
+    global _supabase
+    if _supabase is None:
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+        if not url or not key:
+            raise RuntimeError("Supabase is not configured on the server")
+        _supabase = create_client(url, key)
+    return _supabase
+
+def get_supabase_admin():
+    """Admin supabase client; requires SERVICE key."""
+    global _supabase_admin
+    if _supabase_admin is None:
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY")
+        if not url or not key:
+            raise RuntimeError("Supabase admin is not configured on the server")
+        _supabase_admin = create_client(url, key)
+    return _supabase_admin
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Health & Favicon
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/healthz")
+def healthz():
+    # Keep this ultra-light—no external calls—so Render health checks succeed.
+    return {"ok": True}, 200
+
+@app.route('/favicon.ico')
+def favicon():
+    """Serve ICO directly if present, else redirect to PNG."""
+    ico_path = os.path.join(app.root_path, 'static', 'assets', 'favicon.ico')
+    if os.path.exists(ico_path):
+        return send_from_directory(
+            os.path.join(app.root_path, 'static', 'assets'),
+            'favicon.ico',
+            mimetype='image/vnd.microsoft.icon'
+        )
+    # fallback to PNG if you prefer that file
+    return redirect(url_for('static', filename='assets/favicon.png'), code=302)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Core Routes
+# ─────────────────────────────────────────────────────────────────────────────
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -30,14 +82,11 @@ def dashboard():
 
 @app.route("/auth-redirect")
 def auth_redirect():
-    return render_template("auth-redirect.html", 
-        SUPABASE_URL=SUPABASE_URL, 
+    return render_template(
+        "auth-redirect.html",
+        SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
-@app.route('/favicon.ico')
-def favicon_redirect():
-    # Redirect the default /favicon.ico request to your PNG in /static/assets/
-    return redirect(url_for('static', filename='assets/favicon.png'), code=302)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -45,20 +94,31 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         try:
-            response = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            if response and hasattr(response, 'user') and response.user:
-                session['user_id'] = response.user.id
-                session['email'] = response.user.email
-                session['member_since'] = response.user.created_at.strftime("%B %Y") if response.user.created_at else "Unknown"
-                session['access_token'] = response.session.access_token if response.session else None
-                session['refresh_token'] = response.session.refresh_token if response.session else None
+            sb = get_supabase()
+            response = sb.auth.sign_in_with_password({"email": email, "password": password})
+
+            # Defensive checks — supabase client libs vary in return shape
+            user_obj = getattr(response, 'user', None) if response else None
+            session_obj = getattr(response, 'session', None) if response else None
+
+            if user_obj:
+                # Store safe basics; avoid strict datetime ops on created_at
+                session['user_id'] = getattr(user_obj, 'id', None)
+                session['email'] = getattr(user_obj, 'email', email)
+                member_since = getattr(user_obj, 'created_at', None)
+                session['member_since'] = str(member_since) if member_since else "Unknown"
+                session['access_token'] = getattr(session_obj, 'access_token', None) if session_obj else None
+                session['refresh_token'] = getattr(session_obj, 'refresh_token', None) if session_obj else None
                 session.permanent = True
+
                 flash("✅ Login Successful!", "success")
                 return redirect(url_for('dashboard'))
+
             flash("❌ Invalid email or password. Please try again.", "danger")
         except Exception as e:
             print("Login error:", e)
             flash("❌ Something went wrong. Please try again later.", "danger")
+
     return render_template('login.html', SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
 @app.route("/session", methods=["POST"])
@@ -88,7 +148,7 @@ def profile():
         'profile.html',
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
-        user={}  # ← This prevents template crash
+        user={}  # prevents template crash when not logged in
     )
 
 @app.route('/update_profile', methods=['POST'])
@@ -115,7 +175,8 @@ def update_profile():
             updates['password'] = new_password
 
         if updates:
-            supabase_admin.auth.admin.update_user_by_id(user_id, updates)
+            sba = get_supabase_admin()
+            sba.auth.admin.update_user_by_id(user_id, updates)
             if 'email' in updates:
                 session['email'] = updates['email']
                 flash("✅ Email updated successfully!", "success")
@@ -124,7 +185,8 @@ def update_profile():
 
         session['email_notifications'] = email_notifications
         flash("✅ Preferences updated successfully!", "success")
-    except Exception:
+    except Exception as e:
+        print("update_profile error:", e)
         flash("❌ Something went wrong. Please try again.", "danger")
 
     return redirect(url_for('profile'))
@@ -134,13 +196,15 @@ def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email')
         try:
-            supabase.auth.reset_password_for_email(
+            sb = get_supabase()
+            sb.auth.reset_password_for_email(
                 email,
-                options={"redirect_to": "http://127.0.0.1:5000/reset_password"}
+                options={"redirect_to": "http://127.0.0.1:5000/reset_password"}  # update for prod if needed
             )
             flash("✅ If an account with that email exists, a reset link has been sent.", "success")
             return redirect(url_for('login'))
-        except Exception:
+        except Exception as e:
+            print("forgot_password error:", e)
             flash("❌ Something went wrong. Please try again later.", "danger")
     return render_template('forgot_password.html')
 
@@ -208,31 +272,43 @@ def macro_goals():
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
+# ─────────────────────────────────────────────────────────────────────────────
+# USDA Endpoints
+# ─────────────────────────────────────────────────────────────────────────────
 @app.route('/usda/search')
 def usda_search():
-    query = request.args.get('query')
-    res = requests.get(
-        "https://api.nal.usda.gov/fdc/v1/foods/search",
-        params={"query": query, "api_key": USDA_API_KEY, "pageSize": 10}
-    )
-    return jsonify(res.json())
+    query = request.args.get('query', '')
+    try:
+        res = requests.get(
+            "https://api.nal.usda.gov/fdc/v1/foods/search",
+            params={"query": query, "api_key": USDA_API_KEY, "pageSize": 10},
+            timeout=12
+        )
+        return jsonify(res.json()), res.status_code
+    except requests.RequestException as e:
+        print("USDA search error:", e)
+        return jsonify({"error": "USDA API error"}), 502
 
 @app.route('/usda/detail')
 def usda_detail():
     fdc_id = request.args.get('fdcId')
-    res = requests.get(
-        f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}",
-        params={"api_key": USDA_API_KEY}
-    )
-    return jsonify(res.json())
-# ---- PantryPal AI endpoint -----------------------------------------------
-from flask import request, jsonify
-import os, json, requests, traceback
+    try:
+        res = requests.get(
+            f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}",
+            params={"api_key": USDA_API_KEY},
+            timeout=12
+        )
+        return jsonify(res.json()), res.status_code
+    except requests.RequestException as e:
+        print("USDA detail error:", e)
+        return jsonify({"error": "USDA API error"}), 502
 
+# ─────────────────────────────────────────────────────────────────────────────
+# PantryPal AI Endpoint
+# ─────────────────────────────────────────────────────────────────────────────
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
     try:
-        # Read key at request time (so restarts/env changes are picked up)
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key:
             return jsonify({
@@ -240,14 +316,12 @@ def pantrypal_api():
                 "hint": "Add OPENAI_API_KEY in Render → Environment and restart the service."
             }), 500
 
-        # Validate input
         payload = request.get_json(force=True, silent=False)
         user_msg = (payload.get("message") or "").strip()
         context = payload.get("context") or {}
         if not user_msg:
             return jsonify({"error": "Missing 'message'"}), 400
 
-        # Guardrails/system prompt
         system_prompt = (
             "You are PantryPal, a concise assistant for The Happy Pantry.\n"
             "RULES:\n"
@@ -256,10 +330,8 @@ def pantrypal_api():
             "- Stay within site content. No external links. No medical advice.\n"
             "- Respond as strict JSON (response_format=json_object) with keys:\n"
             "  text: string\n"
-            "  actions: object | null  # e.g. { applyFilters:{diet:'dairy-free'}, showRecipes:{limit:5}, suggestSwap:{from:'butter',to:'olive oil'} }\n"
+            "  actions: object | null\n"
         )
-
-        # Compact user/context
         user_prompt = {
             "message": user_msg,
             "context": {
@@ -269,7 +341,6 @@ def pantrypal_api():
             }
         }
 
-        # OpenAI Chat Completions (JSON mode)
         url = "https://api.openai.com/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {openai_key}",
@@ -294,7 +365,6 @@ def pantrypal_api():
             return jsonify({"error": "Network error contacting OpenAI", "details": str(e)}), 502
 
         if r.status_code != 200:
-            # Surface OpenAI's error payload so you can see invalid_key/quota/etc.
             details = None
             try:
                 details = r.json()
@@ -307,16 +377,15 @@ def pantrypal_api():
                 "details": details
             }), 502
 
-        # Parse JSON-mode content
         try:
             content = r.json()["choices"][0]["message"]["content"]
-            data = json.loads(content)  # must be JSON per response_format
+            data = json.loads(content)
             if not isinstance(data, dict) or "text" not in data:
                 raise ValueError("Invalid JSON shape from AI")
         except Exception as e:
             print("AI parse error:", e, "\nRaw:", r.text[:1000])
             data = {
-                "text": "I’m here to help with quick swaps and filters! Try asking for a dairy‑free swap or a time limit.",
+                "text": "I’m here to help with quick swaps and filters! Try asking for a dairy-free swap or a time limit.",
                 "actions": None
             }
 
@@ -326,25 +395,61 @@ def pantrypal_api():
         print("PantryPal unhandled error:\n", traceback.format_exc())
         return jsonify({"error": "Unhandled server error"}), 500
 
-
-@app.route("/healthz")
-def healthz():
-    import os
-    return {
-        "ok": True,
-        "openai_key_present": bool(os.getenv("OPENAI_API_KEY")),
-    }, 200
-
 @app.route("/api/pantrypal/echo", methods=["POST"])
 def pantrypal_echo():
-    from flask import request
     try:
         payload = request.get_json(force=True, silent=False)
         return {"ok": True, "payload": payload}, 200
     except Exception as e:
         return {"ok": False, "error": f"Invalid JSON: {str(e)}"}, 400
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Blog Macro
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/blog_macro")
+def blog_macro():
+    return render_template("blog_macro.html")
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Recipes
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route('/recipes')
+def recipes():
+    return render_template(
+        'recipes.html',
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
+        USER_ID=session.get('user_id')
+    )
+
+@app.route('/recipes/<slug>')
+def recipe_page(slug):
+    try:
+        sb = get_supabase()
+        response = sb.table('recipes').select('*').eq('slug', slug).execute()
+        data = getattr(response, 'data', None) or getattr(response, 'json', None) or None
+        # Some client versions return .data, others return dict-like
+        if data is None and isinstance(response, dict):
+            data = response.get('data')
+
+        if not data:
+            return "❌ No recipe found for that slug.", 404
+        if len(data) > 1:
+            return "❌ Multiple recipes found for that slug. Please check the database.", 500
+
+        recipe = data[0]
+        for field in ["ingredients", "dressing"]:
+            if isinstance(recipe.get(field), list):
+                recipe[field] = [json.loads(i) if isinstance(i, str) else i for i in recipe[field]]
+
+        return render_template('recipe.html', recipe=recipe)
+    except Exception as e:
+        print("recipe_page error:", e)
+        return "An error occurred while loading the recipe.", 500
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Misc pages
+# ─────────────────────────────────────────────────────────────────────────────
 @app.route('/error')
 def error():
     message = request.args.get('message', 'An error occurred during your transaction.')
@@ -364,38 +469,9 @@ def subscribe(plan_type):
         return "Invalid Plan", 404
     return render_template('subscribe.html', plan_type=plan_type)
 
-@app.route('/recipes')
-def recipes():
-    return render_template(
-        'recipes.html',
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
-        USER_ID=session.get('user_id')
-    )
-@app.route("/blog_macro")
-def blog_macro():
-    return render_template("blog_macro.html")
-
-
-
-@app.route('/recipes/<slug>')
-def recipe_page(slug):
-    try:
-        response = supabase.table('recipes').select('*').eq('slug', slug).execute()
-        data = response.data
-        if not data:
-            return "❌ No recipe found for that slug.", 404
-        if len(data) > 1:
-            return "❌ Multiple recipes found for that slug. Please check the database.", 500
-
-        recipe = data[0]
-        for field in ["ingredients", "dressing"]:
-            if isinstance(recipe.get(field), list):
-                recipe[field] = [json.loads(i) if isinstance(i, str) else i for i in recipe[field]]
-
-        return render_template('recipe.html', recipe=recipe)
-    except Exception:
-        return "An error occurred while loading the recipe.", 500
-
+# ─────────────────────────────────────────────────────────────────────────────
+# Entrypoint
+# ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    # In production, gunicorn will run this; debug=False by default here.
     app.run(debug=False)
