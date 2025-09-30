@@ -33,7 +33,11 @@ def auth_redirect():
     return render_template("auth-redirect.html", 
         SUPABASE_URL=SUPABASE_URL, 
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-
+    )
+@app.route('/favicon.ico')
+def favicon_redirect():
+    # Redirect the default /favicon.ico request to your PNG in /static/assets/
+    return redirect(url_for('static', filename='assets/favicon.png'), code=302)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -323,7 +327,6 @@ def pantrypal_api():
         return jsonify({"error": "Unhandled server error"}), 500
 
 
-    return jsonify(data), 200
 @app.route("/healthz")
 def healthz():
     import os
