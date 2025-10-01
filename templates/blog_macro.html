@@ -96,71 +96,46 @@
   </div>
 </nav>
 
-<!-- Main Blog Body -->
-<main class="py-5">
-  <div class="container px-5 article-wrap">
-    <div class="row justify-content-center">
-      <div class="col-lg-10">
+<!-- Blog Title Card -->
+<section class="mb-5 p-4 p-md-5 bg-white rounded-4 shadow-sm border">
+  <div class="text-center">
+    <h1 class="display-5 fw-bold mb-3">{{ p.get('title', 'Macro-Friendly Eating') }}</h1>
 
-        <!-- Optional macro summary -->
-        {% if p.get('macro_summary') %}
-          <div class="callout mb-4">
-            <strong>Macro snapshot:</strong> {{ p.get('macro_summary') }}
-          </div>
-        {% endif %}
+    {% if p.get('subtitle') %}
+      <p class="lead mb-4 text-muted">{{ p.get('subtitle') }}</p>
+    {% endif %}
 
-        <!-- Author + Metadata -->
-        <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-          <img src="{{ url_for('static', filename='assets/avatars/' ~ (p.get('author_avatar') or 'author_default.png')) }}"
-               alt="{{ p.get('author_name', 'Author') }}"
-               class="rounded-circle" width="40" height="40" style="object-fit: cover;">
-          <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
-            <span>{{ p.get('author_name', 'The Happy Pantry') }}</span>
-            <span>•</span>
-            <time datetime="{{ p.get('published_iso', '2025-09-30') }}">{{ p.get('published_text', 'Sep 30, 2025') }}</time>
-            <span>•</span>
-            <span>{{ p.get('read_time', 6) }} min read</span>
-          </div>
-        </div>
-
-        <!-- Facebook Share -->
-        <div class="mb-4">
-          <a target="_blank" rel="noopener" class="btn btn-outline-primary d-inline-flex align-items-center gap-2"
-             href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}">
-            <i class="bi bi-facebook"></i> Share this article
-          </a>
-        </div>
-
-        <!-- Your article goes here -->
-        <div class="article-body">
-          <section>
-            <!-- ✍️ Your blog writing starts here -->
-            {{ p.get('html', '')|safe }}
-          </section>
-        </div>
-
-        <!-- Related recipes -->
-        {% if p.get('related_recipes') %}
-          <hr class="my-5">
-          <h3 class="h5 mb-3">Try these next</h3>
-          <div class="row g-3">
-            {% for r in p.get('related_recipes', []) %}
-              <div class="col-sm-6 col-md-4">
-                <a class="card text-decoration-none text-dark h-100" href="{{ url_for('recipe_detail', slug=r.slug) }}">
-                  <img class="card-img-top" src="{{ url_for('static', filename='assets/' ~ r.image) }}" alt="{{ r.title }}">
-                  <div class="card-body">
-                    <h4 class="h6 m-0">{{ r.title }}</h4>
-                  </div>
-                </a>
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
-
+    <!-- Author Info -->
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap mb-3">
+      <img src="{{ url_for('static', filename='assets/avatars/' ~ (p.get('author_avatar') or 'author_default.png')) }}"
+           alt="{{ p.get('author_name', 'Author') }}"
+           class="rounded-circle" width="48" height="48" style="object-fit: cover;">
+      <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
+        <span>{{ p.get('author_name', 'The Happy Pantry') }}</span>
+        <span>•</span>
+        <time datetime="{{ p.get('published_iso', '2025-09-30') }}">{{ p.get('published_text', 'Sep 30, 2025') }}</time>
+        <span>•</span>
+        <span>{{ p.get('read_time', 6) }} min read</span>
       </div>
     </div>
+    <!-- Your article goes here -->
+<div class="article-body">
+  <section>
+    <!-- ✍️ Your blog writing starts here -->
+    {{ p.get('html', '')|safe }}
+  </section>
+</div>
+
+
+    <!-- Facebook Share -->
+    <a target="_blank" rel="noopener"
+       class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2"
+       href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}">
+      <i class="bi bi-facebook"></i> Share on Facebook
+    </a>
   </div>
-</main>
+</section>
+
 
  <!-- Footer -->
 <footer class="footer-bg text-white text-xs">
