@@ -87,11 +87,10 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('pantry_project') }}">Back To The Pantry Project</a>
+          <a class="nav-link" href="{{ url_for('pantry_project') }}"> Back To The Pantry Post</a>
         </li>
         <li class="nav-item">
-          <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('planselection') }}">Sign Up</a>
-        </li>
+       </li>
       </ul>
     </div>
   </div>
@@ -223,15 +222,16 @@
 </main>
 
 
-  <!-- Footer -->
-  <footer class="footer-bg text-white text-xs">
-    <div class="container mx-auto px-4 py-2 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-      <p class="m-0">&copy; 2025 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer" class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
-        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
-      </a>
+ <!-- Footer -->
+<footer class="footer-bg text-white text-xs">
+    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <p class="m-0 leading-none">&copy; 2025 The Happy Pantry</p>
+        <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
+            <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
+        </a>
     </div>
-  </footer>
+</footer>
 
   <style> a:hover img { transform: scale(1.1); filter: brightness(1.2); } </style>
 
