@@ -111,14 +111,11 @@
 
       <!-- Author Info -->
       <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
-                     alt="{{ p.get('author_name', 'Author') }}"
-             class="rounded-circle" width="48" height="48" style="object-fit: cover;">
-        <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
-          <span>{{ p.get('author_name', 'The Happy Pantry') }}</span>
+                <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
+                    <span>•</span>
+          <time datetime="{{ p.get('published_iso', '2025-10-01') }}">{{ p.get('published_text', 'Nov 1, 2025') }}</time>
           <span>•</span>
-          <time datetime="{{ p.get('published_iso', '2025-09-30') }}">{{ p.get('published_text', 'Sep 30, 2025') }}</time>
-          <span>•</span>
-          <span>{{ p.get('read_time', 6) }} min read</span>
+          <span>{{ p.get('read_time', 10) }} min read</span>
         </div>
       </div>
     </div>
