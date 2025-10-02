@@ -111,8 +111,7 @@
 
       <!-- Author Info -->
       <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
-        <img src="{{ url_for('static', filename='assets/avatars/' ~ (p.get('author_avatar') or 'author_default.png')) }}"
-             alt="{{ p.get('author_name', 'Author') }}"
+                     alt="{{ p.get('author_name', 'Author') }}"
              class="rounded-circle" width="48" height="48" style="object-fit: cover;">
         <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
           <span>{{ p.get('author_name', 'The Happy Pantry') }}</span>
