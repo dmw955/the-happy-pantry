@@ -76,9 +76,15 @@ def favicon():
 def home():
     return render_template("index.html")
 
+
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
+    return render_template(
+        'dashboard.html',
+        SUPABASE_URL=os.getenv("SUPABASE_URL"),
+        SUPABASE_ANON_KEY=os.getenv("SUPABASE_ANON_KEY")
+    )
+
 
 @app.route("/auth-redirect")
 def auth_redirect():
