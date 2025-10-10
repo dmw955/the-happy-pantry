@@ -1,17 +1,25 @@
-// ✅ Ensure Supabase environment variables are loaded from HTML
-if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
-  console.error("❌ Supabase environment variables not defined. Make sure they are injected into the HTML.");
-}
-
-// ✅ Initialize Supabase client globally
-if (typeof window.supabaseClient === "undefined") {
-  window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log("✅ Supabase client created globally");
-}
-
-console.log("✅ Supabase Object:", supabaseClient);
-
 document.addEventListener("DOMContentLoaded", async () => {
+  // ✅ Initialize Supabase client safely once
+  if (!window.supabaseClient) {
+    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      console.error("❌ Supabase config is missing from window");
+      return;
+    }
+    if (typeof supabase === "undefined" || typeof supabase.createClient !== "function") {
+      console.error("❌ Supabase SDK is not loaded yet");
+      return;
+    }
+
+    window.supabaseClient = supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY
+    );
+    console.log("✅ Supabase client created in script.js");
+  }
+
+  const supabaseClient = window.supabaseClient;
+  console.log("✅ Supabase Object:", supabaseClient);
+
   console.log("✅ script.js is running!");
 
   if (window.location.pathname === '/login') {
@@ -19,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("🔌 Cleared Supabase session on login page");
   }
 
-  // 🔐 Handle magic link / password reset link or hosted login redirect
+  // 🔐 Handle magic link / password reset link
   const hash = window.location.hash;
   if (hash.includes("access_token")) {
     const params = new URLSearchParams(hash.substring(1));
@@ -116,7 +124,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.addEventListener("scroll", fadeInOnScroll);
   fadeInOnScroll();
 
-  // ✅ CLIENT-SIDE LOGIN WITH SESSION SYNC
+  // ✅ Client-side login with session sync
   const loginForm = document.getElementById("loginForm");
   if (loginForm) {
     const emailInput = document.getElementById("loginEmail");
@@ -143,7 +151,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       try {
         const token = data.session.access_token;
-
         const response = await fetch("/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -151,7 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         if (response.ok) {
-          window.location.href = "/dashboard";  // Or any protected route
+          window.location.href = "/dashboard";
         } else {
           loginError.textContent = "Failed to sync session with backend.";
           loginError.style.display = "block";
@@ -166,7 +173,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ✅ Session Sync: Send Supabase session to Flask on every page load
+  // ✅ Sync Supabase session to Flask backend
   supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (session && session.user) {
       fetch("/session", {
