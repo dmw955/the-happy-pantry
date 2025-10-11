@@ -110,12 +110,13 @@ waitForSupabaseClient((supabaseClient) => {
               <img src="${imagePath}" alt="${escapeHtml(recipe.title || "Recipe")}" />
             </div>
             <h3>${escapeHtml(recipe.title || "Untitled")}</h3>
-            <div class="meta">
-              ${[
-                recipe.category || "",
-                recipe.total_time ? `${recipe.total_time} min` : ""
-              ].filter(Boolean).join(" · ")}
-            </div>
+           <div class="meta">
+  ${[
+    recipe.category || "",
+    recipe.total_time ? formatTime(recipe.total_time) : ""
+  ].filter(Boolean).join(" · ")}
+</div>
+
             <p class="text-sm text-gray-600 mb-0">${escapeHtml(recipe.description || "")}</p>
           </a>
         `;
