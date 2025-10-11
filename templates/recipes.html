@@ -8,10 +8,18 @@
  <!-- ✅ Load Supabase JS Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
 
+  
     <script>
     window.SUPABASE_URL = "{{ SUPABASE_URL }}";
     window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
   </script>
+<script>
+  if (!window.supabaseClient && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+    window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    console.log("✅ Supabase client initialized");
+  }
+</script>
+
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
