@@ -111,7 +111,8 @@ waitForSupabaseClient((supabaseClient) => {
             </div>
             <h3>${escapeHtml(recipe.title || "Untitled")}</h3>
            <div class="meta">
-  ${[
+
+    ${[
     recipe.category || "",
     recipe.total_time ? formatTime(recipe.total_time) : ""
   ].filter(Boolean).join(" · ")}
@@ -203,6 +204,27 @@ waitForSupabaseClient((supabaseClient) => {
         "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
       }[c]));
     }
+        // ---- Helpers ----
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[c]));
+    }
+
+    // ✅ Add this new helper to fix the undefined error
+    function formatTime(minutes) {
+      if (!minutes || isNaN(minutes)) return "";
+      const hrs = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      if (hrs && mins) return `${hrs} hr ${mins} min`;
+      if (hrs) return `${hrs} hr`;
+      return `${mins} min`;
+    }
+
 
     // (Optional) Hook PantryPal actions if you want basic behavior now:
     window.addEventListener("pantrypal:showRecipes", () => {
