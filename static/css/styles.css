@@ -11063,4 +11063,12 @@ textarea.form-control-lg {
   color: #555;
 }
 
+.hero {
+  text-align: center;
+  background: var(--primary-color);
+  color: var(--text-light);
+  padding: 40px 20px;
+  border-radius: 10px;
+  margin-bottom: 40px;
+}
 
