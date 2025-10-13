@@ -19,6 +19,9 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 USDA_API_KEY = os.getenv("USDA_API_KEY")
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
+PAYPAL_PLAN_ID = os.getenv("PAYPAL_PLAN_ID")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Lazy Supabase clients (prevents boot crashes if env vars are missing)
@@ -258,9 +261,12 @@ def pantry_project():
 def payment_processing():
     return render_template('paymentprocessing.html')
 
-@app.route('/success')
+@app.route("/success")
 def success():
-    return render_template('success.html')
+    subscription_id = request.args.get("subscription_id")
+    print(f"✅ PayPal Subscription successful: {subscription_id}")
+    return render_template("success.html", subscription_id=subscription_id)
+
 
 @app.route("/macrotracking")
 def macro_tracking():
@@ -478,11 +484,28 @@ def local_resources():
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
-@app.route('/subscribe/<plan_type>')
-def subscribe(plan_type):
-    if plan_type not in ['monthly', 'yearly']:
-        return "Invalid Plan", 404
-    return render_template('subscribe.html', plan_type=plan_type)
+# ─────────────────────────────────────────────────────────────────────────────
+# PayPal Subscribe (Single Plan)
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/subscribe")
+def subscribe():
+    """
+    Render the single $9.99/month PayPal subscription page.
+    Injects PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID into the template.
+    """
+    paypal_client_id = PAYPAL_CLIENT_ID
+    paypal_plan_id = PAYPAL_PLAN_ID
+
+    if not paypal_client_id or not paypal_plan_id:
+        print("⚠️ PayPal environment variables missing.")
+        return "PayPal environment variables missing. Check PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID.", 500
+
+    return render_template(
+        "subscribe.html",
+        PAYPAL_CLIENT_ID=paypal_client_id,
+        plan_id=paypal_plan_id
+    )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entrypoint
