@@ -67,9 +67,9 @@
 .navbar {
   background-color: var(--background-light);
   border-bottom: 2px solid var(--accent-color);
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding: 10px 0;
 }
+
 
 body {
   font-family: 'Segoe UI', sans-serif;
@@ -153,9 +153,8 @@ body {
 
 <body class="bg-gray-50 font-sans min-h-screen flex flex-col">
 
-  <!-- ✅ Navbar -->
-   <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg py-3 shadow-sm">
+     <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
         <div class="container px-5">
             <a class="navbar-brand" href="{{ url_for('home') }}">
                 <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
