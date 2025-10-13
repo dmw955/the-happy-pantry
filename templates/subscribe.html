@@ -99,42 +99,50 @@
           <li>✓ Weekly meal planning tools</li>
           <li>✓ Cancel anytime</li>
         </ul>
+<!-- PayPal Button -->
+<div id="paypal-button-container"></div>
 
-        <!-- PayPal Button -->
-        <div id="paypal-button-container"></div>
+<p class="secure-text">
+  <i class="bi bi-lock-fill"></i> Secure payments powered by PayPal
+</p>
+</div>
+</div>
+</div>
 
-        <p class="secure-text">
-          <i class="bi bi-lock-fill"></i> Secure payments powered by PayPal
-        </p>
-      </div>
-    </div>
-  </div>
+<!-- PayPal JS SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 
-  <!-- Initialize PayPal Buttons -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      paypal.Buttons({
-        createSubscription: function (data, actions) {
-          return actions.subscription.create({
-            plan_id: "{{ plan_id }}" // your PayPal Plan ID from Flask
-          });
-        },
-        onApprove: function (data, actions) {
-          console.log("Subscription Approved:", data);
-          window.location.href = "/success?subscription_id=" + data.subscriptionID;
-        },
-        onCancel: function () {
-          window.location.href = "/cancel";
-        },
-        onError: function (err) {
-          console.error("PayPal Error:", err);
-          window.location.href = "/error";
-        }
-      }).render("#paypal-button-container");
-    });
-  </script>
+<!-- Initialize PayPal Buttons -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    paypal.Buttons({
+      style: {
+        shape: "rect",
+        color: "black",
+        layout: "horizontal",
+        label: "subscribe"
+      },
+      createSubscription: function (data, actions) {
+        return actions.subscription.create({
+          plan_id: "{{ plan_id }}" // Provided by Flask
+        });
+      },
+      onApprove: function (data, actions) {
+        console.log("✅ Subscription Approved:", data);
+        window.location.href = "/success?subscription_id=" + data.subscriptionID;
+      },
+      onCancel: function () {
+        window.location.href = "/cancel";
+      },
+      onError: function (err) {
+        console.error("❌ PayPal Error:", err);
+        window.location.href = "/error";
+      }
+    }).render("#paypal-button-container");
+  });
+</script>
 
-  <!-- Bootstrap Icons (for lock icon) -->
+    <!-- Bootstrap Icons (for lock icon) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 </body>
 </html>
