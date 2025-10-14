@@ -132,10 +132,11 @@
           label: "subscribe",
         },
         createSubscription: function (data, actions) {
-          return actions.subscription.create({
-            plan_id: "{{ PAYPAL_PLAN_ID }}"  // Flask variable
-          });
-        },
+  return actions.subscription.create({
+    plan_id: "{{ PAYPAL_PLAN_ID }}"  // Flask variable
+  });
+},
+
         onApprove: function (data) {
           console.log("✅ Subscription Approved:", data);
           window.location.href = "/success?subscription_id=" + data.subscriptionID;
