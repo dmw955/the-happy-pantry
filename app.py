@@ -29,6 +29,7 @@ PAYPAL_PLAN_ID = os.getenv("PAYPAL_PLAN_ID")
 _supabase = None
 _supabase_admin = None
 
+
 def get_supabase():
     """Public supabase client; prefers SERVICE key, falls back to ANON."""
     global _supabase
@@ -481,14 +482,21 @@ def local_resources():
 # ─────────────────────────────────────────────────────────────────────────────
 # PayPal Subscribe (Single Plan)
 # ─────────────────────────────────────────────────────────────────────────────
+# PayPal Subscribe (Single Plan)
+# ─────────────────────────────────────────────────────────────────────────────
 @app.route("/subscribe")
 def subscribe():
     """
     Render the unified $9.99/month PayPal subscription page.
     Injects PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID into the template.
     """
+
     paypal_client_id = os.getenv("PAYPAL_CLIENT_ID")
     paypal_plan_id = os.getenv("PAYPAL_PLAN_ID")
+
+    # ✅ TEMP DEBUG (will show in Render logs)
+    print("DEBUG ENV → PAYPAL_CLIENT_ID:", repr(paypal_client_id))
+    print("DEBUG ENV → PAYPAL_PLAN_ID:", repr(paypal_plan_id))
 
     # Basic validation to prevent 500s if env vars missing
     if not paypal_client_id or not paypal_plan_id:
