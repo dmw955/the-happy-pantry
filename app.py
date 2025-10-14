@@ -485,7 +485,6 @@ def local_resources():
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
-
 # ─────────────────────────────────────────────────────────────────────────────
 # PayPal Subscribe (Single Plan)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -495,7 +494,6 @@ def subscribe():
     Render the unified $9.99/month PayPal subscription page.
     Injects PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID into the template.
     """
-
     paypal_client_id = os.getenv("PAYPAL_CLIENT_ID")
     paypal_plan_id = os.getenv("PAYPAL_PLAN_ID")
 
@@ -508,12 +506,98 @@ def subscribe():
             500,
         )
 
-    # Render with consistent variable names for Jinja
     return render_template(
         "subscribe.html",
         PAYPAL_CLIENT_ID=paypal_client_id,
         PAYPAL_PLAN_ID=paypal_plan_id,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PayPal Success Callback → Create Supabase User + Subscription Record
+# ─────────────────────────────────────────────────────────────────────────────
+from datetime import datetime
+
+@app.route("/success")
+def success():
+    """Handle PayPal subscription success → create Supabase user & record."""
+    subscription_id = request.args.get("subscription_id")
+    if not subscription_id:
+        return "Missing subscription ID.", 400
+
+    # 1️⃣ Get PayPal access token
+    auth_response = requests.post(
+        "https://api-m.sandbox.paypal.com/v1/oauth2/token",
+        auth=(os.getenv("PAYPAL_CLIENT_ID"), os.getenv("PAYPAL_CLIENT_SECRET")),
+        headers={"Accept": "application/json", "Accept-Language": "en_US"},
+        data={"grant_type": "client_credentials"},
+    )
+    if auth_response.status_code != 200:
+        print("⚠️ PayPal auth failed:", auth_response.text)
+        return "PayPal authentication failed.", 500
+
+    access_token = auth_response.json()["access_token"]
+
+    # 2️⃣ Fetch subscription details
+    sub_response = requests.get(
+        f"https://api-m.sandbox.paypal.com/v1/billing/subscriptions/{subscription_id}",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    if sub_response.status_code != 200:
+        print("⚠️ Failed to fetch subscription:", sub_response.text)
+        return "Unable to verify PayPal subscription.", 500
+
+    sub_data = sub_response.json()
+    subscriber_email = sub_data.get("subscriber", {}).get("email_address")
+    start_date = sub_data.get("start_time")
+    status = sub_data.get("status")
+
+    if not subscriber_email:
+        print("⚠️ Missing subscriber email in PayPal response.")
+        return "Unable to retrieve subscriber email.", 400
+
+    # 3️⃣ Create Supabase user
+    supabase_url = os.getenv("SUPABASE_URL")
+    service_key = os.getenv("SUPABASE_SERVICE_KEY")
+
+    sb_response = requests.post(
+        f"{supabase_url}/auth/v1/admin/users",
+        headers={
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}",
+            "Content-Type": "application/json",
+        },
+        json={"email": subscriber_email},
+    )
+
+    if sb_response.status_code not in (200, 201):
+        print("⚠️ Supabase user creation failed:", sb_response.text)
+
+    # 4️⃣ Insert subscription record
+    sub_payload = {
+        "email": subscriber_email,
+        "paypal_subscription_id": subscription_id,
+        "status": status,
+        "start_date": start_date,
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+
+    insert_response = requests.post(
+        f"{supabase_url}/rest/v1/subscriptions",
+        headers={
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}",
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+        },
+        json=[sub_payload],
+    )
+
+    if insert_response.status_code not in (200, 201, 204):
+        print("⚠️ Failed to insert subscription row:", insert_response.text)
+
+    # 5️⃣ Render success confirmation page
+    return render_template("success.html", email=subscriber_email, status=status)
 
 
 
