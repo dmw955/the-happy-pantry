@@ -516,6 +516,17 @@ def subscribe():
         PAYPAL_PLAN_ID=paypal_plan_id,
     )
 
+from flask import render_template_string
+
+@app.route("/debug-subscribe")
+def debug_subscribe():
+    with open("templates/subscribe.html") as f:
+        html = render_template_string(
+            f.read(),
+            PAYPAL_CLIENT_ID=os.getenv("PAYPAL_CLIENT_ID"),
+            PAYPAL_PLAN_ID=os.getenv("PAYPAL_PLAN_ID")
+        )
+    return html
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PayPal Success Callback → Create Supabase User + Subscription Record
