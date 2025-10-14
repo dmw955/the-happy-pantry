@@ -14,6 +14,9 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+app = Flask(__name__)
+app.jinja_env.cache = {}  # ⬅️ This disables template caching
+
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
@@ -600,7 +603,20 @@ def success():
     # 5️⃣ Render success confirmation page
     return render_template("success.html", email=subscriber_email, status=status)
 
+@app.route("/test-vars")
+def test_vars():
+    return render_template_string("""
+        <p>CLIENT_ID: {{ PAYPAL_CLIENT_ID }}</p>
+        <p>PLAN_ID: {{ PAYPAL_PLAN_ID }}</p>
+    """, PAYPAL_CLIENT_ID=os.getenv("PAYPAL_CLIENT_ID"),
+         PAYPAL_PLAN_ID=os.getenv("PAYPAL_PLAN_ID"))
 
+@app.route("/env")
+def show_env():
+    return jsonify({
+        "PAYPAL_CLIENT_ID": os.getenv("PAYPAL_CLIENT_ID"),
+        "PAYPAL_PLAN_ID": os.getenv("PAYPAL_PLAN_ID")
+    })
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entrypoint
