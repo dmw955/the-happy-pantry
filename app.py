@@ -263,13 +263,6 @@ def pantry_project():
 def payment_processing():
     return render_template('paymentprocessing.html')
 
-@app.route("/success")
-def success():
-    subscription_id = request.args.get("subscription_id")
-    print(f"✅ PayPal Subscription successful: {subscription_id}")
-    return render_template("success.html", subscription_id=subscription_id)
-
-
 @app.route("/macrotracking")
 def macro_tracking():
     return render_template(
