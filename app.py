@@ -241,9 +241,11 @@ def signup():
 def shopping_list():
     return render_template('shopping_list.html')
 
-@app.route('/planselection')
+@app.route("/planselection")
 def planselection():
-    return render_template('planselection.html')
+    # Redirect old links to the main subscribe page
+    return redirect(url_for("subscribe"))
+
 
 @app.route('/pantrypost')
 def pantrypost():
@@ -490,21 +492,29 @@ def local_resources():
 @app.route("/subscribe")
 def subscribe():
     """
-    Render the single $9.99/month PayPal subscription page.
+    Render the unified $9.99/month PayPal subscription page.
     Injects PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID into the template.
     """
-    paypal_client_id = PAYPAL_CLIENT_ID
-    paypal_plan_id = PAYPAL_PLAN_ID
 
+    paypal_client_id = os.getenv("PAYPAL_CLIENT_ID")
+    paypal_plan_id = os.getenv("PAYPAL_PLAN_ID")
+
+    # Basic validation to prevent 500s if env vars missing
     if not paypal_client_id or not paypal_plan_id:
         print("⚠️ PayPal environment variables missing.")
-        return "PayPal environment variables missing. Check PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID.", 500
+        return (
+            "PayPal environment variables missing. "
+            "Check PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID in your environment settings.",
+            500,
+        )
 
+    # Render with consistent variable names for Jinja
     return render_template(
         "subscribe.html",
         PAYPAL_CLIENT_ID=paypal_client_id,
-        plan_id=paypal_plan_id
+        PAYPAL_PLAN_ID=paypal_plan_id,
     )
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Subscribe | The Happy Pantry</title>
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
   <!-- PayPal SDK -->
-  <script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&vault=true&intent=subscription"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
 
   <style>
     :root {
@@ -20,11 +21,7 @@
     }
 
     body {
-      background-color: var(--background-light);
-      background-image: url("{{ url_for('static', filename='assets/cookbook.jpg') }}");
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
+      background: var(--background-light) url("{{ url_for('static', filename='assets/cookbook.jpg') }}") center/cover no-repeat;
       position: relative;
       min-height: 100vh;
     }
@@ -32,18 +29,13 @@
     body::before {
       content: "";
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.4);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255, 255, 255, 0.5);
       z-index: 0;
     }
 
-    .container {
-      position: relative;
-      z-index: 1;
-    }
+    .container { position: relative; z-index: 1; }
 
     .card {
       max-width: 480px;
@@ -60,6 +52,7 @@
       border-radius: 10px 10px 0 0;
       text-transform: uppercase;
       padding: 15px;
+      letter-spacing: 1px;
     }
 
     .plan-price {
@@ -69,27 +62,39 @@
       margin: 10px 0;
     }
 
-    #paypal-button-container {
-      margin-top: 20px;
-    }
+    #paypal-button-container { margin-top: 20px; }
 
     .secure-text {
       font-size: 0.9em;
       color: #555;
-      margin-top: 10px;
       text-align: center;
+      margin-top: 12px;
     }
+
+    .terms-note {
+      font-size: 0.85em;
+      text-align: center;
+      color: #444;
+      margin-top: 16px;
+    }
+
+    .terms-note a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .terms-note a:hover { text-decoration: underline; }
   </style>
 </head>
 
 <body>
   <div class="container py-5">
-    <h2 class="text-center mb-4 fw-bold">Subscribe to The Happy Pantry</h2>
+    <h2 class="text-center mb-4 fw-bold">Join The Happy Pantry</h2>
 
     <div class="card shadow-lg">
       <div class="card-header">Monthly Plan</div>
       <div class="card-body text-center">
-        <p>Full access to all recipes, shopping lists, and meal planning tools for just:</p>
+        <p>Unlock all recipes, shopping lists, and smart meal planning tools:</p>
         <div class="plan-price">$9.99 / month</div>
 
         <ul class="text-start list-unstyled mt-3 mb-4">
@@ -99,50 +104,48 @@
           <li>✓ Weekly meal planning tools</li>
           <li>✓ Cancel anytime</li>
         </ul>
-<!-- PayPal Button -->
-<div id="paypal-button-container"></div>
 
-<p class="secure-text">
-  <i class="bi bi-lock-fill"></i> Secure payments powered by PayPal
-</p>
-</div>
-</div>
-</div>
+        <!-- PayPal Button -->
+        <div id="paypal-button-container"></div>
 
-<!-- PayPal JS SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+        <p class="secure-text"><i class="bi bi-lock-fill"></i> Secure payments powered by PayPal</p>
+        <p class="terms-note">
+          By subscribing, you agree to our
+          <a href="/terms" target="_blank">Terms of Service</a> and
+          <a href="/privacy" target="_blank">Privacy Policy</a>.
+        </p>
+      </div>
+    </div>
+  </div>
 
-<!-- Initialize PayPal Buttons -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    paypal.Buttons({
-      style: {
-        shape: "rect",
-        color: "black",
-        layout: "horizontal",
-        label: "subscribe"
-      },
-      createSubscription: function (data, actions) {
-        return actions.subscription.create({
-          plan_id: "{{ plan_id }}" // Provided by Flask
-        });
-      },
-      onApprove: function (data, actions) {
-        console.log("✅ Subscription Approved:", data);
-        window.location.href = "/success?subscription_id=" + data.subscriptionID;
-      },
-      onCancel: function () {
-        window.location.href = "/cancel";
-      },
-      onError: function (err) {
-        console.error("❌ PayPal Error:", err);
-        window.location.href = "/error";
-      }
-    }).render("#paypal-button-container");
-  });
-</script>
-
-    <!-- Bootstrap Icons (for lock icon) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Initialize PayPal Buttons -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      paypal.Buttons({
+        style: {
+          shape: "rect",
+          color: "gold",
+          layout: "vertical",
+          label: "subscribe",
+        },
+        createSubscription: function (data, actions) {
+          return actions.subscription.create({
+            plan_id: "{{ PAYPAL_PLAN_ID }}"  // Flask variable
+          });
+        },
+        onApprove: function (data) {
+          console.log("✅ Subscription Approved:", data);
+          window.location.href = "/success?subscription_id=" + data.subscriptionID;
+        },
+        onCancel: function () {
+          window.location.href = "/cancel";
+        },
+        onError: function (err) {
+          console.error("❌ PayPal Error:", err);
+          window.location.href = "/error";
+        }
+      }).render("#paypal-button-container");
+    });
+  </script>
 </body>
 </html>
