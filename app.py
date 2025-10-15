@@ -496,6 +496,8 @@ def subscribe():
 
     paypal_client_id = os.getenv("PAYPAL_CLIENT_ID")
     paypal_plan_id = os.getenv("PAYPAL_PLAN_ID")
+    SUPABASE_URL=os.getenv("SUPABASE_URL"),
+    SUPABASE_KEY=os.getenv("SUPABASE_KEY")
 
     # ✅ TEMP DEBUG (will show in Render logs)
     print("DEBUG ENV → PAYPAL_CLIENT_ID:", repr(paypal_client_id))
