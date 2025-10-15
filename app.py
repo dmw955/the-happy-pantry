@@ -18,13 +18,31 @@ app = Flask(__name__)
 app.jinja_env.cache = {}  # ⬅️ This disables template caching
 
 
+# === Environment Configuration ===
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
 USDA_API_KEY = os.getenv("USDA_API_KEY")
+
+# === PayPal Configuration ===
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 PAYPAL_PLAN_ID = os.getenv("PAYPAL_PLAN_ID")
+PAYPAL_MODE = os.getenv("PAYPAL_MODE", "live")  # 'sandbox' or 'live'
+
+PAYPAL_BASE_URL = (
+    "https://api-m.sandbox.paypal.com"
+    if PAYPAL_MODE == "sandbox"
+    else "https://api-m.paypal.com"
+)
+
+# Optional debug output (safe for logs, avoids leaking keys)
+print("DEBUG → PAYPAL_MODE:", PAYPAL_MODE)
+print("DEBUG → PAYPAL_BASE_URL:", PAYPAL_BASE_URL)
+print("DEBUG → SUPABASE_URL:", SUPABASE_URL)
+print("DEBUG → SUPABASE_ANON_KEY:", "SET" if SUPABASE_ANON_KEY else "MISSING")
+print("DEBUG → SUPABASE_SERVICE_KEY:", "SET" if SUPABASE_SERVICE_KEY else "MISSING")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Lazy Supabase clients (prevents boot crashes if env vars are missing)
