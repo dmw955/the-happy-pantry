@@ -555,14 +555,19 @@ from datetime import datetime
 
 @app.route("/success")
 def success():
-    """Handle PayPal subscription success → create Supabase user & record."""
+    """Handle PayPal subscription success → create Supabase user, send invite, and record subscription."""
+    
     subscription_id = request.args.get("subscription_id")
     if not subscription_id:
         return "Missing subscription ID.", 400
 
-    # 1️⃣ Get PayPal access token (sandbox/live toggle supported)
+    # PayPal Config
+    paypal_auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"
+    paypal_sub_url = f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}"
+
+    # 1️⃣ Get PayPal access token
     auth_response = requests.post(
-        f"{PAYPAL_BASE_URL}/v1/oauth2/token",
+        paypal_auth_url,
         auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
         headers={"Accept": "application/json", "Accept-Language": "en_US"},
         data={"grant_type": "client_credentials"},
@@ -571,11 +576,11 @@ def success():
         print("⚠️ PayPal auth failed:", auth_response.text)
         return "PayPal authentication failed.", 500
 
-    access_token = auth_response.json()["access_token"]
+    access_token = auth_response.json().get("access_token")
 
-    # 2️⃣ Fetch subscription details
+    # 2️⃣ Fetch PayPal subscription details
     sub_response = requests.get(
-        f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}",
+        paypal_sub_url,
         headers={"Authorization": f"Bearer {access_token}"},
     )
     if sub_response.status_code != 200:
@@ -591,25 +596,37 @@ def success():
         print("⚠️ Missing subscriber email in PayPal response.")
         return "Unable to retrieve subscriber email.", 400
 
-    # 3️⃣ Create Supabase user
+    # Supabase Config
     supabase_url = os.getenv("SUPABASE_URL")
     service_key = os.getenv("SUPABASE_SERVICE_KEY")
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Content-Type": "application/json",
+    }
 
-    sb_response = requests.post(
+    # 3️⃣ Create Supabase user
+    create_user_resp = requests.post(
         f"{supabase_url}/auth/v1/admin/users",
-        headers={
-            "apikey": service_key,
-            "Authorization": f"Bearer {service_key}",
-            "Content-Type": "application/json",
-        },
+        headers=headers,
         json={"email": subscriber_email},
     )
 
-    if sb_response.status_code not in (200, 201):
-        print("⚠️ Supabase user creation failed:", sb_response.text)
+    if create_user_resp.status_code not in (200, 201):
+        print("⚠️ Supabase user creation failed:", create_user_resp.text)
 
-    # 4️⃣ Insert subscription record
-    sub_payload = {
+    # 4️⃣ Send Supabase invite email
+    invite_resp = requests.post(
+        f"{supabase_url}/auth/v1/admin/invite",
+        headers=headers,
+        json={"email": subscriber_email},
+    )
+
+    if invite_resp.status_code not in (200, 201):
+        print("⚠️ Supabase invite email failed:", invite_resp.text)
+
+    # 5️⃣ Insert subscription record in Supabase
+    subscription_payload = {
         "email": subscriber_email,
         "paypal_subscription_id": subscription_id,
         "status": status,
@@ -617,21 +634,16 @@ def success():
         "updated_at": datetime.utcnow().isoformat(),
     }
 
-    insert_response = requests.post(
+    insert_resp = requests.post(
         f"{supabase_url}/rest/v1/subscriptions",
-        headers={
-            "apikey": service_key,
-            "Authorization": f"Bearer {service_key}",
-            "Content-Type": "application/json",
-            "Prefer": "return=minimal",
-        },
-        json=[sub_payload],
+        headers={**headers, "Prefer": "return=minimal"},
+        json=[subscription_payload],
     )
 
-    if insert_response.status_code not in (200, 201, 204):
-        print("⚠️ Failed to insert subscription row:", insert_response.text)
+    if insert_resp.status_code not in (200, 201, 204):
+        print("⚠️ Failed to insert subscription row:", insert_resp.text)
 
-    # 5️⃣ Render success confirmation page
+    # 6️⃣ Render success confirmation page
     return render_template("success.html", email=subscriber_email, status=status)
 
 @app.route("/test-vars")
