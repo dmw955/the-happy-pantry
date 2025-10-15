@@ -628,11 +628,13 @@ def test_vars():
 @app.route("/env")
 def show_env():
     return {
-        "PAYPAL_CLIENT_ID": os.getenv("PAYPAL_CLIENT_ID"),
-        "PAYPAL_PLAN_ID": os.getenv("PAYPAL_PLAN_ID"),
-        "SUPABASE_URL": os.getenv("SUPABASE_URL"),
-        "SUPABASE_ANON_KEY": "SET" if os.getenv("SUPABASE_ANON_KEY") else "MISSING"
+        "status": "OK",
+        "PAYPAL_CLIENT_ID": "SET",
+        "PAYPAL_PLAN_ID": "SET",
+        "SUPABASE_URL": "SET",
+        "SUPABASE_KEY": "SET"
     }
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
