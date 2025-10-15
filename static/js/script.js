@@ -1,36 +1,36 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ Initialize Supabase client safely once
+  // ✅ Initialize Supabase client safely
   if (!window.supabaseClient) {
     if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
-      console.error("❌ Supabase config is missing from window");
+      console.error("❌ Supabase config missing in window.");
       return;
     }
     if (typeof supabase === "undefined" || typeof supabase.createClient !== "function") {
-      console.error("❌ Supabase SDK is not loaded yet");
+      console.error("❌ Supabase SDK not loaded.");
       return;
     }
-supabase.auth.signOut().then(() => {
-  console.log("🧼 Signed out for testing");
-});
 
     window.supabaseClient = supabase.createClient(
       window.SUPABASE_URL,
       window.SUPABASE_ANON_KEY
     );
-    console.log("✅ Supabase client created in script.js");
+    console.log("✅ Supabase client initialized.");
   }
 
   const supabaseClient = window.supabaseClient;
-  console.log("✅ Supabase Object:", supabaseClient);
 
-  console.log("✅ script.js is running!");
+  // ✅ Optional: Sign out on load for testing
+  await supabaseClient.auth.signOut().then(() => {
+    console.log("🧼 Signed out for clean session (dev only).");
+  });
 
-  if (window.location.pathname === '/login') {
+  // ✅ Clear session if landing on /login
+  if (window.location.pathname === "/login") {
     await supabaseClient.auth.signOut();
-    console.log("🔌 Cleared Supabase session on login page");
+    console.log("🔌 Supabase session cleared on login page.");
   }
 
-  // 🔐 Handle magic link / password reset link
+  // 🔐 Handle magic link or password reset links
   const hash = window.location.hash;
   if (hash.includes("access_token")) {
     const params = new URLSearchParams(hash.substring(1));
@@ -43,22 +43,33 @@ supabase.auth.signOut().then(() => {
       if (error) {
         console.error("❌ Failed to set session:", error.message);
       } else {
-        console.log("✅ Supabase session set successfully");
+        console.log("✅ Supabase session restored.");
         const cleanUrl = window.location.origin + window.location.pathname;
         window.location.replace(cleanUrl);
       }
-    } else {
-      console.warn("⚠️ access_token or refresh_token missing in URL fragment.");
     }
   }
 
-  // ✅ Session logging for debugging
+  // ✅ Log session info
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session?.user) {
-    console.log("🟢 User is already logged in:", session.user);
+    console.log("🟢 Logged in user:", session.user);
   } else {
-    console.log("🔴 No active session found at load.");
+    console.log("🔴 No active Supabase session.");
   }
+
+  // ✨ Scroll fade-in animation
+  const fadeElements = document.querySelectorAll(".fade-in");
+  function fadeInOnScroll() {
+    fadeElements.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.9) {
+        el.classList.add("visible");
+      }
+    });
+  }
+  window.addEventListener("scroll", fadeInOnScroll);
+  fadeInOnScroll();
 
   // 📝 Signup form behavior
   const signupForm = document.getElementById("signupForm");
@@ -79,10 +90,10 @@ supabase.auth.signOut().then(() => {
       checkFormValidity();
       if (passwordInput.value.length >= 6) {
         passwordRequirements.style.color = "green";
-        passwordRequirements.innerHTML = "✅ Password meets the requirements!";
+        passwordRequirements.textContent = "✅ Password meets the requirements!";
       } else {
         passwordRequirements.style.color = "red";
-        passwordRequirements.innerHTML = "⚠️ Password must be at least <strong>6 characters long</strong>.";
+        passwordRequirements.textContent = "⚠️ Password must be at least 6 characters.";
       }
     });
 
@@ -92,47 +103,29 @@ supabase.auth.signOut().then(() => {
       spinner.style.display = "inline-block";
       errorMessage.style.display = "none";
 
-      try {
-        const { error } = await supabaseClient.auth.signUp({
-          email: emailInput.value.trim(),
-          password: passwordInput.value,
-        });
+      const { error } = await supabaseClient.auth.signUp({
+        email: emailInput.value.trim(),
+        password: passwordInput.value,
+      });
 
-        if (error) {
-          errorMessage.innerHTML = "<strong>❌ Error:</strong> " + error.message;
-          errorMessage.style.display = "block";
-        } else {
-          window.location.href = "/login";
-        }
-      } catch (err) {
-        errorMessage.innerHTML = "<strong>❌ Error:</strong> Something went wrong.";
+      if (error) {
+        errorMessage.textContent = `❌ ${error.message}`;
         errorMessage.style.display = "block";
-      } finally {
-        signupBtn.disabled = false;
-        spinner.style.display = "none";
+      } else {
+        window.location.href = "/login";
       }
+
+      signupBtn.disabled = false;
+      spinner.style.display = "none";
     });
   }
 
-  // ✨ Scroll fade-in animation
-  const fadeElements = document.querySelectorAll(".fade-in");
-  function fadeInOnScroll() {
-    fadeElements.forEach(el => {
-      const rect = el.getBoundingClientRect();
-      if (rect.top < window.innerHeight * 0.9) {
-        el.classList.add("visible");
-      }
-    });
-  }
-  window.addEventListener("scroll", fadeInOnScroll);
-  fadeInOnScroll();
-
-  // ✅ Client-side login with session sync
+  // 🔐 Login form behavior
   const loginForm = document.getElementById("loginForm");
   if (loginForm) {
     const emailInput = document.getElementById("loginEmail");
     const passwordInput = document.getElementById("loginPassword");
-    const loginBtn = document.querySelector("#loginForm button[type=submit]");
+    const loginBtn = loginForm.querySelector("button[type=submit]");
     const loginError = document.getElementById("loginError");
 
     loginForm.addEventListener("submit", async (e) => {
@@ -163,38 +156,70 @@ supabase.auth.signOut().then(() => {
         if (response.ok) {
           window.location.href = "/dashboard";
         } else {
-          loginError.textContent = "Failed to sync session with backend.";
+          loginError.textContent = "Failed to sync with backend.";
           loginError.style.display = "block";
         }
       } catch (err) {
-        console.error("Error sending token to backend:", err);
         loginError.textContent = "Unexpected error.";
         loginError.style.display = "block";
+        console.error(err);
       }
 
       loginBtn.disabled = false;
     });
   }
 
-  // ✅ Sync Supabase session to Flask backend
-  supabaseClient.auth.getSession().then(({ data: { session } }) => {
-    if (session && session.user) {
-      fetch("/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: session.user.id })
-      }).then(res => {
-        if (res.ok) {
-          console.log("✅ Flask session updated with Supabase user_id");
-        } else {
-          console.warn("❌ Flask session update failed");
+  // 🧠 Supabase session sync with Flask
+  if (session?.user) {
+    fetch("/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: session.user.id })
+    }).then(res => {
+      if (res.ok) {
+        console.log("✅ Synced Supabase user_id with Flask");
+      } else {
+        console.warn("❌ Failed to sync user_id with Flask");
+      }
+    }).catch(err => {
+      console.error("❌ Error syncing with Flask:", err);
+    });
+  }
+
+  // 💳 PayPal Button Handling (on /subscribe)
+  if (window.location.pathname === "/subscribe") {
+    paypal.Buttons({
+      createSubscription: function (data, actions) {
+        return actions.subscription.create({
+          plan_id: "{{ PAYPAL_PLAN_ID }}" // Injected via Jinja
+        });
+      },
+      onApprove: async function (data) {
+        const subscriptionID = data.subscriptionID;
+        console.log("✅ PayPal subscription approved:", subscriptionID);
+
+        const { data: { user }, error } = await supabaseClient.auth.getUser();
+        if (error || !user) {
+          console.error("❌ Supabase user fetch failed:", error);
+          return;
         }
-      }).catch(err => {
-        console.error("❌ Error updating Flask session:", err);
-      });
-    } else {
-      console.log("⚠️ No Supabase session to sync to Flask");
-    }
-  });
+
+        const res = await fetch("/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: user.id,
+            subscription_id: subscriptionID
+          })
+        });
+
+        if (res.ok) {
+          window.location.href = "/success";
+        } else {
+          console.error("❌ Failed to store subscription in Flask.");
+        }
+      }
+    }).render("#paypal-button-container");
+  }
 
 });

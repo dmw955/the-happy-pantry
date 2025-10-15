@@ -139,15 +139,32 @@ def store_session():
     data = request.get_json()
     user_id = data.get("user_id")
     email = data.get("email")
+    subscription_id = data.get("subscription_id")
 
     if user_id:
         session["user_id"] = user_id
         session["email"] = email
+        session["subscription_id"] = subscription_id
         print("✅ Session set via JS for user:", email)
+
+        # Optionally save subscription to Supabase
+        if subscription_id:
+            try:
+                sb = get_supabase_admin()
+                sb.table("subscriptions").insert({
+                    "user_id": user_id,
+                    "paypal_subscription_id": subscription_id,
+                    "status": "active",
+                    "created_at": datetime.utcnow().isoformat()
+                }).execute()
+                print("✅ Supabase subscription row added")
+            except Exception as e:
+                print("❌ Failed to insert subscription:", e)
+
         return jsonify({"message": "Session stored"}), 200
-    else:
-        print("❌ No user_id provided in /session")
-        return jsonify({"error": "user_id missing"}), 400
+
+    return jsonify({"error": "user_id missing"}), 400
+
 
 @app.route('/logout')
 def logout():
@@ -543,10 +560,10 @@ def success():
     if not subscription_id:
         return "Missing subscription ID.", 400
 
-    # 1️⃣ Get PayPal access token
+    # 1️⃣ Get PayPal access token (sandbox/live toggle supported)
     auth_response = requests.post(
-        "https://api-m.sandbox.paypal.com/v1/oauth2/token",
-        auth=(os.getenv("PAYPAL_CLIENT_ID"), os.getenv("PAYPAL_CLIENT_SECRET")),
+        f"{PAYPAL_BASE_URL}/v1/oauth2/token",
+        auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
         headers={"Accept": "application/json", "Accept-Language": "en_US"},
         data={"grant_type": "client_credentials"},
     )
@@ -558,7 +575,7 @@ def success():
 
     # 2️⃣ Fetch subscription details
     sub_response = requests.get(
-        f"https://api-m.sandbox.paypal.com/v1/billing/subscriptions/{subscription_id}",
+        f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}",
         headers={"Authorization": f"Bearer {access_token}"},
     )
     if sub_response.status_code != 200:
