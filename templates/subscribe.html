@@ -164,20 +164,21 @@
   </script>
 
   <!-- Public-safe Supabase initialization -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      const supabase = window.supabase = supabase.createClient(
-        window.SUPABASE_URL,
-        window.SUPABASE_ANON_KEY,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-          }
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    window.supabase = supabase.createClient(
+      window.SUPABASE_URL,
+      window.SUPABASE_ANON_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
         }
-      );
-      console.log("✅ Supabase client initialized on subscribe.html (public mode)");
-    });
-  </script>
+      }
+    );
+    console.log("✅ Supabase client initialized on subscribe.html (public mode)");
+  });
+</script>
+
 </body>
 </html>
