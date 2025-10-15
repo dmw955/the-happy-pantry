@@ -121,7 +121,11 @@
         </ul>
 
         <!-- PayPal Button -->
-        <div id="paypal-button-container"></div>
+        <div id="paypal-button-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading PayPal...</span>
+          </div>
+        </div>
 
         <p class="secure-text"><i class="bi bi-lock-fill"></i> Secure payments powered by PayPal</p>
         <p class="terms-note">
@@ -136,49 +140,61 @@
   <!-- PayPal Button Logic -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      paypal.Buttons({
-        style: {
-          shape: "rect",
-          color: "gold",
-          layout: "vertical",
-          label: "subscribe",
-        },
-        createSubscription: function (data, actions) {
-          return actions.subscription.create({
-            plan_id: "{{ PAYPAL_PLAN_ID }}"
-          });
-        },
-        onApprove: function (data) {
-          console.log("✅ Subscription Approved:", data);
-          window.location.href = "/success?subscription_id=" + data.subscriptionID;
-        },
-        onCancel: function () {
-          window.location.href = "/cancel";
-        },
-        onError: function (err) {
-          console.error("❌ PayPal Error:", err);
-          window.location.href = "/error";
-        }
-      }).render("#paypal-button-container");
+      try {
+        paypal.Buttons({
+          style: {
+            shape: "rect",
+            color: "gold",
+            layout: "vertical",
+            label: "subscribe",
+          },
+          createSubscription: function (data, actions) {
+            return actions.subscription.create({
+              plan_id: "{{ PAYPAL_PLAN_ID }}"
+            });
+          },
+          onApprove: function (data) {
+            console.log("✅ Subscription Approved:", data);
+            window.location.href = "/success?subscription_id=" + data.subscriptionID;
+          },
+          onCancel: function () {
+            window.location.href = "/cancel";
+          },
+          onError: function (err) {
+            console.error("❌ PayPal Error:", err);
+            document.getElementById("paypal-button-container").innerHTML = `
+              <div class="alert alert-danger mt-3">
+                Something went wrong with PayPal. Please refresh and try again.
+              </div>
+            `;
+          }
+        }).render("#paypal-button-container");
+      } catch (err) {
+        console.error("❌ Failed to render PayPal button:", err);
+        document.getElementById("paypal-button-container").innerHTML = `
+          <div class="alert alert-danger mt-3">
+            Unable to load PayPal. Please refresh the page.
+          </div>
+        `;
+      }
     });
   </script>
 
-  <!-- Public-safe Supabase initialization -->
-<script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    window.supabase = supabase.createClient(
-      window.SUPABASE_URL,
-      window.SUPABASE_ANON_KEY,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
+  <!-- Supabase Client Init (public, sessionless) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      window.supabase = supabase.createClient(
+        window.SUPABASE_URL,
+        window.SUPABASE_ANON_KEY,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          }
         }
-      }
-    );
-    console.log("✅ Supabase client initialized on subscribe.html (public mode)");
-  });
-</script>
-
+      );
+      console.log("✅ Supabase client initialized on subscribe.html (public mode)");
+    });
+  </script>
 </body>
 </html>
