@@ -491,17 +491,19 @@ def local_resources():
 def subscribe():
     """
     Render the unified $9.99/month PayPal subscription page.
-    Injects PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID into the template.
+    Injects PAYPAL_CLIENT_ID, PAYPAL_PLAN_ID, SUPABASE_URL, and SUPABASE_KEY into the template.
     """
 
     paypal_client_id = os.getenv("PAYPAL_CLIENT_ID")
     paypal_plan_id = os.getenv("PAYPAL_PLAN_ID")
-    SUPABASE_URL=os.getenv("SUPABASE_URL"),
-    SUPABASE_KEY=os.getenv("SUPABASE_KEY")
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_KEY")
 
     # ✅ TEMP DEBUG (will show in Render logs)
     print("DEBUG ENV → PAYPAL_CLIENT_ID:", repr(paypal_client_id))
     print("DEBUG ENV → PAYPAL_PLAN_ID:", repr(paypal_plan_id))
+    print("DEBUG ENV → SUPABASE_URL:", repr(supabase_url))
+    print("DEBUG ENV → SUPABASE_KEY:", "SET" if supabase_key else "MISSING")
 
     # Basic validation to prevent 500s if env vars missing
     if not paypal_client_id or not paypal_plan_id:
@@ -512,11 +514,15 @@ def subscribe():
             500,
         )
 
+    # Render the subscription template with all environment variables
     return render_template(
         "subscribe.html",
         PAYPAL_CLIENT_ID=paypal_client_id,
         PAYPAL_PLAN_ID=paypal_plan_id,
+        SUPABASE_URL=supabase_url,
+        SUPABASE_KEY=supabase_key
     )
+
 
 from flask import render_template_string
 
