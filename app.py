@@ -632,10 +632,13 @@ def test_vars():
 
 @app.route("/env")
 def show_env():
-    return jsonify({
+    return {
         "PAYPAL_CLIENT_ID": os.getenv("PAYPAL_CLIENT_ID"),
-        "PAYPAL_PLAN_ID": os.getenv("PAYPAL_PLAN_ID")
-    })
+        "PAYPAL_PLAN_ID": os.getenv("PAYPAL_PLAN_ID"),
+        "SUPABASE_URL": os.getenv("SUPABASE_URL"),
+        "SUPABASE_KEY": "SET" if os.getenv("SUPABASE_KEY") else "MISSING"
+    }
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entrypoint
