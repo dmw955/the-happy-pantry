@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("❌ Supabase SDK is not loaded yet");
       return;
     }
+supabase.auth.signOut().then(() => {
+  console.log("🧼 Signed out for testing");
+});
 
     window.supabaseClient = supabase.createClient(
       window.SUPABASE_URL,
