@@ -490,31 +490,26 @@ def local_resources():
 @app.route("/subscribe")
 def subscribe():
     """
-    Render the unified $9.99/month PayPal subscription page.
-    Injects PAYPAL_CLIENT_ID, PAYPAL_PLAN_ID, SUPABASE_URL, and SUPABASE_KEY into the template.
+    Render the PayPal subscription page and inject PayPal + Supabase variables.
     """
 
     paypal_client_id = os.getenv("PAYPAL_CLIENT_ID")
     paypal_plan_id = os.getenv("PAYPAL_PLAN_ID")
     supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_KEY")
+    supabase_key = os.getenv("SUPABASE_ANON_KEY")  # ✅ use the actual key name in Render
 
-    # ✅ TEMP DEBUG (will show in Render logs)
-    print("DEBUG ENV → PAYPAL_CLIENT_ID:", repr(paypal_client_id))
-    print("DEBUG ENV → PAYPAL_PLAN_ID:", repr(paypal_plan_id))
-    print("DEBUG ENV → SUPABASE_URL:", repr(supabase_url))
-    print("DEBUG ENV → SUPABASE_KEY:", "SET" if supabase_key else "MISSING")
+    # ✅ Debug output (safe for logs)
+    print("DEBUG → PAYPAL_CLIENT_ID:", repr(paypal_client_id))
+    print("DEBUG → PAYPAL_PLAN_ID:", repr(paypal_plan_id))
+    print("DEBUG → SUPABASE_URL:", repr(supabase_url))
+    print("DEBUG → SUPABASE_ANON_KEY:", "SET" if supabase_key else "MISSING")
 
-    # Basic validation to prevent 500s if env vars missing
     if not paypal_client_id or not paypal_plan_id:
-        print("⚠️ PayPal environment variables missing.")
         return (
-            "PayPal environment variables missing. "
-            "Check PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID in your environment settings.",
+            "Missing PayPal credentials. Check PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID.",
             500,
         )
 
-    # Render the subscription template with all environment variables
     return render_template(
         "subscribe.html",
         PAYPAL_CLIENT_ID=paypal_client_id,
@@ -636,7 +631,7 @@ def show_env():
         "PAYPAL_CLIENT_ID": os.getenv("PAYPAL_CLIENT_ID"),
         "PAYPAL_PLAN_ID": os.getenv("PAYPAL_PLAN_ID"),
         "SUPABASE_URL": os.getenv("SUPABASE_URL"),
-        "SUPABASE_KEY": "SET" if os.getenv("SUPABASE_KEY") else "MISSING"
+        "SUPABASE_ANON_KEY": "SET" if os.getenv("SUPABASE_ANON_KEY") else "MISSING"
     }
 
 
