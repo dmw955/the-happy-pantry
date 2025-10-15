@@ -562,8 +562,8 @@ def success():
         return "Missing subscription ID.", 400
 
     # PayPal Config
-    paypal_auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"
-    paypal_sub_url = f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}"
+    paypal_auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token" # type: ignore
+    paypal_sub_url = f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}" # type: ignore
 
     # 1️⃣ Get PayPal access token
     auth_response = requests.post(
