@@ -19,12 +19,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
 
   <!-- ✅ Supabase Initialization from .env -->
- <!-- ✅ Supabase config exposed to window (used by auth.js and script.js) -->
-<script>
-  window.SUPABASE_URL = "{{ SUPABASE_URL }}";
-  window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
-</script>
-
+  <script>
+    const SUPABASE_URL = "{{ SUPABASE_URL }}";
+    const SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  </script>
 
   <!-- ✅ Auth Session Sync -->
   <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
