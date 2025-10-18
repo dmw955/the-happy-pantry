@@ -1,75 +1,73 @@
 # app.py
 from flask import (
-    Flask, render_template, request, redirect, url_for,
+    Flask, render_template, render_template_string,
+    request, redirect, url_for,
     session, flash, jsonify, send_from_directory
 )
 from supabase import create_client
-import os, json, requests, traceback
+import os
+import json
+import requests
+import traceback
+from datetime import datetime
 from dotenv import load_dotenv
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Environment / App
+# App Initialization
 # ─────────────────────────────────────────────────────────────────────────────
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-app = Flask(__name__)
-app.jinja_env.cache = {}  # ⬅️ This disables template caching
+app.jinja_env.cache = {}
 
-
-# === Environment Configuration ===
+# ─────────────────────────────────────────────────────────────────────────────
+# Environment Configuration
+# ─────────────────────────────────────────────────────────────────────────────
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-
 USDA_API_KEY = os.getenv("USDA_API_KEY")
 
-# === PayPal Configuration ===
-PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
-PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
-PAYPAL_PLAN_ID = os.getenv("PAYPAL_PLAN_ID")
-PAYPAL_MODE = os.getenv("PAYPAL_MODE", "live")  # 'sandbox' or 'live'
-
+# PayPal Mode must load before base URL
+PAYPAL_MODE = os.getenv("PAYPAL_MODE", "live").lower()
 PAYPAL_BASE_URL = (
     "https://api-m.sandbox.paypal.com"
     if PAYPAL_MODE == "sandbox"
     else "https://api-m.paypal.com"
 )
 
-# Optional debug output (safe for logs, avoids leaking keys)
-print("DEBUG → PAYPAL_MODE:", PAYPAL_MODE)
-print("DEBUG → PAYPAL_BASE_URL:", PAYPAL_BASE_URL)
-print("DEBUG → SUPABASE_URL:", SUPABASE_URL)
-print("DEBUG → SUPABASE_ANON_KEY:", "SET" if SUPABASE_ANON_KEY else "MISSING")
-print("DEBUG → SUPABASE_SERVICE_KEY:", "SET" if SUPABASE_SERVICE_KEY else "MISSING")
+print(f"DEBUG → PAYPAL_MODE: {PAYPAL_MODE}")
+print(f"DEBUG → PAYPAL_BASE_URL: {PAYPAL_BASE_URL}")
+print(f"DEBUG → SUPABASE_URL: {SUPABASE_URL}")
+print(f"DEBUG → SUPABASE_ANON_KEY: {'SET' if SUPABASE_ANON_KEY else 'MISSING'}")
+print(f"DEBUG → SUPABASE_SERVICE_KEY: {'SET' if SUPABASE_SERVICE_KEY else 'MISSING'}")
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Lazy Supabase clients (prevents boot crashes if env vars are missing)
+# Supabase Clients
 # ─────────────────────────────────────────────────────────────────────────────
 _supabase = None
 _supabase_admin = None
 
-
 def get_supabase():
-    """Public supabase client; prefers SERVICE key, falls back to ANON."""
+    """Public Supabase client; prefers SERVICE key, falls back to ANON."""
     global _supabase
     if _supabase is None:
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+        url = SUPABASE_URL
+        key = SUPABASE_SERVICE_KEY or SUPABASE_ANON_KEY
         if not url or not key:
-            raise RuntimeError("Supabase is not configured on the server")
+            raise RuntimeError("Supabase is not configured.")
         _supabase = create_client(url, key)
     return _supabase
 
 def get_supabase_admin():
-    """Admin supabase client; requires SERVICE key."""
+    """Admin Supabase client; requires SERVICE key."""
     global _supabase_admin
     if _supabase_admin is None:
-        url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_SERVICE_KEY")
+        url = SUPABASE_URL
+        key = SUPABASE_SERVICE_KEY
         if not url or not key:
-            raise RuntimeError("Supabase admin is not configured on the server")
+            raise RuntimeError("Supabase admin is not configured.")
         _supabase_admin = create_client(url, key)
     return _supabase_admin
 
@@ -78,12 +76,11 @@ def get_supabase_admin():
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/healthz")
 def healthz():
-    # Keep this ultra-light—no external calls—so Render health checks succeed.
     return {"ok": True}, 200
 
 @app.route('/favicon.ico')
 def favicon():
-    """Serve ICO directly if present, else redirect to PNG."""
+    """Serve favicon if exists, fallback to PNG."""
     ico_path = os.path.join(app.root_path, 'static', 'assets', 'favicon.ico')
     if os.path.exists(ico_path):
         return send_from_directory(
@@ -91,25 +88,34 @@ def favicon():
             'favicon.ico',
             mimetype='image/vnd.microsoft.icon'
         )
-    # fallback to PNG if you prefer that file
     return redirect(url_for('static', filename='assets/favicon.png'), code=302)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Core Routes
+# Core Pages & User Account Routes
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/")
 def home():
     return render_template("index.html")
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
-@app.route('/dashboard')
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
+
+@app.route("/signup")
+def signup():
+    return render_template("signup.html")
+
+@app.route("/dashboard")
 def dashboard():
     return render_template(
-        'dashboard.html',
-        SUPABASE_URL=os.getenv("SUPABASE_URL"),
-        SUPABASE_ANON_KEY=os.getenv("SUPABASE_ANON_KEY")
+        "dashboard.html",
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
-
 
 @app.route("/auth-redirect")
 def auth_redirect():
@@ -119,235 +125,216 @@ def auth_redirect():
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
         try:
             sb = get_supabase()
             response = sb.auth.sign_in_with_password({"email": email, "password": password})
-
-            # Defensive checks — supabase client libs vary in return shape
-            user_obj = getattr(response, 'user', None) if response else None
-            session_obj = getattr(response, 'session', None) if response else None
+            user_obj = getattr(response, "user", None)
+            session_obj = getattr(response, "session", None)
 
             if user_obj:
-                # Store safe basics; avoid strict datetime ops on created_at
-                session['user_id'] = getattr(user_obj, 'id', None)
-                session['email'] = getattr(user_obj, 'email', email)
-                member_since = getattr(user_obj, 'created_at', None)
-                session['member_since'] = str(member_since) if member_since else "Unknown"
-                session['access_token'] = getattr(session_obj, 'access_token', None) if session_obj else None
-                session['refresh_token'] = getattr(session_obj, 'refresh_token', None) if session_obj else None
-                session.permanent = True
-
+                session["user_id"] = getattr(user_obj, "id", None)
+                session["email"] = getattr(user_obj, "email", email)
+                member_since = getattr(user_obj, "created_at", None)
+                session["member_since"] = str(member_since) if member_since else "Unknown"
+                session["access_token"] = getattr(session_obj, "access_token", None) if session_obj else None
+                session["refresh_token"] = getattr(session_obj, "refresh_token", None) if session_obj else None
                 flash("✅ Login Successful!", "success")
-                return redirect(url_for('dashboard'))
-
-            flash("❌ Invalid email or password. Please try again.", "danger")
+                return redirect(url_for("dashboard"))
+            flash("❌ Invalid email or password.", "danger")
         except Exception as e:
             print("Login error:", e)
-            flash("❌ Something went wrong. Please try again later.", "danger")
+            flash("❌ Something went wrong.", "danger")
+    return render_template("login.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
-    return render_template('login.html', SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
-
-@app.route("/session", methods=["POST"])
-def store_session():
-    data = request.get_json()
-    user_id = data.get("user_id")
-    email = data.get("email")
-    subscription_id = data.get("subscription_id")
-
-    if user_id:
-        session["user_id"] = user_id
-        session["email"] = email
-        session["subscription_id"] = subscription_id
-        print("✅ Session set via JS for user:", email)
-
-        # Optionally save subscription to Supabase
-        if subscription_id:
-            try:
-                sb = get_supabase_admin()
-                sb.table("subscriptions").insert({
-                    "user_id": user_id,
-                    "paypal_subscription_id": subscription_id,
-                    "status": "active",
-                    "created_at": datetime.utcnow().isoformat()
-                }).execute()
-                print("✅ Supabase subscription row added")
-            except Exception as e:
-                print("❌ Failed to insert subscription:", e)
-
-        return jsonify({"message": "Session stored"}), 200
-
-    return jsonify({"error": "user_id missing"}), 400
-
-
-@app.route('/logout')
+@app.route("/logout")
 def logout():
     session.clear()
     flash("✅ Logged out successfully.", "info")
-    return redirect(url_for('home'))
+    return redirect(url_for("home"))
 
-@app.route('/profile')
+@app.route("/profile")
 def profile():
     return render_template(
-        'profile.html',
+        "profile.html",
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
-        user={}  # prevents template crash when not logged in
+        user={}
     )
 
-@app.route('/update_profile', methods=['POST'])
+@app.route("/update_profile", methods=["POST"])
 def update_profile():
-    user_id = session.get('user_id')
+    user_id = session.get("user_id")
     if not user_id:
         flash("⚠️ Please log in to update your profile.", "warning")
-        return render_template("profile.html")
+        return redirect(url_for("profile"))
 
-    email = request.form.get('email')
-    new_password = request.form.get('new_password')
-    confirm_password = request.form.get('confirm_password')
+    email = request.form.get("email")
+    new_password = request.form.get("new_password")
+    confirm_password = request.form.get("confirm_password")
     email_notifications = 'email_notifications' in request.form
 
     if new_password and new_password != confirm_password:
-        flash("❌ Passwords do not match. Try again.", "danger")
-        return redirect(url_for('profile'))
+        flash("❌ Passwords do not match.", "danger")
+        return redirect(url_for("profile"))
 
     try:
         updates = {}
-        if email and email != session.get('email'):
-            updates['email'] = email
+        if email and email != session.get("email"):
+            updates["email"] = email
         if new_password:
-            updates['password'] = new_password
+            updates["password"] = new_password
 
         if updates:
             sba = get_supabase_admin()
             sba.auth.admin.update_user_by_id(user_id, updates)
-            if 'email' in updates:
-                session['email'] = updates['email']
-                flash("✅ Email updated successfully!", "success")
-            if 'password' in updates:
-                flash("✅ Password updated successfully!", "success")
-
-        session['email_notifications'] = email_notifications
-        flash("✅ Preferences updated successfully!", "success")
+            if "email" in updates:
+                session["email"] = updates["email"]
+            flash("✅ Profile updated successfully!", "success")
     except Exception as e:
         print("update_profile error:", e)
-        flash("❌ Something went wrong. Please try again.", "danger")
+        flash("❌ Something went wrong.", "danger")
 
-    return redirect(url_for('profile'))
+    session["email_notifications"] = email_notifications
+    return redirect(url_for("profile"))
 
-@app.route('/forgot_password', methods=['GET', 'POST'])
+@app.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
-    if request.method == 'POST':
-        email = request.form.get('email')
+    if request.method == "POST":
+        email = request.form.get("email")
         try:
             sb = get_supabase()
             sb.auth.reset_password_for_email(
                 email,
-                options={"redirect_to": "http://127.0.0.1:5000/reset_password"}  # update for prod if needed
+                options={"redirect_to": "https://the-happy-pantry.com/reset_password"}
             )
-            flash("✅ If an account with that email exists, a reset link has been sent.", "success")
-            return redirect(url_for('login'))
+            flash("✅ If an account exists, a reset link was sent.", "success")
+            return redirect(url_for("login"))
         except Exception as e:
             print("forgot_password error:", e)
-            flash("❌ Something went wrong. Please try again later.", "danger")
-    return render_template('forgot_password.html')
+            flash("❌ Error sending reset link.", "danger")
+    return render_template("forgot_password.html")
 
-@app.route('/reset_password')
+@app.route("/reset_password")
 def reset_password():
-    return render_template(
-        'reset_password.html',
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-    )
+    return render_template("reset_password.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
-
-@app.route('/signup')
-def signup():
-    return render_template('signup.html')
-
-@app.route('/shopping_list')
+# ─────────────────────────────────────────────────────────────────────────────
+# Static Pages
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/shopping_list")
 def shopping_list():
-    return render_template('shopping_list.html')
+    return render_template("shopping_list.html")
 
-@app.route("/planselection")
-def planselection():
-    # Redirect old links to the main subscribe page
-    return redirect(url_for("subscribe"))
-
-
-@app.route('/pantrypost')
+@app.route("/pantrypost")
 def pantrypost():
-    return render_template('pantry_post.html')
+    return render_template("pantry_post.html")
 
-@app.route('/whyitworks')
+@app.route("/whyitworks")
 def whyitworks():
-    return render_template('whyitworks.html')
+    return render_template("whyitworks.html")
 
-@app.route('/pantry_project')
+@app.route("/pantry_project")
 def pantry_project():
-    return render_template('pantry_project.html')
+    return render_template("pantry_project.html")
 
-@app.route('/paymentprocessing')
+@app.route("/paymentprocessing")
 def payment_processing():
-    return render_template('paymentprocessing.html')
+    return render_template("paymentprocessing.html")
 
 @app.route("/macrotracking")
 def macro_tracking():
-    return render_template(
-        "macrotracking.html",
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-    )
+    return render_template("macrotracking.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
 @app.route("/macrogoals")
 def macro_goals():
+    return render_template("macrogoals.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PayPal Configuration (Sandbox / Live Toggle)
+# ─────────────────────────────────────────────────────────────────────────────
+if PAYPAL_MODE == "sandbox":
+    PAYPAL_CLIENT_ID = os.getenv("PAYPAL_SANDBOX_CLIENT_ID")
+    PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_SANDBOX_CLIENT_SECRET")
+    PAYPAL_PLAN_ID = os.getenv("PAYPAL_SANDBOX_PLAN_ID")
+else:
+    PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
+    PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
+    PAYPAL_PLAN_ID = os.getenv("PAYPAL_PLAN_ID")
+
+print(f"🟢 PayPal mode: {PAYPAL_MODE.upper()} → {PAYPAL_BASE_URL}")
+print(f"→ Plan ID: {PAYPAL_PLAN_ID}")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PayPal Subscribe & Success
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/subscribe")
+def subscribe():
+    supabase_url = SUPABASE_URL
+    supabase_key = SUPABASE_ANON_KEY
+
+    if not PAYPAL_CLIENT_ID or not PAYPAL_PLAN_ID:
+        return "Missing PayPal credentials.", 500
+
     return render_template(
-        "macrogoals.html",
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        "subscribe.html",
+        PAYPAL_CLIENT_ID=PAYPAL_CLIENT_ID,
+        PAYPAL_PLAN_ID=PAYPAL_PLAN_ID,
+        SUPABASE_URL=supabase_url,
+        SUPABASE_KEY=supabase_key,
+        PAYPAL_MODE=PAYPAL_MODE
     )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# USDA Endpoints
-# ─────────────────────────────────────────────────────────────────────────────
-@app.route('/usda/search')
-def usda_search():
-    query = request.args.get('query', '')
-    try:
-        res = requests.get(
-            "https://api.nal.usda.gov/fdc/v1/foods/search",
-            params={"query": query, "api_key": USDA_API_KEY, "pageSize": 10},
-            timeout=12
-        )
-        return jsonify(res.json()), res.status_code
-    except requests.RequestException as e:
-        print("USDA search error:", e)
-        return jsonify({"error": "USDA API error"}), 502
+@app.route("/success")
+def success():
+    subscription_id = request.args.get("subscription_id")
+    if not subscription_id:
+        return "Missing subscription ID.", 400
 
-@app.route('/usda/detail')
-def usda_detail():
-    fdc_id = request.args.get('fdcId')
-    try:
-        res = requests.get(
-            f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}",
-            params={"api_key": USDA_API_KEY},
-            timeout=12
-        )
-        return jsonify(res.json()), res.status_code
-    except requests.RequestException as e:
-        print("USDA detail error:", e)
-        return jsonify({"error": "USDA API error"}), 502
+    paypal_auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"
+    paypal_sub_url = f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}"
+
+    auth_response = requests.post(
+        paypal_auth_url,
+        auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+        headers={"Accept": "application/json", "Accept-Language": "en_US"},
+        data={"grant_type": "client_credentials"},
+    )
+    if auth_response.status_code != 200:
+        return "PayPal authentication failed.", 500
+
+    access_token = auth_response.json().get("access_token")
+    sub_response = requests.get(paypal_sub_url, headers={"Authorization": f"Bearer {access_token}"})
+    if sub_response.status_code != 200:
+        return "Unable to verify subscription.", 500
+
+    sub_data = sub_response.json()
+    subscriber_email = sub_data.get("subscriber", {}).get("email_address")
+    start_date = sub_data.get("start_time")
+    status = sub_data.get("status")
+
+    headers = {
+        "apikey": SUPABASE_SERVICE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    # Create user + record
+    requests.post(f"{SUPABASE_URL}/auth/v1/admin/users", headers=headers, json={"email": subscriber_email})
+    requests.post(f"{SUPABASE_URL}/auth/v1/admin/invite", headers=headers, json={"email": subscriber_email})
+    subscription_payload = {
+        "email": subscriber_email,
+        "paypal_subscription_id": subscription_id,
+        "status": status,
+        "start_date": start_date,
+        "updated_at": datetime.utcnow().isoformat(),
+    }
+    requests.post(f"{SUPABASE_URL}/rest/v1/subscriptions", headers={**headers, "Prefer": "return=minimal"}, json=[subscription_payload])
+    return render_template("success.html", email=subscriber_email, status=status)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PantryPal AI Endpoint
@@ -357,100 +344,36 @@ def pantrypal_api():
     try:
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key:
-            return jsonify({
-                "error": "Server misconfig: OPENAI_API_KEY missing",
-                "hint": "Add OPENAI_API_KEY in Render → Environment and restart the service."
-            }), 500
+            return jsonify({"error": "Missing OPENAI_API_KEY"}), 500
 
-        payload = request.get_json(force=True, silent=False)
+        payload = request.get_json(force=True)
         user_msg = (payload.get("message") or "").strip()
-        context = payload.get("context") or {}
         if not user_msg:
-            return jsonify({"error": "Missing 'message'"}), 400
+            return jsonify({"error": "Missing message"}), 400
 
-        system_prompt = (
-            "You are PantryPal, a concise assistant for The Happy Pantry.\n"
-            "RULES:\n"
-            "- Do NOT generate full recipes or step-by-steps; reply in 1–3 short bullets.\n"
-            "- Prefer actionable outputs the UI can apply: filters (diet/tags/time/macros), simple ingredient swaps, brief rationale.\n"
-            "- Stay within site content. No external links. No medical advice.\n"
-            "- Respond as strict JSON (response_format=json_object) with keys:\n"
-            "  text: string\n"
-            "  actions: object | null\n"
+        r = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"},
+            json={
+                "model": "gpt-4o-mini",
+                "response_format": {"type": "json_object"},
+                "messages": [
+                    {"role": "system", "content": "You are PantryPal, respond in concise JSON with text/actions."},
+                    {"role": "user", "content": user_msg},
+                ],
+                "max_tokens": 350,
+                "temperature": 0.3,
+            },
+            timeout=20,
         )
-        user_prompt = {
-            "message": user_msg,
-            "context": {
-                "activeFilters": context.get("activeFilters"),
-                "pantry": context.get("pantry"),
-                "favoritesCount": context.get("favoritesCount"),
-            }
-        }
-
-        url = "https://api.openai.com/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {openai_key}",
-            "Content-Type": "application/json",
-        }
-        body = {
-            "model": "gpt-4o-mini",
-            "response_format": {"type": "json_object"},
-            "temperature": 0.3,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(user_prompt)},
-            ],
-            "max_tokens": 350,
-        }
-
-        try:
-            r = requests.post(url, headers=headers, json=body, timeout=20)
-        except requests.Timeout:
-            return jsonify({"error": "Upstream timeout contacting OpenAI"}), 504
-        except requests.RequestException as e:
-            return jsonify({"error": "Network error contacting OpenAI", "details": str(e)}), 502
-
-        if r.status_code != 200:
-            details = None
-            try:
-                details = r.json()
-            except Exception:
-                details = r.text
-            print("OpenAI error:", r.status_code, details)
-            return jsonify({
-                "error": "OpenAI error",
-                "status": r.status_code,
-                "details": details
-            }), 502
-
-        try:
-            content = r.json()["choices"][0]["message"]["content"]
-            data = json.loads(content)
-            if not isinstance(data, dict) or "text" not in data:
-                raise ValueError("Invalid JSON shape from AI")
-        except Exception as e:
-            print("AI parse error:", e, "\nRaw:", r.text[:1000])
-            data = {
-                "text": "I’m here to help with quick swaps and filters! Try asking for a dairy-free swap or a time limit.",
-                "actions": None
-            }
-
+        data = json.loads(r.json()["choices"][0]["message"]["content"])
         return jsonify(data), 200
-
     except Exception:
-        print("PantryPal unhandled error:\n", traceback.format_exc())
-        return jsonify({"error": "Unhandled server error"}), 500
-
-@app.route("/api/pantrypal/echo", methods=["POST"])
-def pantrypal_echo():
-    try:
-        payload = request.get_json(force=True, silent=False)
-        return {"ok": True, "payload": payload}, 200
-    except Exception as e:
-        return {"ok": False, "error": f"Invalid JSON: {str(e)}"}, 400
+        print(traceback.format_exc())
+        return jsonify({"error": "Server error"}), 500
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Blog Macro
+# Blog & Recipes
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/blog_macro")
 def blog_macro():
@@ -459,250 +382,51 @@ def blog_macro():
         "slug": "macro-friendly-eating",
         "author": "The Happy Pantry",
         "date": "2025-09-30",
-        "hero": url_for('static', filename='assets/blog/macro-hero.jpg'),
+        "hero": url_for("static", filename="assets/blog/macro-hero.jpg"),
         "summary": "A quick-start guide to protein/carb/fat ratios and portioning.",
-        "content": []  # you can fill this later
+        "content": [],
     }
     return render_template("blog_macro.html", post=post)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Recipes
-# ─────────────────────────────────────────────────────────────────────────────
-@app.route('/recipes')
+@app.route("/recipes")
 def recipes():
-    return render_template(
-        'recipes.html',
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
-        USER_ID=session.get('user_id')
-    )
+    return render_template("recipes.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
-@app.route('/recipes/<slug>')
+@app.route("/recipes/<slug>")
 def recipe_page(slug):
     try:
         sb = get_supabase()
-        response = sb.table('recipes').select('*').eq('slug', slug).execute()
-        data = getattr(response, 'data', None) or getattr(response, 'json', None) or None
-        # Some client versions return .data, others return dict-like
-        if data is None and isinstance(response, dict):
-            data = response.get('data')
-
+        response = sb.table("recipes").select("*").eq("slug", slug).execute()
+        data = getattr(response, "data", None)
         if not data:
-            return "❌ No recipe found for that slug.", 404
-        if len(data) > 1:
-            return "❌ Multiple recipes found for that slug. Please check the database.", 500
-
+            return "❌ No recipe found.", 404
         recipe = data[0]
-        for field in ["ingredients", "dressing"]:
-            if isinstance(recipe.get(field), list):
-                recipe[field] = [json.loads(i) if isinstance(i, str) else i for i in recipe[field]]
-
-        return render_template('recipe.html', recipe=recipe)
+        for f in ["ingredients", "dressing"]:
+            if isinstance(recipe.get(f), list):
+                recipe[f] = [json.loads(i) if isinstance(i, str) else i for i in recipe[f]]
+        return render_template("recipe.html", recipe=recipe)
     except Exception as e:
         print("recipe_page error:", e)
-        return "An error occurred while loading the recipe.", 500
+        return "Error loading recipe.", 500
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Misc pages
+# Diagnostics
 # ─────────────────────────────────────────────────────────────────────────────
-@app.route('/error')
-def error():
-    message = request.args.get('message', 'An error occurred during your transaction.')
-    return render_template('error.html', message=message)
-
-@app.route('/local-resources')
-def local_resources():
-    return render_template(
-        'local_resources.html',
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-    )
-# ─────────────────────────────────────────────────────────────────────────────
-# PayPal Subscribe (Single Plan)
-# ─────────────────────────────────────────────────────────────────────────────
-# PayPal Subscribe (Single Plan)
-# ─────────────────────────────────────────────────────────────────────────────
-@app.route("/subscribe")
-def subscribe():
-    """
-    Render the PayPal subscription page and inject PayPal + Supabase variables.
-    """
-
-    paypal_client_id = os.getenv("PAYPAL_CLIENT_ID")
-    paypal_plan_id = os.getenv("PAYPAL_PLAN_ID")
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_ANON_KEY")  # ✅ use the actual key name in Render
-
-    # ✅ Debug output (safe for logs)
-    print("DEBUG → PAYPAL_CLIENT_ID:", repr(paypal_client_id))
-    print("DEBUG → PAYPAL_PLAN_ID:", repr(paypal_plan_id))
-    print("DEBUG → SUPABASE_URL:", repr(supabase_url))
-    print("DEBUG → SUPABASE_ANON_KEY:", "SET" if supabase_key else "MISSING")
-
-    if not paypal_client_id or not paypal_plan_id:
-        return (
-            "Missing PayPal credentials. Check PAYPAL_CLIENT_ID and PAYPAL_PLAN_ID.",
-            500,
-        )
-
-    return render_template(
-        "subscribe.html",
-        PAYPAL_CLIENT_ID=paypal_client_id,
-        PAYPAL_PLAN_ID=paypal_plan_id,
-        SUPABASE_URL=supabase_url,
-        SUPABASE_KEY=supabase_key
-    )
-
-
-from flask import render_template_string
-
-@app.route("/debug-subscribe")
-def debug_subscribe():
-    with open("templates/subscribe.html") as f:
-        html = render_template_string(
-            f.read(),
-            PAYPAL_CLIENT_ID=os.getenv("PAYPAL_CLIENT_ID"),
-            PAYPAL_PLAN_ID=os.getenv("PAYPAL_PLAN_ID")
-        )
-    return html
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PayPal Success Callback → Create Supabase User + Subscription Record
-# ─────────────────────────────────────────────────────────────────────────────
-from datetime import datetime
-@app.route("/success")
-def success():
-    """Handle PayPal subscription success → create Supabase user, send invite, and record subscription."""
-
-    # -------------------------
-    # 1️⃣ Get subscription ID
-    # -------------------------
-    subscription_id = request.args.get("subscription_id")
-    if not subscription_id:
-        return "Missing subscription ID.", 400
-
-    # -------------------------
-    # 2️⃣ PayPal Config & Auth
-    # -------------------------
-    PAYPAL_BASE_URL = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com")
-    paypal_auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"
-    paypal_sub_url = f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}"
-
-    PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
-    PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
-
-    auth_response = requests.post(
-        paypal_auth_url,
-        auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
-        headers={"Accept": "application/json", "Accept-Language": "en_US"},
-        data={"grant_type": "client_credentials"},
-    )
-    if auth_response.status_code != 200:
-        print("⚠️ PayPal auth failed:", auth_response.text)
-        return "PayPal authentication failed.", 500
-
-    access_token = auth_response.json().get("access_token")
-
-    # -------------------------
-    # 3️⃣ Fetch PayPal Subscription Info
-    # -------------------------
-    sub_response = requests.get(
-        paypal_sub_url,
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    if sub_response.status_code != 200:
-        print("⚠️ Failed to fetch subscription:", sub_response.text)
-        return "Unable to verify PayPal subscription.", 500
-
-    sub_data = sub_response.json()
-    subscriber_email = sub_data.get("subscriber", {}).get("email_address")
-    start_date = sub_data.get("start_time")
-    status = sub_data.get("status")
-
-    if not subscriber_email:
-        print("⚠️ Missing subscriber email in PayPal response.")
-        return "Unable to retrieve subscriber email.", 400
-
-    # -------------------------
-    # 4️⃣ Supabase Setup
-    # -------------------------
-    supabase_url = os.getenv("SUPABASE_URL")
-    service_key = os.getenv("SUPABASE_SERVICE_KEY")
-    headers = {
-        "apikey": service_key,
-        "Authorization": f"Bearer {service_key}",
-        "Content-Type": "application/json",
-    }
-
-    # -------------------------
-    # 5️⃣ Create Supabase User
-    # -------------------------
-    create_user_resp = requests.post(
-        f"{supabase_url}/auth/v1/admin/users",
-        headers=headers,
-        json={"email": subscriber_email},
-    )
-    if create_user_resp.status_code not in (200, 201):
-        print("⚠️ Supabase user creation failed:", create_user_resp.text)
-
-    # -------------------------
-    # 6️⃣ Send Invite Email
-    # -------------------------
-    invite_resp = requests.post(
-        f"{supabase_url}/auth/v1/admin/invite",
-        headers=headers,
-        json={"email": subscriber_email},
-    )
-    if invite_resp.status_code not in (200, 201):
-        print("⚠️ Supabase invite email failed:", invite_resp.text)
-
-    # -------------------------
-    # 7️⃣ Record Subscription in Supabase Table
-    # -------------------------
-    subscription_payload = {
-        "email": subscriber_email,
-        "paypal_subscription_id": subscription_id,
-        "status": status,
-        "start_date": start_date,
-        "updated_at": datetime.utcnow().isoformat(),
-    }
-
-    insert_resp = requests.post(
-        f"{supabase_url}/rest/v1/subscriptions",
-        headers={**headers, "Prefer": "return=minimal"},
-        json=[subscription_payload],
-    )
-    if insert_resp.status_code not in (200, 201, 204):
-        print("⚠️ Failed to insert subscription row:", insert_resp.text)
-
-    # -------------------------
-    # 8️⃣ Show Success Page
-    # -------------------------
-    return render_template("success.html", email=subscriber_email, status=status)
-
-@app.route("/test-vars")
-def test_vars():
-    return render_template_string("""
-        <p>CLIENT_ID: {{ PAYPAL_CLIENT_ID }}</p>
-        <p>PLAN_ID: {{ PAYPAL_PLAN_ID }}</p>
-    """, PAYPAL_CLIENT_ID=os.getenv("PAYPAL_CLIENT_ID"),
-         PAYPAL_PLAN_ID=os.getenv("PAYPAL_PLAN_ID"))
-
 @app.route("/env")
 def show_env():
+    def flag(v): return "SET" if v else "MISSING"
     return {
         "status": "OK",
-        "PAYPAL_CLIENT_ID": "SET",
-        "PAYPAL_PLAN_ID": "SET",
-        "SUPABASE_URL": "SET",
-        "SUPABASE_KEY": "SET"
+        "paypal_mode": PAYPAL_MODE.upper(),
+        "paypal_client_id": flag(PAYPAL_CLIENT_ID),
+        "paypal_plan_id": flag(PAYPAL_PLAN_ID),
+        "supabase_url": flag(SUPABASE_URL),
+        "supabase_anon_key": flag(SUPABASE_ANON_KEY),
+        "supabase_service_key": flag(SUPABASE_SERVICE_KEY),
     }
-
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Entrypoint
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    # In production, gunicorn will run this; debug=False by default here.
     app.run(debug=False)
