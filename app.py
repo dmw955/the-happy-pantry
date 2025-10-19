@@ -291,9 +291,21 @@ def subscribe():
 
 @app.route("/success")
 def success():
+    """Handle PayPal subscription success: create Supabase user, send invite, and log subscription."""
+
+    # -------------------------  
+    # 1️⃣ Get subscription ID  
+    # -------------------------
     subscription_id = request.args.get("subscription_id")
     if not subscription_id:
         return "Missing subscription ID.", 400
+
+    # -------------------------
+    # 2️⃣ PayPal Auth + Subscription Lookup
+    # -------------------------
+    PAYPAL_BASE_URL = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com")
+    PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
+    PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
 
     paypal_auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"
     paypal_sub_url = f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}"
@@ -304,12 +316,19 @@ def success():
         headers={"Accept": "application/json", "Accept-Language": "en_US"},
         data={"grant_type": "client_credentials"},
     )
+
     if auth_response.status_code != 200:
+        print("⚠️ PayPal authentication failed:", auth_response.text)
         return "PayPal authentication failed.", 500
 
     access_token = auth_response.json().get("access_token")
-    sub_response = requests.get(paypal_sub_url, headers={"Authorization": f"Bearer {access_token}"})
+    sub_response = requests.get(
+        paypal_sub_url,
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+
     if sub_response.status_code != 200:
+        print("⚠️ Subscription lookup failed:", sub_response.text)
         return "Unable to verify subscription.", 500
 
     sub_data = sub_response.json()
@@ -317,15 +336,47 @@ def success():
     start_date = sub_data.get("start_time")
     status = sub_data.get("status")
 
+    if not subscriber_email:
+        print("⚠️ No email found in subscription data.")
+        return "Missing email.", 400
+
+    # -------------------------
+    # 3️⃣ Supabase Setup
+    # -------------------------
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
     headers = {
         "apikey": SUPABASE_SERVICE_KEY,
         "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
         "Content-Type": "application/json",
     }
 
-    # Create user + record
-    requests.post(f"{SUPABASE_URL}/auth/v1/admin/users", headers=headers, json={"email": subscriber_email})
-    requests.post(f"{SUPABASE_URL}/auth/v1/admin/invite", headers=headers, json={"email": subscriber_email})
+    # -------------------------
+    # 4️⃣ Create Supabase User
+    # -------------------------
+    create_user_resp = requests.post(
+        f"{SUPABASE_URL}/auth/v1/admin/users",
+        headers=headers,
+        json={"email": subscriber_email}
+    )
+    if create_user_resp.status_code not in (200, 201):
+        print("⚠️ User creation failed:", create_user_resp.text)
+
+    # -------------------------
+    # 5️⃣ Send Invite Email
+    # -------------------------
+    invite_resp = requests.post(
+        f"{SUPABASE_URL}/auth/v1/invite",
+        headers=headers,
+        json={"email": subscriber_email}
+    )
+    if invite_resp.status_code not in (200, 201):
+        print("⚠️ Invite email failed:", invite_resp.text)
+
+    # -------------------------
+    # 6️⃣ Record Subscription in DB
+    # -------------------------
     subscription_payload = {
         "email": subscriber_email,
         "paypal_subscription_id": subscription_id,
@@ -333,9 +384,20 @@ def success():
         "start_date": start_date,
         "updated_at": datetime.utcnow().isoformat(),
     }
-    requests.post(f"{SUPABASE_URL}/rest/v1/subscriptions", headers={**headers, "Prefer": "return=minimal"}, json=[subscription_payload])
-    return render_template("success.html", email=subscriber_email, status=status)
 
+    record_resp = requests.post(
+        f"{SUPABASE_URL}/rest/v1/subscriptions",
+        headers={**headers, "Prefer": "return=minimal"},
+        json=[subscription_payload],
+    )
+
+    if record_resp.status_code not in (200, 201, 204):
+        print("⚠️ Failed to log subscription:", record_resp.text)
+
+    # -------------------------
+    # 7️⃣ Render Success Page
+    # -------------------------
+    return render_template("success.html", email=subscriber_email, status=status)
 # ─────────────────────────────────────────────────────────────────────────────
 # PantryPal AI Endpoint
 # ─────────────────────────────────────────────────────────────────────────────
