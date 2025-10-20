@@ -101,6 +101,11 @@ def home():
 def about():
     return render_template("about.html")
 
+@app.route("/local_resources")
+def local_resources():
+    return render_template("local_resources.html")
+
+
 @app.route("/contact")
 def contact():
     return render_template("contact.html")
