@@ -385,12 +385,19 @@ def success():
         # -------------------------
         # 7️⃣ Send Invite Email
         # -------------------------
-        print("📨 Sending invite email...")
+        # 7️⃣ Send Invite Email
+        print("📨 Sending invite email with redirect...")
         invite_resp = requests.post(
-            f"{SUPABASE_URL}/auth/v1/invite",
-            headers=headers,
-            json={"email": subscriber_email}
-        )
+        f"{SUPABASE_URL}/auth/v1/invite",
+        headers=headers,
+        json={
+        "email": subscriber_email,
+        "options": {
+            "redirectTo": "https://www.the-happy-pantry.com/set_password"
+        }
+    }
+)
+
 
         if invite_resp.status_code not in (200, 201):
             print("⚠️ Invite email failed:", invite_resp.text)
