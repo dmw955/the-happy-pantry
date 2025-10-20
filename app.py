@@ -116,6 +116,13 @@ def dashboard():
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
+@app.route("/set_password")
+def set_password():
+    return render_template(
+        "set_password.html",
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+    )
 
 @app.route("/auth-redirect")
 def auth_redirect():
