@@ -234,6 +234,19 @@ def reset_password():
 def shopping_list():
     return render_template("shopping_list.html")
 
+@app.route("/planselection")
+def planselection():
+    return render_template(
+        "subscribe.html",
+        PAYPAL_CLIENT_ID=PAYPAL_CLIENT_ID,
+        PAYPAL_PLAN_ID=PAYPAL_PLAN_ID,
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_KEY=SUPABASE_ANON_KEY,
+        PAYPAL_MODE=PAYPAL_MODE
+    )
+
+
+
 @app.route("/pantrypost")
 def pantrypost():
     return render_template("pantry_post.html")
@@ -383,9 +396,7 @@ def success():
             print("✅ User created.")
 
         # -------------------------
-        # 7️⃣ Send Invite Email
-        # -------------------------
-        # 7️⃣ Send Invite Email
+            # 7️⃣ Send Invite Email
         print("📨 Sending invite email with redirect...")
         invite_resp = requests.post(
         f"{SUPABASE_URL}/auth/v1/invite",
