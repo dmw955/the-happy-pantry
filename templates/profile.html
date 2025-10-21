@@ -203,7 +203,8 @@
                             <div class="accordion-body">
                                 <p><strong>Last login:</strong> {{ user.member_since }}</p>
                                 <label class="form-label">Change Email</label>
-                                <input type="email" class="form-control mb-3" name="email" value="{{ user.email }}" required>
+                                <input type="email" class="form-control mb-3" name="email" id="emailInput" value="" required>
+
             
                                 <label class="form-label">Change Password</label>
                                 <input type="password" class="form-control mb-3" name="new_password" placeholder="New Password">
@@ -277,6 +278,21 @@
             });
         });
         </script>
-        
+        <script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    console.error("Supabase user fetch error:", error?.message || "User not found");
+    alert("Session expired or user not logged in.");
+    window.location.href = "/login";
+  } else {
+    document.getElementById("emailInput").value = user.email;
+  }
+</script>
+
 </body>
 </html>
