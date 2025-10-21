@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Macro Goals</title>
+  <title>My Profile | The Happy Pantry</title>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
@@ -26,273 +26,247 @@
   <!-- ✅ Load auth.js for session enforcement -->
   <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
-    <!-- Optional CSS Styling -->
+  <!-- ✅ Styling -->
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(15px);
       padding-top: 70px;
     }
+
+    :root {
+      --primary-color: #008080;
+      --accent-color: #FFC72C;
+      --text-dark: #2E2E2E;
+      --text-light: #FFFFFF;
+      --background-light: #FFFFFF;
+    }
+
+    .navbar {
+      background-color: var(--background-light);
+      border-bottom: 2px solid var(--accent-color);
+      padding: 10px 0;
+    }
+
+    .navbar-brand img {
+      height: 50px;
+      width: auto;
+    }
+
+    .navbar-nav .nav-link {
+      color: var(--text-dark);
+      font-weight: bold;
+      transition: color 0.3s ease-in-out;
+    }
+
+    .navbar-nav .nav-link:hover {
+      color: var(--accent-color);
+      text-decoration: underline;
+    }
+
+    .dashboard-container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 40px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary-custom {
+      background-color: #FFC72C;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .btn-primary-custom:hover {
+      background-color: #C9A000;
+    }
+
+    .footer-bg {
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      padding: 20px 0;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .text-danger {
+      font-size: 0.9rem;
+    }
   </style>
-    <style>
-        /* Global Color Variables */
-        :root {
-            --primary-color: #008080; /* Teal Green */
-            --accent-color: #FFC72C;  /* Bright Gold */
-            --text-dark: #2E2E2E;
-            --text-light: #FFFFFF;
-            --background-light: #FFFFFF;
-        }
-
-        /* Navbar Styling */
-        .navbar {
-            background-color: var(--background-light);
-            border-bottom: 2px solid var(--accent-color);
-            padding: 10px 0;
-        }
-
-        .navbar-brand img {
-            height: 50px;
-            width: auto;
-        }
-
-        .navbar-nav .nav-link {
-            color: var(--text-dark);
-            font-weight: bold;
-            transition: color 0.3s ease-in-out;
-        }
-
-        .navbar-nav .nav-link:hover {
-            color: var(--accent-color);
-            text-decoration: underline;
-        }
-
-        /* ✅ Glassmorphism Background */
-        body {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(15px); /* Creates the frosted glass look */
-            -webkit-backdrop-filter: blur(15px); /* For Safari support */
-        }
-
-        .dashboard-container {
-            max-width: 1000px;
-            margin: auto;
-            padding: 40px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
-            border-radius: 15px;
-            backdrop-filter: blur(10px); /* Frosted Glass Effect */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .card {
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            background: var(--background-light);
-            padding: 25px;
-        }
-
-        .card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        /* ✅ Hero Section */
-        .hero {
-            text-align: center;
-            background: var(--primary-color);
-            color: var(--text-light);
-            padding: 40px 20px;
-            border-radius: 10px;
-            margin-bottom: 40px;
-        }
-
-        /* ✅ Modern Button Styles */
-        .btn-primary-custom {
-            background-color: #FFC72C; /* Muted Gold */
-            color: rgb(0, 0, 0);
-            font-size: 1.2rem;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: bold;
-            border: none;
-            transition: all 0.3s ease-in-out;
-        }
-
-        .btn-primary-custom:hover {
-            background-color: #C9A000; /* Slightly darker gold on hover */
-        }
-
-        /* ✅ Centering the "My Recipes" Section */
-        .recipes-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-
-        .recipes-card {
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.3); /* Slightly more opaque */
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(8px); /* Frosted glass look */
-        }
-
-        /* ✅ Footer */
-        .footer-bg {
-            background-color: var(--primary-color);
-            color: var(--text-light);
-            padding: 20px 0;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-    </style>
-
 </head>
-
 
 <body>
   <!-- ✅ Navbar -->
   <nav class="navbar navbar-expand-lg">
     <div class="container px-5">
-        <a class="navbar-brand" href="{{ url_for('home') }}">
-            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}">My Profile</a></li>
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link active" href="{{ url_for('profile') }}">My Profile</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">My Shopping List</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('local_resources') }}">Local Resources</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ url_for('macro_tracking') }}">Macro Tracking</a></li>
           <li class="nav-item"><a class="logout-btn nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
-                    </a>
-                </li>
-            </ul>                                
-        </div>
+        </ul>
+      </div>
     </div>
-</nav>
+  </nav>
 
-    <div class="container mt-5">
-        <div class="profile-container">
-            <h2 class="text-center">My Profile</h2>
+  <!-- ✅ Profile Content -->
+  <div class="container mt-5">
+    <div class="profile-container">
+      <h2 class="text-center">My Profile</h2>
 
-            <!-- ✅ Added ID to form -->
-            <form id="updateProfileForm" method="POST" action="{{ url_for('update_profile') }}">
-                <div class="accordion mt-4" id="profileAccordion">
-                    
-                    <!-- Security/Login Settings -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#securitySettings">
-                                Security/Login Settings
-                            </button>
-                        </h2>
-                        <div id="securitySettings" class="accordion-collapse collapse show" data-bs-parent="#profileAccordion">
-                            <div class="accordion-body">
-                                <p><strong>Last login:</strong> {{ user.member_since }}</p>
-                                <label class="form-label">Change Email</label>
-                                <input type="email" class="form-control mb-3" name="email" id="emailInput" value="" required>
+      <form id="updateProfileForm" method="POST" action="{{ url_for('update_profile') }}">
+        <div class="accordion mt-4" id="profileAccordion">
+          
+          <!-- Security/Login Settings -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#securitySettings">
+                Security & Login Settings
+              </button>
+            </h2>
+            <div id="securitySettings" class="accordion-collapse collapse show" data-bs-parent="#profileAccordion">
+              <div class="accordion-body">
 
-            
-                                <label class="form-label">Change Password</label>
-                                <input type="password" class="form-control mb-3" name="new_password" placeholder="New Password">
-                                <input type="password" class="form-control mb-3" name="confirm_password" placeholder="Confirm New Password">
-            
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" name="email_notifications" {% if user.email_notifications %}checked{% endif %}>
-                                    <label class="form-check-label">Email me login activity</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-            
-                    <!-- Subscription & Payment Methods -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionSettings">
-                                Subscription & Payment Methods
-                            </button>
-                        </h2>
-                        <div id="subscriptionSettings" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
-                            <div class="accordion-body">
-                                <p><strong>Current Plan:</strong> Premium ($4.99/month)</p>
-                                <p><strong>Renewal Date:</strong> April 15, 2025</p>
-                                <p><strong>Payment Method:</strong> **** **** **** 1234</p>
-                                <button type="button" class="btn btn-primary-custom">Change Payment Method</button>
-                                <button type="button" class="btn btn-danger-custom mt-2">Cancel Subscription</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Help & Support -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpSupport">
-                                Help & Support
-                            </button>
-                        </h2>
-                        <div id="helpSupport" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
-                            <div class="accordion-body">
-                                <h5>Contact Us</h5>
-                                <form>
-                                    <label class="form-label">Name</label>
-                                    <input type="text" class="form-control mb-2">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-control mb-2">
-                                    <label class="form-label">Message</label>
-                                    <textarea class="form-control mb-2"></textarea>
-                                    <button class="btn btn-primary mt-2">Submit</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                <!-- ✅ Read-only Email -->
+                <div id="emailContainer" class="mb-3" style="display:none;">
+                  <label class="form-label">Email (read-only)</label>
+                  <input type="email" class="form-control" name="email" id="emailInput" readonly>
                 </div>
-                
-                <!-- ✅ Save Changes Button -->
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-success">Save Changes</button>
-                </div>
-            </form>
+
+                <!-- ✅ Change Password -->
+                <label class="form-label">Change Password</label>
+                <input type="password" class="form-control mb-3" id="newPassword" placeholder="New Password">
+                <input type="password" class="form-control mb-3" id="confirmPassword" placeholder="Confirm New Password">
+                <div id="passwordMessage" class="text-danger mb-2"></div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Subscription & Payment -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionSettings">
+                Subscription & Payment Methods
+              </button>
+            </h2>
+            <div id="subscriptionSettings" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
+              <div class="accordion-body">
+                <p><strong>Current Plan:</strong> Premium ($4.99/month)</p>
+                <p><strong>Renewal Date:</strong> April 15, 2025</p>
+                <p><strong>Payment Method:</strong> **** **** **** 1234</p>
+                <button type="button" class="btn btn-primary-custom">Change Payment Method</button>
+                <a href="/contact" class="btn btn-danger-custom mt-2">Cancel Subscription</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Help & Support -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#helpSupport">
+                Help & Support
+              </button>
+            </h2>
+            <div id="helpSupport" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
+              <div class="accordion-body">
+                <h5>Contact Us</h5>
+                <form>
+                  <label class="form-label">Name</label>
+                  <input type="text" class="form-control mb-2">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control mb-2">
+                  <label class="form-label">Message</label>
+                  <textarea class="form-control mb-2"></textarea>
+                  <button class="btn btn-primary mt-2">Submit</button>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- ✅ Save Changes -->
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-success">Save Changes</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <footer class="footer-bg text-white text-xs">
+    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <p class="m-0">&copy; 2025 The Happy Pantry</p>
+      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
+        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px;">
+      </a>
+    </div>
+  </footer>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelector(".btn-success").addEventListener("click", function() {
-                console.log("Save Changes button clicked!"); // ✅ Debugging message
-                document.getElementById("updateProfileForm").submit(); // ✅ Ensures submission
-            });
-        });
-        </script>
-        <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  const supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  <!-- ✅ Supabase Integration -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
 
-  if (error || !user) {
-    console.error("Supabase user fetch error:", error?.message || "User not found");
-    alert("Session expired or user not logged in.");
-    window.location.href = "/login";
-  } else {
-    document.getElementById("emailInput").value = user.email;
-  }
-</script>
+    if (error || !user) {
+      console.error("Supabase user fetch error:", error?.message || "User not found");
+      alert("Session expired or user not logged in.");
+      window.location.href = "/login";
+    } else {
+      document.getElementById("emailInput").value = user.email;
+      document.getElementById("emailContainer").style.display = "block";
+    }
 
+    document.querySelector(".btn-success").addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      const newPassword = document.getElementById("newPassword").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+      const messageBox = document.getElementById("passwordMessage");
+
+      if (newPassword || confirmPassword) {
+        if (newPassword.length < 6) {
+          messageBox.textContent = "Password must be at least 6 characters.";
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          messageBox.textContent = "Passwords do not match.";
+          return;
+        }
+
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+        if (error) {
+          messageBox.textContent = error.message || "Failed to update password.";
+        } else {
+          messageBox.textContent = "";
+          alert("Password updated successfully.");
+        }
+      } else {
+        document.getElementById("updateProfileForm").submit();
+      }
+    });
+  </script>
 </body>
 </html>
