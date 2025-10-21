@@ -256,6 +256,11 @@ def planselection():
 def pantrypost():
     return render_template("pantry_post.html")
 
+@app.route("/thankyou")
+def thankyou():
+    return render_template("thankyou.html")
+
+
 @app.route("/whyitworks")
 def whyitworks():
     return render_template("whyitworks.html")
