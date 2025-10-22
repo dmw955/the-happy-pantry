@@ -175,6 +175,14 @@ def profile():
         user={}
     )
 
+@app.route("/session")
+def session_info():
+    return jsonify({
+        "user_id": session.get("user_id"),
+        "email": session.get("email"),
+        "access_token": session.get("access_token"),
+    }), 200
+
 @app.route("/update_profile", methods=["POST"])
 def update_profile():
     user_id = session.get("user_id")
