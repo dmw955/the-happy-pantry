@@ -281,6 +281,44 @@ def macro_tracking():
 def macro_goals():
     return render_template("macrogoals.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
+@app.route("/usda/search")
+def usda_search():
+    query = request.args.get("query", "").strip()
+    if not query:
+        return jsonify({"error": "Missing query"}), 400
+
+    try:
+        response = requests.get(
+            "https://api.nal.usda.gov/fdc/v1/foods/search",
+            params={
+                "api_key": USDA_API_KEY,
+                "query": query,
+                "pageSize": 10
+            }
+        )
+        return jsonify(response.json())
+    except Exception as e:
+        print("❌ USDA Search Error:", e)
+        return jsonify({"error": "USDA search failed"}), 500
+
+
+@app.route("/usda/detail")
+def usda_detail():
+    fdc_id = request.args.get("fdcId")
+    if not fdc_id:
+        return jsonify({"error": "Missing fdcId"}), 400
+
+    try:
+        response = requests.get(
+            f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}",
+            params={"api_key": USDA_API_KEY}
+        )
+        return jsonify(response.json())
+    except Exception as e:
+        print("❌ USDA Detail Error:", e)
+        return jsonify({"error": "USDA detail failed"}), 500
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # PayPal Configuration (Sandbox / Live Toggle)
 # ─────────────────────────────────────────────────────────────────────────────
