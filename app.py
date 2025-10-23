@@ -175,7 +175,7 @@ def profile():
         user={}
     )
 
-@app.route("/session")
+@app.route("/session", methods=["GET", "POST"])
 def session_info():
     return jsonify({
         "user_id": session.get("user_id"),
