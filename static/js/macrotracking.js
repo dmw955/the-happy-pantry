@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const usdaSearchForm = document.getElementById("usda-search-form");
     const usdaResultsContainer = document.getElementById("usda-results");
 
-    // ✅ Use getSession instead of getUser
     const {
       data: { session },
       error: authError,
@@ -24,7 +23,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // ✅ Load macro goals
     const { data: goalData } = await supabase
       .from("macro_goals")
       .select("calories, protein, carbs, fat")
@@ -38,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const today = new Date().toISOString().split("T")[0];
-    const { data: todayLogsRaw, error: logError } = await supabase
+    const { data: todayLogsRaw } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
       .eq("user_id", user.id)
@@ -73,7 +71,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     });
 
-    // ✅ Weekly log
     const { data: weeklyLogs = [] } = await supabase
       .from("macro_log")
       .select("date, protein, carbs, fat")
@@ -94,7 +91,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </tr>`;
     });
 
-    // ✅ Manual meal form
     const mealForm = document.getElementById("meal-form");
     mealForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -126,37 +122,50 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // ✅ USDA food search
     usdaSearchForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const query = document.getElementById("usda-search-input").value.trim();
+
+      const inputEl = document.getElementById("usda-search-input");
+      const query = inputEl.value.trim();
+      const resultsBox = document.getElementById("usda-results");
+
       if (!query) return;
 
-      usdaResultsContainer.innerHTML = "<p>Searching...</p>";
+      resultsBox.innerHTML = `
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Searching USDA foods...</p>
+        </div>`;
+
       try {
         const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
         const data = await res.json();
 
         if (!data.foods?.length) {
-          usdaResultsContainer.innerHTML = "<p>No results found.</p>";
+          resultsBox.innerHTML = "<p class='text-danger'>No results found. Try a different food name.</p>";
           return;
         }
 
-        usdaResultsContainer.innerHTML = data.foods
-          .slice(0, 10)
-          .map(food => `
-            <div class="card p-3 mb-2">
-              <h6>${food.description}</h6>
-              <button class="btn btn-primary-custom" onclick="logUSDAFood('${food.fdcId}', '${food.description.replace(/'/g, "")}')">Log This</button>
-            </div>`).join("");
+        resultsBox.innerHTML = data.foods.slice(0, 10).map(food => `
+          <div class="card p-3 mb-2 shadow-sm">
+            <h6 class="mb-1">${food.description}</h6>
+            <small class="text-muted">FDC ID: ${food.fdcId}</small>
+            <button class="btn btn-primary-custom mt-2" onclick="logUSDAFood('${food.fdcId}', '${food.description.replace(/'/g, "")}')">
+              Log This
+            </button>
+          </div>
+        `).join("");
+
+        inputEl.value = "";
 
       } catch (err) {
-        console.error("USDA search error", err);
-        usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
+        console.error("USDA search error:", err);
+        resultsBox.innerHTML = "<p class='text-danger'>Something went wrong. Please try again.</p>";
       }
     });
 
-    // ✅ Log selected USDA food
     window.logUSDAFood = async (fdcId, name) => {
       try {
         const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
