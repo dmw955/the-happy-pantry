@@ -231,22 +231,19 @@
   </div>
 </div>
 
-<!-- Footer -->
-<footer class="footer-bg">
-  <div class="container" style="max-width: 1000px; margin: auto;">
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center px-4 py-2">
-      <div class="d-flex align-items-center gap-2">
-        <p class="m-0 mb-0">&copy; 2025 The Happy Pantry</p>
-        <a href="https://www.facebook.com/profile.php?id=61576743170575"
-           target="_blank" rel="noopener noreferrer"
-           class="text-white text-decoration-none">
-          <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook"
-               style="width: 24px; height: 24px; transition: transform 0.3s ease;" />
-        </a>
-      </div>
-    </div>
+<footer class="footer-bg text-white text-xs">
+  <div class="container d-flex justify-content-between align-items-center py-2 px-4 flex-wrap">
+    <p class="m-0 small">&copy; 2025 The Happy Pantry</p>
+    <a href="https://www.facebook.com/profile.php?id=61576743170575"
+       target="_blank" rel="noopener noreferrer"
+       class="d-flex align-items-center gap-2 text-white text-decoration-none">
+      <img src="{{ url_for('static', filename='assets/facebook-icon-gold.svg') }}"
+           alt="Facebook"
+           style="width: 24px; height: 24px; transition: transform 0.3s ease;" />
+    </a>
   </div>
 </footer>
+
 
 
 
