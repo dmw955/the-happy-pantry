@@ -15,7 +15,7 @@
   <!-- Optional Shared Custom Styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
-  <!-- Supabase -->
+  <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
   <script>
     window.SUPABASE_URL = "{{ SUPABASE_URL }}";
@@ -25,7 +25,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- JS Scripts -->
+  <!-- Auth + Macro JS -->
   <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/macrogoals.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/macrotracking.js') }}" defer></script>
@@ -43,7 +43,7 @@
       font-family: 'Segoe UI', sans-serif;
       background: rgba(255,255,255,0.2);
       backdrop-filter: blur(15px);
-      padding-top: 90px;
+      padding-top: 70px;
     }
 
     .navbar {
@@ -66,14 +66,6 @@
     .navbar-nav .nav-link:hover {
       color: var(--accent-color);
       text-decoration: underline;
-    }
-
-    .footer-bg {
-      background-color: var(--primary-color);
-      color: var(--text-light);
-      padding: 20px 0;
-      text-align: center;
-      font-size: .9rem;
     }
 
     .container {
@@ -114,11 +106,19 @@
     table {
       background-color: white;
     }
+
+    .footer-bg {
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      padding: 20px 0;
+      text-align: center;
+      font-size: .9rem;
+    }
   </style>
 </head>
 <body>
 
-<!-- ✅ Navbar -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg fixed-top">
   <div class="container px-5">
     <a class="navbar-brand" href="{{ url_for('home') }}">
@@ -141,9 +141,10 @@
   </div>
 </nav>
 
-<!-- ✅ Main Content -->
+<!-- Main Content -->
 <div class="container">
-  <!-- Buttons -->
+
+  <!-- Controls -->
   <div class="card text-center">
     <h3 class="mb-4">Track Your Meals</h3>
     <div class="d-flex justify-content-center flex-wrap gap-3">
@@ -171,7 +172,7 @@
     <canvas id="macroCircleChart"></canvas>
   </div>
 
-  <!-- Weekly Table -->
+  <!-- Weekly Summary Table -->
   <div class="card">
     <h4 class="mb-3">Last 7 Days Summary</h4>
     <div class="table-responsive">
@@ -191,7 +192,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Meal Modal -->
 <div class="modal fade" id="mealModal" tabindex="-1" aria-labelledby="mealModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -229,7 +230,7 @@
   </div>
 </div>
 
-<!-- ✅ Footer -->
+<!-- Footer -->
 <footer class="footer-bg">
   <div class="container px-5">
     <p class="m-0">&copy; The Happy Pantry 2025</p>
