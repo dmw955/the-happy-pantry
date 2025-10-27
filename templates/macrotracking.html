@@ -38,13 +38,12 @@
       --text-light: #FFFFFF;
       --background-light: #FFFFFF;
     }
-
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(15px);
-      padding-top: 70px;
-    }
+  font-family: 'Segoe UI', sans-serif;
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(15px);
+  padding-top: 100px; /* ✅ increase from 90px to 100px or more */
+}
 
     .navbar {
       background-color: var(--background-light);
@@ -120,6 +119,9 @@
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg fixed-top">
+  <!-- Optional extra spacing -->
+<div style="margin-top: 20px;"></div>
+
   <div class="container px-5">
     <a class="navbar-brand" href="{{ url_for('home') }}">
       <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
