@@ -121,16 +121,18 @@
 
   <!-- Page Content -->
   <main>
-    <div class="container px-5">
-      <!-- Controls -->
-      <div class="card text-center">
-        <h3 class="mb-4">Track Your Meals</h3>
-        <div class="d-flex justify-content-center flex-wrap gap-3">
-          <button class="btn btn-primary-custom">Add from My Recipes</button>
-          <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#mealModal">Manually Add Food</button>
-          <button class="btn btn-primary-custom" data-bs-toggle="collapse" data-bs-target="#usdaSearchBox">Search USDA Foods</button>
-        </div>
-      </div>
+    <div class="container mb-4">
+  <button class="btn btn-primary-custom" data-bs-toggle="collapse" data-bs-target="#fav-recipes-collapse">
+    ➕ Add from Favorite Recipes
+  </button>
+
+  <div class="collapse mt-3" id="fav-recipes-collapse">
+    <div class="row" id="favorite-recipes-container">
+      <!-- Favorite recipe cards will be injected here -->
+    </div>
+  </div>
+</div>
+
 
       <!-- USDA Search -->
       <div class="collapse mb-4" id="usdaSearchBox">

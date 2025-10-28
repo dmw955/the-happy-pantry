@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const weeklyTableBody = document.getElementById("weekly-macros");
     const usdaSearchForm = document.getElementById("usda-search-form");
     const usdaResultsContainer = document.getElementById("usda-results");
+    const favoriteSelect = document.getElementById("favorite-recipes");
+    const logFavoriteBtn = document.getElementById("log-favorite-btn");
 
     const {
       data: { session },
@@ -23,6 +25,47 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0];
+
+    // ✅ Load Favorite Recipes
+    if (favoriteSelect && logFavoriteBtn) {
+      const { data: favoriteRecipes = [] } = await supabase
+        .from("favorite_recipes")
+        .select("id, recipe_name, protein, carbs, fat")
+        .eq("user_id", user.id);
+
+      favoriteRecipes.forEach(recipe => {
+        const option = document.createElement("option");
+        option.value = recipe.id;
+        option.textContent = recipe.recipe_name;
+        favoriteSelect.appendChild(option);
+      });
+
+      logFavoriteBtn.addEventListener("click", async () => {
+        const selectedId = favoriteSelect.value;
+        const selectedRecipe = favoriteRecipes.find(r => r.id == selectedId);
+
+        if (!selectedRecipe) return alert("Please select a recipe.");
+
+        const { error } = await supabase.from("macro_log").insert([{
+          user_id: user.id,
+          date: today,
+          name: selectedRecipe.recipe_name,
+          protein: selectedRecipe.protein,
+          carbs: selectedRecipe.carbs,
+          fat: selectedRecipe.fat,
+          created_at: new Date().toISOString(),
+        }]);
+
+        if (error) alert("❌ Failed to log recipe.");
+        else {
+          alert("✅ Recipe logged!");
+          location.reload();
+        }
+      });
+    }
+
+    // ✅ Load Macro Goals
     const { data: goalData } = await supabase
       .from("macro_goals")
       .select("calories, protein, carbs, fat")
@@ -35,7 +78,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const today = new Date().toISOString().split("T")[0];
     const { data: todayLogsRaw } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
