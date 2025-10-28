@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="Macro Tracking - The Happy Pantry" />
+  <meta name="keywords" content="macro tracking, nutrition, meal log" />
+  <meta name="author" content="The Happy Pantry Team" />
   <title>Macro Tracking - The Happy Pantry</title>
 
   <!-- Favicon -->
@@ -11,22 +14,20 @@
   <!-- Bootstrap & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
   <script>
-    window.SUPABASE_URL = "{{ SUPABASE_URL }}";
-    window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+    const SUPABASE_URL = "{{ SUPABASE_URL }}";
+    const SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   </script>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- JS Scripts -->
-  <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
   <script src="{{ url_for('static', filename='js/macrogoals.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/macrotracking.js') }}" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
@@ -38,9 +39,10 @@
     }
 
     body {
+      font-family: 'Segoe UI', sans-serif;
       background: rgba(255,255,255,0.2);
       backdrop-filter: blur(15px);
-      font-family: 'Segoe UI', sans-serif;
+      padding-top: 90px;
     }
 
     .navbar {
@@ -51,7 +53,6 @@
 
     .navbar-brand img {
       height: 50px;
-      width: auto;
     }
 
     .navbar-nav .nav-link {
@@ -65,14 +66,10 @@
       text-decoration: underline;
     }
 
-    .dashboard-container {
-      max-width: 1000px;
+    .container {
+      max-width: 1100px;
       margin: auto;
-      padding: 40px 20px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 15px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+      padding: 40px 15px;
     }
 
     .card {
@@ -115,12 +112,21 @@
       text-align: center;
       font-size: .9rem;
     }
+
+    .footer-bg a img {
+      transition: transform 0.3s ease;
+    }
+
+    .footer-bg a:hover img {
+      transform: scale(1.1);
+    }
   </style>
 </head>
+
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg fixed-top">
   <div class="container px-5">
     <a class="navbar-brand" href="{{ url_for('home') }}">
       <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
@@ -143,9 +149,9 @@
 </nav>
 
 <!-- Main Content -->
-<div class="dashboard-container">
+<div class="container">
 
-  <!-- Track Buttons -->
+  <!-- Controls -->
   <div class="card text-center">
     <h3 class="mb-4">Track Your Meals</h3>
     <div class="d-flex justify-content-center flex-wrap gap-3">
@@ -167,13 +173,13 @@
     </div>
   </div>
 
-  <!-- Today's Chart -->
+  <!-- Chart -->
   <div class="card">
     <h4 class="text-center mb-3">Today's Macro Intake</h4>
     <canvas id="macroCircleChart"></canvas>
   </div>
 
-  <!-- Weekly Summary -->
+  <!-- Weekly Summary Table -->
   <div class="card">
     <h4 class="mb-3">Last 7 Days Summary</h4>
     <div class="table-responsive">
@@ -231,22 +237,15 @@
   </div>
 </div>
 
-<footer class="footer-bg text-white text-xs">
+<!-- Footer (Matched to Dashboard) -->
+<footer class="footer-bg text-white">
   <div class="container d-flex justify-content-between align-items-center py-2 px-4 flex-wrap">
     <p class="m-0 small">&copy; 2025 The Happy Pantry</p>
-    <a href="https://www.facebook.com/profile.php?id=61576743170575"
-       target="_blank" rel="noopener noreferrer"
-       class="d-flex align-items-center gap-2 text-white text-decoration-none">
-      <img src="{{ url_for('static', filename='assets/facebook-icon-gold.svg') }}"
-           alt="Facebook"
-           style="width: 24px; height: 24px; transition: transform 0.3s ease;" />
+    <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
+      <img src="{{ url_for('static', filename='assets/facebook-icon-gold.svg') }}" alt="Facebook" style="width: 30px; height: 30px;" />
     </a>
   </div>
 </footer>
-
-
-
-
 
 <!-- Bootstrap Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
