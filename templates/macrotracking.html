@@ -80,9 +80,17 @@
     table {
       background-color: white;
     }
+.footer-bg {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: 20px 0;
+  text-align: center;
+}
+.footer-bg a:hover img {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
 
- /* Footer */
-        .footer-bg { background-color:var(--primary-color); color:var(--text-light); padding:20px 0; text-align:center; font-size:.9rem; }
   </style>
 </head>
 
@@ -202,18 +210,17 @@
     </div>
   </div>
 
-  <footer class="footer-bg text-white">
-  <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center py-2">
-    <p class="mb-0">&copy; 2025 The Happy Pantry</p>
-    <a href="https://www.facebook.com/profile.php?id=61576743170575"
-       target="_blank" rel="noopener noreferrer"
-       class="d-inline-flex align-items-center">
-      <img src="/static/assets/facebook-icon-gold.svg"
-           alt="Facebook"
-           style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
-    </a>
-  </div>
+  <!-- Footer -->
+  <footer class="footer-bg text-white text-xs">
+    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <p class="m-0 leading-none">&copy; 2025 The Happy Pantry</p>
+        <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
+           class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
+            <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
+        </a>
+    </div>
 </footer>
+    {% endblock %}
 
 
   <!-- Bootstrap Bundle -->
