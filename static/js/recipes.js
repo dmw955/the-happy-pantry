@@ -11,12 +11,29 @@ waitForSupabaseClient((supabaseClient) => {
   document.addEventListener("DOMContentLoaded", async () => {
     let user = null;
 
-    // Initial Supabase session load
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    user = session?.user;
-    console.log("✅ Initial Supabase session loaded:", user);
+    // Load Supabase session with retry (wait up to 1.5s)
+    let retries = 0;
+    let session = null;
+    while (!session?.user && retries < 15) {
+      const res = await supabaseClient.auth.getSession();
+      session = res?.data?.session;
+      if (session?.user) {
+        user = session.user;
+        break;
+      }
+      await new Promise((res) => setTimeout(res, 100));
+      retries++;
+    }
 
-    // Listen for auth state changes
+    console.log("✅ Supabase session after retry:", user);
+
+    if (!user) {
+      console.warn("🔴 No Supabase user found — redirecting to login");
+      window.location.href = "/login";
+      return;
+    }
+
+    // Track changes to session
     supabaseClient.auth.onAuthStateChange((_event, newSession) => {
       user = newSession?.user;
       console.log("🔄 Supabase session updated:", user);
@@ -29,9 +46,8 @@ waitForSupabaseClient((supabaseClient) => {
     const showFavoritesToggle = document.getElementById("showFavoritesToggle");
 
     let currentPage = 1;
-    const pageSize = 9; // ✅ enforce 9 per page
+    const pageSize = 9;
 
-    // Fetch and render recipes
     async function fetchRecipes() {
       const searchTerm = document.getElementById("searchInput")?.value.trim() || "";
       const category = document.getElementById("categoryFilter")?.value || "";
@@ -40,13 +56,11 @@ waitForSupabaseClient((supabaseClient) => {
       const showFavorites = showFavoritesToggle?.checked;
 
       let favoriteIds = [];
-      if (user) {
-        const { data: favData } = await supabaseClient
-          .from("favorite_recipes")
-          .select("recipe_id")
-          .eq("user_id", user.id);
-        favoriteIds = favData?.map(item => item.recipe_id) || [];
-      }
+      const { data: favData } = await supabaseClient
+        .from("favorite_recipes")
+        .select("recipe_id")
+        .eq("user_id", user.id);
+      favoriteIds = favData?.map(item => item.recipe_id) || [];
 
       const from = (currentPage - 1) * pageSize;
       const to = from + pageSize - 1;
@@ -61,9 +75,6 @@ waitForSupabaseClient((supabaseClient) => {
       if (category) query = query.eq("category", category);
       if (diet) query = query.contains("diet_tags", [diet]);
 
-      // (Optional) If you later want the toggle to *filter* to only favorites:
-      // if (showFavorites && favoriteIds.length) query = query.in("id", favoriteIds);
-
       const { data, error, count } = await query;
 
       recipeContainer.innerHTML = "";
@@ -71,7 +82,7 @@ waitForSupabaseClient((supabaseClient) => {
 
       if (error || !data) {
         console.error("🔥 Supabase error:", error);
-        recipeContainer.innerHTML = '<p class="text-red-500">Failed to load recipes.</p>';
+        recipeContainer.innerHTML = '<p class="text-danger">Failed to load recipes.</p>';
         return;
       }
 
@@ -82,7 +93,6 @@ waitForSupabaseClient((supabaseClient) => {
         const imagePath = `/static/assets/${recipe.image || "default.jpg"}`;
         const isChecked = selectedIds.includes(String(recipe.id));
 
-        // ✅ New card markup to match CSS: article.recipe-card + .thumb img
         const card = document.createElement("article");
         card.className = "recipe-card position-relative";
 
@@ -110,14 +120,12 @@ waitForSupabaseClient((supabaseClient) => {
               <img src="${imagePath}" alt="${escapeHtml(recipe.title || "Recipe")}" />
             </div>
             <h3>${escapeHtml(recipe.title || "Untitled")}</h3>
-           <div class="meta">
-
-    ${[
-    recipe.category || "",
-    recipe.total_time ? formatTime(recipe.total_time) : ""
-  ].filter(Boolean).join(" · ")}
-</div>
-
+            <div class="meta">
+              ${[
+                recipe.category || "",
+                recipe.total_time ? formatTime(recipe.total_time) : ""
+              ].filter(Boolean).join(" · ")}
+            </div>
             <p class="text-sm text-gray-600 mb-0">${escapeHtml(recipe.description || "")}</p>
           </a>
         `;
@@ -125,17 +133,14 @@ waitForSupabaseClient((supabaseClient) => {
         recipeContainer.appendChild(card);
       });
 
-      // Pagination state
       const totalPages = Math.max(1, Math.ceil((count || 0) / pageSize));
       nextPageBtn.disabled = currentPage >= totalPages;
       prevPageBtn.disabled = currentPage === 1;
 
-      // Wire up interactions
       setupCheckboxListeners();
       setupFavoriteListeners();
     }
 
-    // Checkbox listeners (localStorage)
     function setupCheckboxListeners() {
       document.querySelectorAll(".recipe-select").forEach(checkbox => {
         checkbox.addEventListener("change", () => {
@@ -149,17 +154,14 @@ waitForSupabaseClient((supabaseClient) => {
       });
     }
 
-    // Favorite button listeners (Supabase)
     function setupFavoriteListeners() {
       document.querySelectorAll(".favorite-btn").forEach(button => {
         button.addEventListener("click", async (e) => {
           e.preventDefault();
           e.stopPropagation();
 
-          // Fresh session at click
           const { data: { session: clickSession } } = await supabaseClient.auth.getSession();
           const currentUser = clickSession?.user;
-          console.log("❤️ User at click time:", currentUser);
 
           if (!currentUser) {
             alert("You must be logged in to favorite recipes.");
@@ -184,38 +186,25 @@ waitForSupabaseClient((supabaseClient) => {
             button.title = "Unfavorite";
           }
 
-          // If you later enable "favorites only" filter, you might refetch here based on toggle
           if (!showFavoritesToggle?.checked) fetchRecipes();
         });
       });
     }
 
-    // Pagination and toggle events
+    // Pagination controls
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
     nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
-    prevPageBtn.addEventListener("click", () => { if (currentPage > 1) { currentPage--; fetchRecipes(); } });
+    prevPageBtn.addEventListener("click", () => { if (currentPage > 1) currentPage--; fetchRecipes(); });
 
-    // Load recipes on page load
     fetchRecipes();
 
-    // ---- Helpers ----
+    // Helpers
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, (c) => ({
-        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-      }[c]));
-    }
-        // ---- Helpers ----
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       }[c]));
     }
 
-    // ✅ Add this new helper to fix the undefined error
     function formatTime(minutes) {
       if (!minutes || isNaN(minutes)) return "";
       const hrs = Math.floor(minutes / 60);
@@ -225,17 +214,9 @@ waitForSupabaseClient((supabaseClient) => {
       return `${mins} min`;
     }
 
-
-    // (Optional) Hook PantryPal actions if you want basic behavior now:
+    // PantryPal compatibility (optional)
     window.addEventListener("pantrypal:showRecipes", () => {
       document.getElementById("recipeContainer")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-    // Example for later:
-    // window.addEventListener("pantrypal:applyFilters", (e) => {
-    //   const detail = e.detail || {};
-    //   // Map AI-suggested filters to your UI (e.g., time/protein not yet in UI)
-    //   // For now, just refetch:
-    //   fetchRecipes();
-    // });
   });
 });

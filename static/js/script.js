@@ -19,10 +19,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const supabaseClient = window.supabaseClient;
 
-  // ✅ Optional: Sign out on load for testing
-  await supabaseClient.auth.signOut().then(() => {
-    console.log("🧼 Signed out for clean session (dev only).");
-  });
 
   // ✅ Clear session if landing on /login
   if (window.location.pathname === "/login") {
