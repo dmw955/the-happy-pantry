@@ -283,7 +283,11 @@ def payment_processing():
 
 @app.route("/macrotracking")
 def macro_tracking():
-    return render_template("macrotracking.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
+    return render_template("macrotracking.html",
+                           SUPABASE_URL=SUPABASE_URL,
+                           SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
+                           USER_ID=session.get("user_id"))
+
 
 @app.route("/macrogoals")
 def macro_goals():
