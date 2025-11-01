@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const { data: todayLogsRaw, error: logError } = await supabase
+    const { data: todayLogsRaw } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
       .eq("user_id", user.id)
@@ -129,6 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!query) return;
 
       usdaResultsContainer.innerHTML = "<p>Searching...</p>";
+
       try {
         const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
         const data = await res.json();
@@ -140,11 +141,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         usdaResultsContainer.innerHTML = data.foods
           .slice(0, 10)
-          .map(food => `
-            <div class="card p-3 mb-2">
-              <h6>${food.description}</h6>
-              <button class="btn btn-primary-custom" onclick="logUSDAFood('${food.fdcId}', '${food.description.replace(/'/g, "")}')">Log This</button>
-            </div>`).join("");
+          .map(food => {
+            const name = food.description.replace(/'/g, "");
+            return `
+              <div class="card p-3 mb-3">
+                <h6>${name}</h6>
+                <button class="btn btn-primary-custom me-2" onclick="logUSDAFood('${food.fdcId}', '${name}')">Log This</button>
+                <button class="btn btn-outline-success" onclick="saveAsRecipe('${food.fdcId}', '${name}')">Save as Recipe</button>
+              </div>`;
+          }).join("");
 
       } catch (err) {
         console.error("USDA search error", err);
@@ -184,12 +189,71 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     };
 
-    // ✅ Add from Favorite Recipes
-    const addFavoritesBtn = document.getElementById("add-favorites-btn");
-    const favoritesContainer = document.getElementById("favorite-recipes-container");
+    window.saveAsRecipe = async (fdcId, name) => {
+      try {
+        // Check if recipe already exists
+        const { data: existing } = await supabase
+          .from("favorite_recipes")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("title", name)
+          .maybeSingle();
 
-    addFavoritesBtn?.addEventListener("click", async () => {
-      favoritesContainer.innerHTML = "<p>Loading favorites...</p>";
+        if (existing) {
+          alert("⚠️ This recipe is already saved.");
+          return;
+        }
+
+        const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
+        const data = await res.json();
+
+        const nutrients = data.foodNutrients.reduce((acc, n) => {
+          if (n.nutrientName.includes("Protein")) acc.protein = n.value;
+          if (n.nutrientName.includes("Carbohydrate")) acc.carbs = n.value;
+          if (n.nutrientName.includes("Total lipid")) acc.fat = n.value;
+          return acc;
+        }, { protein: 0, carbs: 0, fat: 0 });
+
+        const calories = (nutrients.protein * 4) + (nutrients.carbs * 4) + (nutrients.fat * 9);
+
+        const { error } = await supabase.from("favorite_recipes").insert([{
+          user_id: user.id,
+          title: name,
+          calories,
+          protein: nutrients.protein,
+          carbs: nutrients.carbs,
+          fat: nutrients.fat,
+          created_at: new Date().toISOString(),
+        }]);
+
+        if (error) {
+          alert("❌ Failed to save recipe.");
+          console.error(error);
+        } else {
+          alert(`✅ Saved "${name}" as a recipe!`);
+        }
+
+      } catch (err) {
+        console.error("Error saving recipe:", err);
+        alert("❌ Error saving recipe.");
+      }
+    };
+
+    // ✅ Load favorites when the collapse section opens
+    const favCollapse = document.getElementById("fav-recipes-collapse");
+    const favoritesContainer = document.getElementById("favorite-recipes-container");
+    let favoritesLoaded = false;
+
+    favCollapse?.addEventListener("shown.bs.collapse", async () => {
+      if (favoritesLoaded) return;
+      favoritesLoaded = true;
+
+      favoritesContainer.innerHTML = `
+        <div class="text-center py-3">
+          <div class="spinner-border text-success" role="status"></div>
+          <p class="mt-2">Loading favorites...</p>
+        </div>
+      `;
 
       const { data: favorites, error } = await supabase
         .from("favorite_recipes")
@@ -203,17 +267,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       favoritesContainer.innerHTML = favorites.map(recipe => `
-        <div class="card mb-3 p-3">
-          <h5>${recipe.title}</h5>
-          <p>Protein: ${recipe.protein}g, Carbs: ${recipe.carbs}g, Fat: ${recipe.fat}g</p>
-          <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}" data-title="${recipe.title}">Log This</button>
+        <div class="col-md-4">
+          <div class="card mb-3 p-3">
+            <h5>${recipe.title}</h5>
+            <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
+            <button class="btn btn-sm btn-success mt-2" data-recipe-id="${recipe.id}" data-title="${recipe.title}">
+              Log This
+            </button>
+          </div>
         </div>
       `).join("");
 
       favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
         button.addEventListener("click", async () => {
           const name = button.dataset.title;
-          const recipe = favorites.find(r => r.id == button.dataset.recipeId); // Use == to match string/number
+          const recipe = favorites.find(r => r.id == button.dataset.recipeId);
 
           const { error: insertError } = await supabase.from("macro_log").insert([{
             user_id: user.id,
@@ -229,7 +297,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             alert("❌ Error logging recipe");
             console.error(insertError);
           } else {
-            alert(`✅ Logged ${name}`);
+            alert(`✅ Logged "${name}"`);
             location.reload();
           }
         });
