@@ -23,12 +23,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    const cleanUserId = user.id.split(":")[0]; // ✅ Fix for 400 error
     const today = new Date().toISOString().split("T")[0];
 
     const { data: goalData } = await supabase
       .from("macro_goals")
       .select("calories, protein, carbs, fat")
-      .eq("user_id", user.id)
+      .eq("user_id", cleanUserId)
       .maybeSingle();
 
     if (!goalData) {
@@ -40,7 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data: todayLogsRaw } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
-      .eq("user_id", user.id)
+      .eq("user_id", cleanUserId)
       .eq("date", today);
 
     const todayLogs = Array.isArray(todayLogsRaw) ? todayLogsRaw : [];
@@ -75,7 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const { data: weeklyLogs = [] } = await supabase
       .from("macro_log")
       .select("date, protein, carbs, fat")
-      .eq("user_id", user.id)
+      .eq("user_id", cleanUserId)
       .order("date", { ascending: false })
       .limit(7);
 
@@ -103,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const logStatus = document.getElementById("log-status");
 
       const { error } = await supabase.from("macro_log").insert([{
-        user_id: user.id,
+        user_id: cleanUserId,
         date: today,
         name,
         protein,
@@ -170,7 +171,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, { protein: 0, carbs: 0, fat: 0 });
 
         const { error } = await supabase.from("macro_log").insert([{
-          user_id: user.id,
+          user_id: cleanUserId,
           date: today,
           name,
           protein: nutrients.protein,
@@ -191,11 +192,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     window.saveAsRecipe = async (fdcId, name) => {
       try {
-        // Check if recipe already exists
         const { data: existing } = await supabase
           .from("favorite_recipes")
           .select("id")
-          .eq("user_id", user.id)
+          .eq("user_id", cleanUserId)
           .eq("title", name)
           .maybeSingle();
 
@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const calories = (nutrients.protein * 4) + (nutrients.carbs * 4) + (nutrients.fat * 9);
 
         const { error } = await supabase.from("favorite_recipes").insert([{
-          user_id: user.id,
+          user_id: cleanUserId,
           title: name,
           calories,
           protein: nutrients.protein,
@@ -239,7 +239,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     };
 
-    // ✅ Load favorites when the collapse section opens
     const favCollapse = document.getElementById("fav-recipes-collapse");
     const favoritesContainer = document.getElementById("favorite-recipes-container");
     let favoritesLoaded = false;
@@ -258,7 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const { data: favorites, error } = await supabase
         .from("favorite_recipes")
         .select("id, title, calories, protein, carbs, fat")
-        .eq("user_id", user.id);
+        .eq("user_id", cleanUserId);
 
       if (error || !favorites?.length) {
         favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
@@ -284,7 +283,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const recipe = favorites.find(r => r.id == button.dataset.recipeId);
 
           const { error: insertError } = await supabase.from("macro_log").insert([{
-            user_id: user.id,
+            user_id: cleanUserId,
             date: today,
             name,
             protein: recipe.protein,
