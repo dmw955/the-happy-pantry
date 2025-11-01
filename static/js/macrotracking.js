@@ -9,8 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const weeklyTableBody = document.getElementById("weekly-macros");
     const usdaSearchForm = document.getElementById("usda-search-form");
     const usdaResultsContainer = document.getElementById("usda-results");
-    const favoriteSelect = document.getElementById("favorite-recipes");
-    const logFavoriteBtn = document.getElementById("log-favorite-btn");
 
     const {
       data: { session },
@@ -27,45 +25,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const today = new Date().toISOString().split("T")[0];
 
-    // ✅ Load Favorite Recipes
-    if (favoriteSelect && logFavoriteBtn) {
-      const { data: favoriteRecipes = [] } = await supabase
-        .from("favorite_recipes")
-        .select("id, recipe_name, protein, carbs, fat")
-        .eq("user_id", user.id);
-
-      favoriteRecipes.forEach(recipe => {
-        const option = document.createElement("option");
-        option.value = recipe.id;
-        option.textContent = recipe.recipe_name;
-        favoriteSelect.appendChild(option);
-      });
-
-      logFavoriteBtn.addEventListener("click", async () => {
-        const selectedId = favoriteSelect.value;
-        const selectedRecipe = favoriteRecipes.find(r => r.id == selectedId);
-
-        if (!selectedRecipe) return alert("Please select a recipe.");
-
-        const { error } = await supabase.from("macro_log").insert([{
-          user_id: user.id,
-          date: today,
-          name: selectedRecipe.recipe_name,
-          protein: selectedRecipe.protein,
-          carbs: selectedRecipe.carbs,
-          fat: selectedRecipe.fat,
-          created_at: new Date().toISOString(),
-        }]);
-
-        if (error) alert("❌ Failed to log recipe.");
-        else {
-          alert("✅ Recipe logged!");
-          location.reload();
-        }
-      });
-    }
-
-    // ✅ Load Macro Goals
     const { data: goalData } = await supabase
       .from("macro_goals")
       .select("calories, protein, carbs, fat")
@@ -78,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const { data: todayLogsRaw } = await supabase
+    const { data: todayLogsRaw, error: logError } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
       .eq("user_id", user.id)
@@ -166,45 +125,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     usdaSearchForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
-
-      const inputEl = document.getElementById("usda-search-input");
-      const query = inputEl.value.trim();
-      const resultsBox = document.getElementById("usda-results");
-
+      const query = document.getElementById("usda-search-input").value.trim();
       if (!query) return;
 
-      resultsBox.innerHTML = `
-        <div class="text-center">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
-          <p class="mt-2">Searching USDA foods...</p>
-        </div>`;
-
+      usdaResultsContainer.innerHTML = "<p>Searching...</p>";
       try {
         const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
         const data = await res.json();
 
         if (!data.foods?.length) {
-          resultsBox.innerHTML = "<p class='text-danger'>No results found. Try a different food name.</p>";
+          usdaResultsContainer.innerHTML = "<p>No results found.</p>";
           return;
         }
 
-        resultsBox.innerHTML = data.foods.slice(0, 10).map(food => `
-          <div class="card p-3 mb-2 shadow-sm">
-            <h6 class="mb-1">${food.description}</h6>
-            <small class="text-muted">FDC ID: ${food.fdcId}</small>
-            <button class="btn btn-primary-custom mt-2" onclick="logUSDAFood('${food.fdcId}', '${food.description.replace(/'/g, "")}')">
-              Log This
-            </button>
-          </div>
-        `).join("");
-
-        inputEl.value = "";
+        usdaResultsContainer.innerHTML = data.foods
+          .slice(0, 10)
+          .map(food => `
+            <div class="card p-3 mb-2">
+              <h6>${food.description}</h6>
+              <button class="btn btn-primary-custom" onclick="logUSDAFood('${food.fdcId}', '${food.description.replace(/'/g, "")}')">Log This</button>
+            </div>`).join("");
 
       } catch (err) {
-        console.error("USDA search error:", err);
-        resultsBox.innerHTML = "<p class='text-danger'>Something went wrong. Please try again.</p>";
+        console.error("USDA search error", err);
+        usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
       }
     });
 
@@ -239,6 +183,58 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.error("Error logging USDA food", err);
       }
     };
+
+    // ✅ Add from Favorite Recipes
+    const addFavoritesBtn = document.getElementById("add-favorites-btn");
+    const favoritesContainer = document.getElementById("favorite-recipes-container");
+
+    addFavoritesBtn?.addEventListener("click", async () => {
+      favoritesContainer.innerHTML = "<p>Loading favorites...</p>";
+
+      const { data: favorites, error } = await supabase
+        .from("favorite_recipes")
+        .select("id, title, calories, protein, carbs, fat")
+        .eq("user_id", user.id);
+
+      if (error || !favorites?.length) {
+        favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
+        console.error("Favorite fetch error:", error);
+        return;
+      }
+
+      favoritesContainer.innerHTML = favorites.map(recipe => `
+        <div class="card mb-3 p-3">
+          <h5>${recipe.title}</h5>
+          <p>Protein: ${recipe.protein}g, Carbs: ${recipe.carbs}g, Fat: ${recipe.fat}g</p>
+          <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}" data-title="${recipe.title}">Log This</button>
+        </div>
+      `).join("");
+
+      favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const name = button.dataset.title;
+          const recipe = favorites.find(r => r.id == button.dataset.recipeId); // Use == to match string/number
+
+          const { error: insertError } = await supabase.from("macro_log").insert([{
+            user_id: user.id,
+            date: today,
+            name,
+            protein: recipe.protein,
+            carbs: recipe.carbs,
+            fat: recipe.fat,
+            created_at: new Date().toISOString(),
+          }]);
+
+          if (insertError) {
+            alert("❌ Error logging recipe");
+            console.error(insertError);
+          } else {
+            alert(`✅ Logged ${name}`);
+            location.reload();
+          }
+        });
+      });
+    });
 
   } catch (err) {
     console.error("🔥 Unexpected error loading macro tracking:", err);
