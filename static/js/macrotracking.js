@@ -74,17 +74,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // ✅ FETCH 7-DAY LOG HISTORY
-// ✅ Declare first
-// ✅ FETCH 7-DAY LOG HISTORY
-const sevenDaysAgoForQuery = new Date();
-sevenDaysAgoForQuery.setDate(sevenDaysAgoForQuery.getDate() - 6);
+const queryStartDate = new Date();
+queryStartDate.setUTCHours(0, 0, 0, 0); // Set time to midnight UTC
+queryStartDate.setUTCDate(queryStartDate.getUTCDate() - 6);
 
 const { data: weeklyLogs = [] } = await supabase
   .from("macro_log")
-  .select("date, name, protein, carbs, fat") // name added
+  .select("date, name, protein, carbs, fat")
   .eq("user_id", cleanUserId)
-  .gte("date", sevenDaysAgoForQuery.toISOString().split("T")[0])
+  .gte("date", queryStartDate.toISOString().substring(0, 10))
   .order("date", { ascending: true });
+
 
 
 
