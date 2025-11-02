@@ -75,16 +75,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ✅ FETCH 7-DAY LOG HISTORY
 // ✅ Declare first
-const sevenDaysAgo = new Date();
-sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+// ✅ FETCH 7-DAY LOG HISTORY
+const sevenDaysAgoForQuery = new Date();
+sevenDaysAgoForQuery.setDate(sevenDaysAgoForQuery.getDate() - 6);
 
-// ✅ Then use in query
 const { data: weeklyLogs = [] } = await supabase
   .from("macro_log")
-  .select("date, protein, carbs, fat, name")
+  .select("date, name, protein, carbs, fat") // name added
   .eq("user_id", cleanUserId)
   .gte("date", sevenDaysAgoForQuery.toISOString().split("T")[0])
   .order("date", { ascending: true });
+
 
 
 
