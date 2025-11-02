@@ -83,7 +83,7 @@ const { data: weeklyLogs = [] } = await supabase
   .from("macro_log")
   .select("date, protein, carbs, fat, name")
   .eq("user_id", cleanUserId)
-  .gte("date", sevenDaysAgo.toISOString().split("T")[0])
+  .gte("date", sevenDaysAgoForQuery.toISOString().split("T")[0])
   .order("date", { ascending: true });
 
 
