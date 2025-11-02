@@ -207,14 +207,30 @@ window.saveAsRecipe = async (fdcId, name) => {
     const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
     const data = await res.json();
 
-    const nutrients = data.foodNutrients.reduce((acc, n) => {
-      if (n.nutrientName.includes("Protein")) acc.protein = n.value;
-      if (n.nutrientName.includes("Carbohydrate")) acc.carbs = n.value;
-      if (n.nutrientName.includes("Total lipid")) acc.fat = n.value;
-      return acc;
-    }, { protein: 0, carbs: 0, fat: 0 });
+    console.log("🧪 USDA food detail:", data); // DEBUG LINE
 
-    const calories = (nutrients.protein * 4) + (nutrients.carbs * 4) + (nutrients.fat * 9);
+    const nutrients = data.foodNutrients.reduce((acc, n) => {
+      const label = n.nutrientName.toLowerCase();
+      if (label.includes("protein")) acc.protein = n.value;
+      if (label.includes("carbohydrate")) acc.carbs = n.value;
+      if (label.includes("lipid") || label.includes("fat")) acc.fat = n.value;
+      return acc;
+    }, { protein: null, carbs: null, fat: null });
+
+    // ✅ Fallback warning if no macros found
+    if (
+      nutrients.protein == null &&
+      nutrients.carbs == null &&
+      nutrients.fat == null
+    ) {
+      alert("⚠️ No macro data found for this item.");
+      return;
+    }
+
+    const calories = 
+      (nutrients.protein || 0) * 4 +
+      (nutrients.carbs || 0) * 4 +
+      (nutrients.fat || 0) * 9;
 
     const { error } = await supabase.from("favorite_recipes").insert([{
       user_id: cleanUserId,
@@ -238,6 +254,7 @@ window.saveAsRecipe = async (fdcId, name) => {
     alert("❌ Error saving recipe.");
   }
 };
+
 
 
 
