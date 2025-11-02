@@ -49,7 +49,7 @@
     body {
       display: flex;
       flex-direction: column;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       backdrop-filter: blur(15px);
       font-family: 'Segoe UI', sans-serif;
     }
@@ -77,11 +77,11 @@
     }
 
     .card {
-      background: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.3);
       border-radius: 15px;
       padding: 30px;
       backdrop-filter: blur(10px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
       margin-bottom: 30px;
     }
 
@@ -92,7 +92,7 @@
       border: none;
       border-radius: 8px;
       padding: 10px 20px;
-      transition: all .3s;
+      transition: all 0.3s;
     }
 
     .btn-primary-custom:hover {
@@ -105,10 +105,6 @@
       display: block;
     }
 
-    table {
-      background-color: white;
-    }
-
     .footer-bg {
       background-color: var(--primary-color);
       color: var(--text-light);
@@ -119,6 +115,14 @@
     .footer-bg a:hover img {
       transform: scale(1.1);
       filter: brightness(1.2);
+    }
+
+    .table td, .table th {
+      vertical-align: middle;
+    }
+
+    .collapse.show {
+      transition: height 0.3s ease;
     }
   </style>
 </head>
@@ -154,11 +158,12 @@
 
   <!-- Page Content -->
   <main>
-    <div class="container mb-4">
+    <div class="container my-4">
+
       <!-- Favorite Recipes Toggle -->
       <button
         id="add-favorites-btn"
-        class="btn btn-primary-custom"
+        class="btn btn-primary-custom mb-3"
         data-bs-toggle="collapse"
         data-bs-target="#fav-recipes-collapse"
         aria-expanded="false"
@@ -166,48 +171,49 @@
         ➕ Add from Favorite Recipes
       </button>
 
-      <div class="collapse mt-3" id="fav-recipes-collapse">
+      <div class="collapse" id="fav-recipes-collapse">
         <div class="row" id="favorite-recipes-container">
           <!-- Favorite recipe cards will be injected here -->
         </div>
       </div>
-    </div>
 
-    <!-- USDA Search (Visible by Default) -->
-    <div class="collapse show mb-4" id="usdaSearchBox">
-      <div class="card p-4">
-        <form id="usda-search-form" class="mb-3">
-          <label for="usda-search-input" class="form-label">Search USDA Food Database</label>
-          <input type="text" class="form-control" id="usda-search-input" placeholder="e.g. Lays Potato Chips" required />
+      <!-- USDA Search -->
+      <div class="card mt-4">
+        <form id="usda-search-form">
+          <label for="usda-search-input" class="form-label">🔍 Search USDA Food Database</label>
+          <input type="text" class="form-control" id="usda-search-input" placeholder="e.g. Chicken Breast" required />
           <button type="submit" class="btn btn-primary-custom mt-2">Search</button>
         </form>
-        <div id="usda-results"></div>
+        <div id="usda-results" class="mt-3"></div>
       </div>
-    </div>
 
-    <!-- Chart -->
-    <div class="card">
-      <h4 class="text-center mb-3">Today's Macro Intake</h4>
-      <canvas id="macroCircleChart"></canvas>
-    </div>
-
-    <!-- Weekly Summary Table -->
-    <div class="card">
-      <h4 class="mb-3">Last 7 Days Summary</h4>
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover text-center">
-          <thead class="table-light">
-            <tr>
-              <th>Date</th>
-              <th>Carbs (g)</th>
-              <th>Protein (g)</th>
-              <th>Fat (g)</th>
-              <th>Calories</th>
-            </tr>
-          </thead>
-          <tbody id="weekly-macros"></tbody>
-        </table>
+      <!-- Macro Chart -->
+      <div class="card">
+        <h4 class="text-center mb-3">📊 Today's Macro Intake</h4>
+        <canvas id="macroCircleChart"></canvas>
       </div>
+
+      <!-- Weekly Summary Table -->
+      <div class="card">
+        <h4 class="mb-3">📅 Last 7 Days Summary</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover text-center align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Carbs (g)</th>
+                <th>Protein (g)</th>
+                <th>Fat (g)</th>
+                <th>Calories</th>
+              </tr>
+            </thead>
+            <tbody id="weekly-macros">
+              <!-- Weekly log rows are inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -225,7 +231,7 @@
               <label for="meal-name" class="form-label">Meal Name</label>
               <input type="text" class="form-control" id="meal-name" required autofocus>
             </div>
-            <div class="row">
+            <div class="row g-2">
               <div class="col">
                 <label for="protein" class="form-label">Protein (g)</label>
                 <input type="number" class="form-control" id="protein" required>
@@ -250,7 +256,7 @@
   </div>
 
   <!-- Footer -->
-  <footer class="footer-bg">
+  <footer class="footer-bg mt-auto">
     <div class="container text-center">
       <p class="mb-1">&copy; 2025 The Happy Pantry</p>
       <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">

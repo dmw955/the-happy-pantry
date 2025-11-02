@@ -73,26 +73,36 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     });
 
+    // ✅ FETCH 7-DAY LOG HISTORY
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // includes today
+
     const { data: weeklyLogs = [] } = await supabase
       .from("macro_log")
       .select("date, protein, carbs, fat")
       .eq("user_id", cleanUserId)
-      .order("date", { ascending: false })
-      .limit(7);
+      .gte("date", sevenDaysAgo.toISOString().split("T")[0])
+      .order("date", { ascending: true });
 
     weeklyTableBody.innerHTML = "";
-    weeklyLogs.forEach((entry) => {
-      const calories = entry.protein * 4 + entry.carbs * 4 + entry.fat * 9;
-      weeklyTableBody.innerHTML += `
-        <tr>
-          <td>${entry.date}</td>
-          <td>${entry.carbs}</td>
-          <td>${entry.protein}</td>
-          <td>${entry.fat}</td>
-          <td>${calories}</td>
-        </tr>`;
-    });
 
+    if (weeklyLogs.length === 0) {
+      weeklyTableBody.innerHTML = `<tr><td colspan="5">No macros logged in the past 7 days.</td></tr>`;
+    } else {
+      weeklyLogs.forEach((entry) => {
+        const calories = (entry.protein || 0) * 4 + (entry.carbs || 0) * 4 + (entry.fat || 0) * 9;
+        weeklyTableBody.innerHTML += `
+          <tr>
+            <td>${entry.date}</td>
+            <td>${entry.carbs || 0}</td>
+            <td>${entry.protein || 0}</td>
+            <td>${entry.fat || 0}</td>
+            <td>${Math.round(calories)}</td>
+          </tr>`;
+      });
+    }
+
+    // ✅ Manual meal logging form
     const mealForm = document.getElementById("meal-form");
     mealForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -124,6 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
+    // ✅ USDA Search functionality unchanged
     usdaSearchForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const query = document.getElementById("usda-search-input").value.trim();
@@ -190,74 +201,70 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     };
 
-window.saveAsRecipe = async (fdcId, name) => {
-  try {
-    const { data: existing } = await supabase
-      .from("favorite_recipes")
-      .select("id")
-      .eq("user_id", cleanUserId)
-      .eq("title", name)
-      .maybeSingle();
+    // ✅ Save as recipe (unchanged)
+    window.saveAsRecipe = async (fdcId, name) => {
+      try {
+        const { data: existing } = await supabase
+          .from("favorite_recipes")
+          .select("id")
+          .eq("user_id", cleanUserId)
+          .eq("title", name)
+          .maybeSingle();
 
-    if (existing) {
-      alert("⚠️ This recipe is already saved.");
-      return;
-    }
+        if (existing) {
+          alert("⚠️ This recipe is already saved.");
+          return;
+        }
 
-    const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
-    const data = await res.json();
+        const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
+        const data = await res.json();
 
-    console.log("🧪 USDA food detail:", data); // DEBUG LINE
+        const nutrients = data.foodNutrients.reduce((acc, n) => {
+          const label = n.nutrientName.toLowerCase();
+          if (label.includes("protein")) acc.protein = n.value;
+          if (label.includes("carbohydrate")) acc.carbs = n.value;
+          if (label.includes("lipid") || label.includes("fat")) acc.fat = n.value;
+          return acc;
+        }, { protein: null, carbs: null, fat: null });
 
-    const nutrients = data.foodNutrients.reduce((acc, n) => {
-      const label = n.nutrientName.toLowerCase();
-      if (label.includes("protein")) acc.protein = n.value;
-      if (label.includes("carbohydrate")) acc.carbs = n.value;
-      if (label.includes("lipid") || label.includes("fat")) acc.fat = n.value;
-      return acc;
-    }, { protein: null, carbs: null, fat: null });
+        if (
+          nutrients.protein == null &&
+          nutrients.carbs == null &&
+          nutrients.fat == null
+        ) {
+          alert("⚠️ No macro data found for this item.");
+          return;
+        }
 
-    // ✅ Fallback warning if no macros found
-    if (
-      nutrients.protein == null &&
-      nutrients.carbs == null &&
-      nutrients.fat == null
-    ) {
-      alert("⚠️ No macro data found for this item.");
-      return;
-    }
+        const calories = 
+          (nutrients.protein || 0) * 4 +
+          (nutrients.carbs || 0) * 4 +
+          (nutrients.fat || 0) * 9;
 
-    const calories = 
-      (nutrients.protein || 0) * 4 +
-      (nutrients.carbs || 0) * 4 +
-      (nutrients.fat || 0) * 9;
+        const { error } = await supabase.from("favorite_recipes").insert([{
+          user_id: cleanUserId,
+          title: name,
+          calories,
+          protein: nutrients.protein,
+          carbs: nutrients.carbs,
+          fat: nutrients.fat,
+          created_at: new Date().toISOString()
+        }]);
 
-    const { error } = await supabase.from("favorite_recipes").insert([{
-      user_id: cleanUserId,
-      title: name,
-      calories,
-      protein: nutrients.protein,
-      carbs: nutrients.carbs,
-      fat: nutrients.fat,
-      created_at: new Date().toISOString()
-    }]);
+        if (error) {
+          alert("❌ Failed to save recipe.");
+          console.error(error);
+        } else {
+          alert(`✅ Saved "${name}" as a recipe!`);
+        }
 
-    if (error) {
-      alert("❌ Failed to save recipe.");
-      console.error(error);
-    } else {
-      alert(`✅ Saved "${name}" as a recipe!`);
-    }
+      } catch (err) {
+        console.error("Error saving recipe:", err);
+        alert("❌ Error saving recipe.");
+      }
+    };
 
-  } catch (err) {
-    console.error("Error saving recipe:", err);
-    alert("❌ Error saving recipe.");
-  }
-};
-
-
-
-
+    // ✅ Favorite Recipes Collapse: Logging a saved recipe
     const favCollapse = document.getElementById("fav-recipes-collapse");
     const favoritesContainer = document.getElementById("favorite-recipes-container");
     let favoritesLoaded = false;
