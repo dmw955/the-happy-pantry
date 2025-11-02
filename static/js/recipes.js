@@ -119,10 +119,7 @@ waitForSupabaseClient((supabaseClient) => {
             </div>
             <h3>${escapeHtml(recipe.title || "Untitled")}</h3>
             <div class="meta">
-              ${[
-                recipe.category || "",
-                recipe.total_time ? formatTime(recipe.total_time) : ""
-              ].filter(Boolean).join(" · ")}
+              ${[recipe.category || "", recipe.total_time ? formatTime(recipe.total_time) : ""].filter(Boolean).join(" · ")}
             </div>
             <p class="text-sm text-gray-600 mb-0">${escapeHtml(recipe.description || "")}</p>
           </a>
@@ -153,86 +150,96 @@ waitForSupabaseClient((supabaseClient) => {
     }
 
     function setupFavoriteListeners() {
-  document.querySelectorAll(".favorite-btn").forEach(button => {
-    button.addEventListener("click", async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+      document.querySelectorAll(".favorite-btn").forEach(button => {
+        button.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
 
-      const recipeId = button.getAttribute("data-recipe-id");
+          const recipeId = button.getAttribute("data-recipe-id");
 
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      const currentUser = session?.user;
-      if (!currentUser) {
-        alert("You must be logged in to favorite recipes.");
-        return;
-      }
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          const currentUser = session?.user;
+          if (!currentUser) {
+            alert("You must be logged in to favorite recipes.");
+            return;
+          }
 
-      // Check if already favorited
-      const { data: existing, error } = await supabaseClient
-        .from("favorite_recipes")
-        .select("id")
-        .eq("user_id", currentUser.id)
-        .eq("recipe_id", recipeId)
-        .maybeSingle();
+          const { data: existing, error } = await supabaseClient
+            .from("favorite_recipes")
+            .select("id")
+            .eq("user_id", currentUser.id)
+            .eq("recipe_id", recipeId)
+            .maybeSingle();
 
-      if (error) {
-        console.error("❌ Error checking favorite state", error);
-        return;
-      }
+          if (error) {
+            console.error("❌ Error checking favorite state", error);
+            return;
+          }
 
-      if (existing) {
-        // Unfavorite
-        const { error: deleteError } = await supabaseClient
-          .from("favorite_recipes")
-          .delete()
-          .match({ user_id: currentUser.id, recipe_id: recipeId });
+          if (existing) {
+            const { error: deleteError } = await supabaseClient
+              .from("favorite_recipes")
+              .delete()
+              .match({ user_id: currentUser.id, recipe_id: recipeId });
 
-        if (deleteError) {
-          console.error("❌ Failed to unfavorite", deleteError);
-        } else {
-          button.textContent = "🤍";
-          button.title = "Favorite";
-        }
-      } else {
-        // Fetch recipe details
-        const { data: recipeData, error: fetchError } = await supabaseClient
-          .from("recipes")
-          .select("title, calories, protein, carbs, fat")
-          .eq("id", recipeId)
-          .maybeSingle();
+            if (deleteError) {
+              console.error("❌ Failed to unfavorite", deleteError);
+            } else {
+              button.textContent = "🤍";
+              button.title = "Favorite";
+            }
+          } else {
+            // Fetch title + nutrition
+            const { data: recipeData, error: fetchError } = await supabaseClient
+              .from("recipes")
+              .select("title, nutrition")
+              .eq("id", recipeId)
+              .maybeSingle();
 
-        if (fetchError || !recipeData) {
-          console.error("❌ Failed to fetch recipe details", fetchError);
-          return;
-        }
+            if (fetchError || !recipeData) {
+              console.error("❌ Failed to fetch recipe details", fetchError);
+              return;
+            }
 
-        // Insert into favorites
-        const { error: insertError } = await supabaseClient
-          .from("favorite_recipes")
-          .insert([{
-            user_id: currentUser.id,
-            recipe_id: recipeId,
-            title: recipeData.title,
-            calories: recipeData.calories,
-            protein: recipeData.protein,
-            carbs: recipeData.carbs,
-            fat: recipeData.fat
-          }]);
+            // Parse macros from JSON
+            const nutrition = recipeData.nutrition || {};
+            const { Fat, Carbs, Protein } = nutrition;
 
-        if (insertError) {
-          console.error("❌ Failed to favorite", insertError);
-        } else {
-          button.textContent = "❤️";
-          button.title = "Unfavorite";
-        }
-      }
+            const macros = {
+              calories: Math.round(
+                (parseInt(Protein?.replace(" g", "")) || 0) * 4 +
+                (parseInt(Carbs?.replace(" g", "")) || 0) * 4 +
+                (parseInt(Fat?.replace(" g", "")) || 0) * 9
+              ),
+              fat: parseInt(Fat?.replace(" g", "")) || null,
+              carbs: parseInt(Carbs?.replace(" g", "")) || null,
+              protein: parseInt(Protein?.replace(" g", "")) || null
+            };
 
-      if (!showFavoritesToggle?.checked) fetchRecipes();
-    });
-  });
-}
+            const { error: insertError } = await supabaseClient
+              .from("favorite_recipes")
+              .insert([{
+                user_id: currentUser.id,
+                recipe_id: recipeId,
+                title: recipeData.title,
+                calories: macros.calories,
+                protein: macros.protein,
+                carbs: macros.carbs,
+                fat: macros.fat
+              }]);
 
+            if (insertError) {
+              console.error("❌ Failed to favorite", insertError);
+            } else {
+              button.textContent = "❤️";
+              button.title = "Unfavorite";
+            }
+          }
 
+          if (!showFavoritesToggle?.checked) fetchRecipes();
+        });
+      });
+    }
 
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
     nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
