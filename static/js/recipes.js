@@ -181,7 +181,7 @@ waitForSupabaseClient((supabaseClient) => {
       }
 
       if (existing) {
-        // Unfavorite (DELETE)
+        // Unfavorite
         const { error: deleteError } = await supabaseClient
           .from("favorite_recipes")
           .delete()
@@ -194,10 +194,30 @@ waitForSupabaseClient((supabaseClient) => {
           button.title = "Favorite";
         }
       } else {
-        // Favorite (INSERT)
+        // Fetch recipe details
+        const { data: recipeData, error: fetchError } = await supabaseClient
+          .from("recipes")
+          .select("title, calories, protein, carbs, fat")
+          .eq("id", recipeId)
+          .maybeSingle();
+
+        if (fetchError || !recipeData) {
+          console.error("❌ Failed to fetch recipe details", fetchError);
+          return;
+        }
+
+        // Insert into favorites
         const { error: insertError } = await supabaseClient
           .from("favorite_recipes")
-          .insert([{ user_id: currentUser.id, recipe_id: recipeId }]);
+          .insert([{
+            user_id: currentUser.id,
+            recipe_id: recipeId,
+            title: recipeData.title,
+            calories: recipeData.calories,
+            protein: recipeData.protein,
+            carbs: recipeData.carbs,
+            fat: recipeData.fat
+          }]);
 
         if (insertError) {
           console.error("❌ Failed to favorite", insertError);
@@ -211,6 +231,7 @@ waitForSupabaseClient((supabaseClient) => {
     });
   });
 }
+
 
 
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
