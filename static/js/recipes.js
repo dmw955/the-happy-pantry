@@ -153,72 +153,65 @@ waitForSupabaseClient((supabaseClient) => {
     }
 
     function setupFavoriteListeners() {
-      document.querySelectorAll(".favorite-btn").forEach(button => {
-        button.addEventListener("click", async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
+  document.querySelectorAll(".favorite-btn").forEach(button => {
+    button.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-          const { data: { session: clickSession } } = await supabaseClient.auth.getSession();
-          const currentUser = clickSession?.user;
+      const recipeId = button.getAttribute("data-recipe-id");
 
-          if (!currentUser) {
-            alert("You must be logged in to favorite recipes.");
-            return;
-          }
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      const currentUser = session?.user;
+      if (!currentUser) {
+        alert("You must be logged in to favorite recipes.");
+        return;
+      }
 
-          const recipeId = button.getAttribute("data-recipe-id");
-          const isFav = button.textContent === "❤️";
+      // Check if already favorited
+      const { data: existing, error } = await supabaseClient
+        .from("favorite_recipes")
+        .select("id")
+        .eq("user_id", currentUser.id)
+        .eq("recipe_id", recipeId)
+        .maybeSingle();
 
-          if (isFav) {
-            await supabaseClient
-              .from("favorite_recipes")
-              .delete()
-              .match({ user_id: currentUser.id, recipe_id: recipeId });
-            button.textContent = "🤍";
-            button.title = "Favorite";
-          } else {
-            const { data: recipeData, error: fetchError } = await supabaseClient
-              .from("recipes")
-              .select("title, protein, carbs, fat")
-              .eq("id", recipeId)
-              .maybeSingle();
+      if (error) {
+        console.error("❌ Error checking favorite state", error);
+        return;
+      }
 
-            if (fetchError || !recipeData) {
-              alert("❌ Could not fetch recipe details.");
-              console.error("Fetch error:", fetchError);
-              return;
-            }
+      if (existing) {
+        // Unfavorite (DELETE)
+        const { error: deleteError } = await supabaseClient
+          .from("favorite_recipes")
+          .delete()
+          .match({ user_id: currentUser.id, recipe_id: recipeId });
 
-            const { title, protein, carbs, fat } = recipeData;
-            const calories = (protein * 4) + (carbs * 4) + (fat * 9);
+        if (deleteError) {
+          console.error("❌ Failed to unfavorite", deleteError);
+        } else {
+          button.textContent = "🤍";
+          button.title = "Favorite";
+        }
+      } else {
+        // Favorite (INSERT)
+        const { error: insertError } = await supabaseClient
+          .from("favorite_recipes")
+          .insert([{ user_id: currentUser.id, recipe_id: recipeId }]);
 
-            const { error: insertError } = await supabaseClient
-              .from("favorite_recipes")
-              .insert([{
-                user_id: currentUser.id,
-                recipe_id: recipeId,
-                title,
-                protein,
-                carbs,
-                fat,
-                calories,
-                created_at: new Date().toISOString()
-              }]);
+        if (insertError) {
+          console.error("❌ Failed to favorite", insertError);
+        } else {
+          button.textContent = "❤️";
+          button.title = "Unfavorite";
+        }
+      }
 
-            if (insertError) {
-              alert("❌ Failed to save favorite.");
-              console.error("Insert error:", insertError);
-              return;
-            }
+      if (!showFavoritesToggle?.checked) fetchRecipes();
+    });
+  });
+}
 
-            button.textContent = "❤️";
-            button.title = "Unfavorite";
-          }
-
-          if (!showFavoritesToggle?.checked) fetchRecipes();
-        });
-      });
-    }
 
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
     nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
