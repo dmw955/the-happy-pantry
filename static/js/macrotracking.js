@@ -190,54 +190,56 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     };
 
-    window.saveAsRecipe = async (fdcId, name) => {
-      try {
-        const { data: existing } = await supabase
-          .from("favorite_recipes")
-          .select("id")
-          .eq("user_id", cleanUserId)
-          .eq("title", name)
-          .maybeSingle();
+window.saveAsRecipe = async (fdcId, name) => {
+  try {
+    const { data: existing } = await supabase
+      .from("favorite_recipes")
+      .select("id")
+      .eq("user_id", cleanUserId)
+      .eq("title", name)
+      .maybeSingle();
 
-        if (existing) {
-          alert("⚠️ This recipe is already saved.");
-          return;
-        }
+    if (existing) {
+      alert("⚠️ This recipe is already saved.");
+      return;
+    }
 
-        const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
-        const data = await res.json();
+    const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
+    const data = await res.json();
 
-        const nutrients = data.foodNutrients.reduce((acc, n) => {
-          if (n.nutrientName.includes("Protein")) acc.protein = n.value;
-          if (n.nutrientName.includes("Carbohydrate")) acc.carbs = n.value;
-          if (n.nutrientName.includes("Total lipid")) acc.fat = n.value;
-          return acc;
-        }, { protein: 0, carbs: 0, fat: 0 });
+    const nutrients = data.foodNutrients.reduce((acc, n) => {
+      if (n.nutrientName.includes("Protein")) acc.protein = n.value;
+      if (n.nutrientName.includes("Carbohydrate")) acc.carbs = n.value;
+      if (n.nutrientName.includes("Total lipid")) acc.fat = n.value;
+      return acc;
+    }, { protein: 0, carbs: 0, fat: 0 });
 
-        const calories = (nutrients.protein * 4) + (nutrients.carbs * 4) + (nutrients.fat * 9);
+    const calories = (nutrients.protein * 4) + (nutrients.carbs * 4) + (nutrients.fat * 9);
 
-        const { error } = await supabase.from("favorite_recipes").insert([{
-          user_id: cleanUserId,
-          title: name,
-          calories,
-          protein: nutrients.protein,
-          carbs: nutrients.carbs,
-          fat: nutrients.fat,
-          created_at: new Date().toISOString(),
-        }]);
+    const { error } = await supabase.from("favorite_recipes").insert([{
+      user_id: cleanUserId,
+      title: name,
+      calories,
+      protein: nutrients.protein,
+      carbs: nutrients.carbs,
+      fat: nutrients.fat,
+      created_at: new Date().toISOString()
+    }]);
 
-        if (error) {
-          alert("❌ Failed to save recipe.");
-          console.error(error);
-        } else {
-          alert(`✅ Saved "${name}" as a recipe!`);
-        }
+    if (error) {
+      alert("❌ Failed to save recipe.");
+      console.error(error);
+    } else {
+      alert(`✅ Saved "${name}" as a recipe!`);
+    }
 
-      } catch (err) {
-        console.error("Error saving recipe:", err);
-        alert("❌ Error saving recipe.");
-      }
-    };
+  } catch (err) {
+    console.error("Error saving recipe:", err);
+    alert("❌ Error saving recipe.");
+  }
+};
+
+
 
     const favCollapse = document.getElementById("fav-recipes-collapse");
     const favoritesContainer = document.getElementById("favorite-recipes-container");
