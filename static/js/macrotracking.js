@@ -73,16 +73,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     });
 
-  const sevenDaysAgoForQuery = new Date();
-sevenDaysAgoForQuery.setHours(0, 0, 0, 0); // reset time to midnight
-const queryDate = sevenDaysAgoForQuery.toISOString();
+const sevenDaysAgoForQuery = new Date();
+sevenDaysAgoForQuery.setDate(sevenDaysAgoForQuery.getDate() - 6);
+sevenDaysAgoForQuery.setHours(0, 0, 0, 0);
+
+const queryDate = sevenDaysAgoForQuery.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
+console.log("🕐 Query date:", queryDate);
 
 const { data: weeklyLogs = [], error } = await supabase
   .from("macro_log")
-  .select("date, protein, carbs, fat")
+  .select("date, name, protein, carbs, fat")
   .eq("user_id", cleanUserId)
-  .gte("date", queryDate)
+  .filter("date", "gte", queryDate)
   .order("date", { ascending: true });
+
+if (error) {
+  console.error("❌ Supabase error:", error);
+}
+
+console.log("📊 Weekly logs returned:", weeklyLogs);
 
 
 
