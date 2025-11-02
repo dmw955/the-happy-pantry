@@ -74,33 +74,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // ✅ FETCH 7-DAY LOG HISTORY
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // includes today
+  const sevenDaysAgoForQuery = new Date();
+  sevenDaysAgoForQuery.setDate(sevenDaysAgoForQuery.getDate() - 6);
+
 
     const { data: weeklyLogs = [] } = await supabase
       .from("macro_log")
       .select("date, protein, carbs, fat")
       .eq("user_id", cleanUserId)
-      .gte("date", sevenDaysAgo.toISOString().split("T")[0])
+      .gte("date", sevenDaysAgoForQuery.toISOString().split("T")[0])
       .order("date", { ascending: true });
 
-console.log("✅ Clean user ID:", cleanUserId);
-console.log("📊 Weekly logs returned:", weeklyLogs);
-
-// ✅ FETCH 7-DAY LOG HISTORY
-const sevenDaysAgo = new Date();
-sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // includes today
-
-const { data: weeklyLogs = [] } = await supabase
-  .from("macro_log")
-  .select("date, protein, carbs, fat")
-  .eq("user_id", cleanUserId)
-  .gte("date", sevenDaysAgo.toISOString().split("T")[0])
-  .order("date", { ascending: true });
-
-// ⬇️ INSERT DEBUGGING HERE
-console.log("✅ Clean user ID:", cleanUserId);
-console.log("📊 Weekly logs returned:", weeklyLogs);
+  console.log("✅ Clean user ID:", cleanUserId);
+  console.log("📊 Weekly logs returned:", weeklyLogs);
 
     weeklyTableBody.innerHTML = "";
 
