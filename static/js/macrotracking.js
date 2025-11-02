@@ -74,16 +74,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // ✅ FETCH 7-DAY LOG HISTORY
-  const sevenDaysAgoForQuery = new Date();
-  sevenDaysAgoForQuery.setDate(sevenDaysAgoForQuery.getDate() - 6);
+// ✅ Declare first
+const sevenDaysAgo = new Date();
+sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
+// ✅ Then use in query
+const { data: weeklyLogs = [] } = await supabase
+  .from("macro_log")
+  .select("date, protein, carbs, fat, name")
+  .eq("user_id", cleanUserId)
+  .gte("date", sevenDaysAgo.toISOString().split("T")[0])
+  .order("date", { ascending: true });
 
-    const { data: weeklyLogs = [] } = await supabase
-    .from("macro_log")
-    .select("date, name, protein, carbs, fat")  // ✅ Add "name"
-    .eq("user_id", cleanUserId)
-    .gte("date", sevenDaysAgo.toISOString().split("T")[0])
-    .order("date", { ascending: true });
 
 
   console.log("✅ Clean user ID:", cleanUserId);
