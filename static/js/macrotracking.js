@@ -79,11 +79,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     const { data: weeklyLogs = [] } = await supabase
-      .from("macro_log")
-      .select("date, protein, carbs, fat")
-      .eq("user_id", cleanUserId)
-      .gte("date", sevenDaysAgoForQuery.toISOString().split("T")[0])
-      .order("date", { ascending: true });
+    .from("macro_log")
+    .select("date, name, protein, carbs, fat")  // ✅ Add "name"
+    .eq("user_id", cleanUserId)
+    .gte("date", sevenDaysAgo.toISOString().split("T")[0])
+    .order("date", { ascending: true });
+
 
   console.log("✅ Clean user ID:", cleanUserId);
   console.log("📊 Weekly logs returned:", weeklyLogs);
