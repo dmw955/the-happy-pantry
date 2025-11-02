@@ -11,7 +11,6 @@ waitForSupabaseClient((supabaseClient) => {
   document.addEventListener("DOMContentLoaded", async () => {
     let user = null;
 
-    // Load Supabase session with retry (wait up to 1.5s)
     let retries = 0;
     let session = null;
     while (!session?.user && retries < 15) {
@@ -33,7 +32,6 @@ waitForSupabaseClient((supabaseClient) => {
       return;
     }
 
-    // Track changes to session
     supabaseClient.auth.onAuthStateChange((_event, newSession) => {
       user = newSession?.user;
       console.log("🔄 Supabase session updated:", user);
@@ -179,9 +177,40 @@ waitForSupabaseClient((supabaseClient) => {
             button.textContent = "🤍";
             button.title = "Favorite";
           } else {
-            await supabaseClient
+            const { data: recipeData, error: fetchError } = await supabaseClient
+              .from("recipes")
+              .select("title, protein, carbs, fat")
+              .eq("id", recipeId)
+              .maybeSingle();
+
+            if (fetchError || !recipeData) {
+              alert("❌ Could not fetch recipe details.");
+              console.error("Fetch error:", fetchError);
+              return;
+            }
+
+            const { title, protein, carbs, fat } = recipeData;
+            const calories = (protein * 4) + (carbs * 4) + (fat * 9);
+
+            const { error: insertError } = await supabaseClient
               .from("favorite_recipes")
-              .insert([{ user_id: currentUser.id, recipe_id: recipeId }]);
+              .insert([{
+                user_id: currentUser.id,
+                recipe_id: recipeId,
+                title,
+                protein,
+                carbs,
+                fat,
+                calories,
+                created_at: new Date().toISOString()
+              }]);
+
+            if (insertError) {
+              alert("❌ Failed to save favorite.");
+              console.error("Insert error:", insertError);
+              return;
+            }
+
             button.textContent = "❤️";
             button.title = "Unfavorite";
           }
@@ -191,16 +220,14 @@ waitForSupabaseClient((supabaseClient) => {
       });
     }
 
-    // Pagination controls
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
     nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
     prevPageBtn.addEventListener("click", () => { if (currentPage > 1) currentPage--; fetchRecipes(); });
 
     fetchRecipes();
 
-    // Helpers
     function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, (c) => ({
+      return String(str).replace(/[&<>"]'/g, (c) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       }[c]));
     }
@@ -214,7 +241,6 @@ waitForSupabaseClient((supabaseClient) => {
       return `${mins} min`;
     }
 
-    // PantryPal compatibility (optional)
     window.addEventListener("pantrypal:showRecipes", () => {
       document.getElementById("recipeContainer")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
