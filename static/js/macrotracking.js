@@ -73,31 +73,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     });
 
-const sevenDaysAgoForQuery = new Date();
-sevenDaysAgoForQuery.setDate(sevenDaysAgoForQuery.getDate() - 6);
-sevenDaysAgoForQuery.setHours(0, 0, 0, 0);
+// ✅ Get logs from the past 7 days using created_at (safer than relying on date field)
+const sevenDaysAgo = new Date();
+sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+sevenDaysAgo.setHours(0, 0, 0, 0); // normalize to midnight
 
-const queryDate = sevenDaysAgoForQuery.toISOString().split("T")[0]; // "YYYY-MM-DD"
-
-console.log("🕐 Query date:", queryDate);
+console.log("📅 Looking for entries created on/after:", sevenDaysAgo.toISOString());
 
 const { data: weeklyLogs = [], error } = await supabase
   .from("macro_log")
-  .select("date, name, protein, carbs, fat")
+  .select("created_at, date, name, protein, carbs, fat")
   .eq("user_id", cleanUserId)
-  .filter("date", "gte", queryDate)
+  .gte("created_at", sevenDaysAgo.toISOString())
   .order("date", { ascending: true });
 
+console.log("✅ Clean user ID:", cleanUserId);
+console.log("📊 Weekly logs returned:", weeklyLogs);
 if (error) {
-  console.error("❌ Supabase error:", error);
+  console.error("❌ Error loading macro logs:", error);
 }
 
-console.log("📊 Weekly logs returned:", weeklyLogs);
-
-
-
-  console.log("✅ Clean user ID:", cleanUserId);
-  console.log("📊 Weekly logs returned:", weeklyLogs);
 
     weeklyTableBody.innerHTML = "";
 
