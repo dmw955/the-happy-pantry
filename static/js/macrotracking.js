@@ -144,40 +144,61 @@ if (error) {
       }
     });
 
-    // ✅ USDA Search functionality unchanged
-    usdaSearchForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const query = document.getElementById("usda-search-input").value.trim();
-      if (!query) return;
+// ✅ USDA Search functionality with duplicate filtering & type prioritization
+usdaSearchForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const query = document.getElementById("usda-search-input").value.trim();
+  if (!query) return;
 
-      usdaResultsContainer.innerHTML = "<p>Searching...</p>";
+  usdaResultsContainer.innerHTML = "<p>Searching...</p>";
 
-      try {
-        const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
 
-        if (!data.foods?.length) {
-          usdaResultsContainer.innerHTML = "<p>No results found.</p>";
-          return;
-        }
+    if (!data.foods?.length) {
+      usdaResultsContainer.innerHTML = "<p>No results found.</p>";
+      return;
+    }
 
-        usdaResultsContainer.innerHTML = data.foods
-          .slice(0, 10)
-          .map(food => {
-            const name = food.description.replace(/'/g, "");
-            return `
-              <div class="card p-3 mb-3">
-                <h6>${name}</h6>
-                <button class="btn btn-primary-custom me-2" onclick="logUSDAFood('${food.fdcId}', '${name}')">Log This</button>
-                <button class="btn btn-outline-success" onclick="saveAsRecipe('${food.fdcId}', '${name}')">Save as Recipe</button>
-              </div>`;
-          }).join("");
-
-      } catch (err) {
-        console.error("USDA search error", err);
-        usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
-      }
+    // ✅ Step 1: Sort by data type — prefer Foundation/Survey over Branded
+    const sortedFoods = data.foods.sort((a, b) => {
+      const aType = a.dataType || "";
+      const bType = b.dataType || "";
+      return aType === "Branded" ? 1 : -1;
     });
+
+    // ✅ Step 2: Filter to unique descriptions (case-insensitive)
+    const seen = new Set();
+    const uniqueFoods = sortedFoods.filter(food => {
+      const desc = food.description.toLowerCase().trim();
+      if (seen.has(desc)) return false;
+      seen.add(desc);
+      return true;
+    }).slice(0, 10); // take top 10 unique items
+
+    // ✅ Step 3: Render results
+    usdaResultsContainer.innerHTML = uniqueFoods.map(food => {
+      const name = food.description.replace(/'/g, "");
+      const brand = food.brandOwner ? `<small class="text-muted">Brand: ${food.brandOwner}</small>` : "";
+
+      return `
+        <div class="card p-3 mb-3">
+          <h6>${name}</h6>
+          ${brand}
+          <div class="mt-2">
+            <button class="btn btn-primary-custom me-2" onclick="logUSDAFood('${food.fdcId}', '${name}')">Log This</button>
+            <button class="btn btn-outline-success" onclick="saveAsRecipe('${food.fdcId}', '${name}')">Save as Recipe</button>
+          </div>
+        </div>`;
+    }).join("");
+
+  } catch (err) {
+    console.error("USDA search error", err);
+    usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
+  }
+});
+
 
     window.logUSDAFood = async (fdcId, name) => {
       try {
@@ -339,7 +360,20 @@ if (error) {
       });
     });
 
+        // ✅ USDA Results Clear Button - Collapses and clears content
+    const clearBtn = document.getElementById("clear-results-btn");
+    const usdaResultsWrapper = document.getElementById("usda-results-wrapper");
+
+    clearBtn?.addEventListener("click", () => {
+      if (usdaResultsWrapper?.classList.contains("show")) {
+        usdaResultsWrapper.classList.remove("show"); // Collapse results
+      }
+      usdaResultsContainer.innerHTML = ""; // Clear results content
+    });
+
+
   } catch (err) {
     console.error("🔥 Unexpected error loading macro tracking:", err);
   }
+  
 });

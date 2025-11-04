@@ -177,15 +177,26 @@
         </div>
       </div>
 
-      <!-- USDA Search -->
-      <div class="card mt-4">
-        <form id="usda-search-form">
-          <label for="usda-search-input" class="form-label">🔍 Search USDA Food Database</label>
-          <input type="text" class="form-control" id="usda-search-input" placeholder="e.g. Chicken Breast" required />
-          <button type="submit" class="btn btn-primary-custom mt-2">Search</button>
-        </form>
-        <div id="usda-results" class="mt-3"></div>
-      </div>
+<!-- USDA Search -->
+<div class="card mt-4">
+  <form id="usda-search-form">
+    <label for="usda-search-input" class="form-label">🔍 Search USDA Food Database</label>
+    <input type="text" class="form-control" id="usda-search-input" placeholder="e.g. Chicken Breast" required />
+    <div class="d-flex mt-2 gap-2">
+      <button type="submit" class="btn btn-primary-custom">Search</button>
+      <button type="button" id="clear-results-btn" class="btn btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#usda-results-wrapper">
+        ✖ Clear Results
+      </button>
+    </div>
+  </form>
+
+  <!-- Collapsible Results Section -->
+  <div class="collapse show mt-3" id="usda-results-wrapper">
+    <div id="usda-results"></div>
+  </div>
+</div>
+
+
 
       <!-- Macro Chart -->
       <div class="card">
