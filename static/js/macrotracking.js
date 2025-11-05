@@ -67,8 +67,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const caloriesRemaining = Math.max(goalData.calories - caloriesConsumed, 0);
 
 // Update calorie stats below the chart
-document.getElementById("calories-consumed").textContent = `${totalCaloriesConsumed} kcal`;
+document.getElementById("calories-consumed").textContent = `${caloriesConsumed} kcal`;
 document.getElementById("calories-remaining").textContent = `${caloriesRemaining} kcal`;
+
 
 new Chart(macroChartCanvas, {
   type: "doughnut",
