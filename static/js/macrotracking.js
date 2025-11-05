@@ -263,6 +263,71 @@ window.logUSDAFood = async (fdcId, name) => {
       usdaResultsContainer.innerHTML = "";
     });
 
+    // ✅ Favorite Recipes Collapse: Logging a saved recipe
+const favCollapse = document.getElementById("fav-recipes-collapse");
+const favoritesContainer = document.getElementById("favorite-recipes-container");
+let favoritesLoaded = false;
+
+favCollapse?.addEventListener("shown.bs.collapse", async () => {
+  if (favoritesLoaded) return;
+  favoritesLoaded = true;
+
+  favoritesContainer.innerHTML = `
+    <div class="text-center py-3">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="mt-2">Loading favorites...</p>
+    </div>
+  `;
+
+  const { data: favorites, error } = await supabase
+    .from("favorite_recipes")
+    .select("id, title, calories, protein, carbs, fat")
+    .eq("user_id", cleanUserId);
+
+  if (error || !favorites?.length) {
+    favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
+    console.error("Favorite fetch error:", error);
+    return;
+  }
+
+  favoritesContainer.innerHTML = favorites.map(recipe => `
+    <div class="col-md-4">
+      <div class="card mb-3 p-3">
+        <h5>${recipe.title}</h5>
+        <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
+        <button class="btn btn-sm btn-success mt-2" data-recipe-id="${recipe.id}" data-title="${recipe.title}">
+          Log This
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const name = button.dataset.title;
+      const recipe = favorites.find(r => r.id == button.dataset.recipeId);
+
+      const { error: insertError } = await supabase.from("macro_log").insert([{
+        user_id: cleanUserId,
+        date: today,
+        name,
+        protein: recipe.protein,
+        carbs: recipe.carbs,
+        fat: recipe.fat,
+        created_at: new Date().toISOString(),
+      }]);
+
+      if (insertError) {
+        alert("❌ Error logging recipe");
+        console.error(insertError);
+      } else {
+        alert(`✅ Logged "${name}"`);
+        location.reload();
+      }
+    });
+  });
+});
+
   } catch (err) {
     console.error("🔥 Unexpected error:", err);
   }
