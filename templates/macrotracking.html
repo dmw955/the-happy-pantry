@@ -198,12 +198,29 @@
 
 
 
-      <!-- Macro Chart -->
-      <div class="card">
-        <h4 class="text-center mb-3">📊 Today's Macro Intake</h4>
-        <canvas id="macroCircleChart"></canvas>
-      </div>
-      
+<!-- Macro Chart -->
+<div class="card shadow-sm rounded-4 p-3 mb-4">
+  <div class="text-center mb-3">
+    <h5 class="fw-bold">📊 Today's Macro Intake</h5>
+    <div class="text-muted small">
+      <span id="calories-consumed">0</span> kcal consumed /
+      <span id="calories-remaining">0</span> kcal remaining
+    </div>
+  </div>
+  <div class="d-flex justify-content-center">
+    <div style="max-width: 300px; width: 100%;">
+      <canvas id="macroCircleChart"></canvas>
+    </div>
+  </div>
+</div>
+
+
+<div class="text-center mt-3">
+  <p><strong>Calories Consumed:</strong> <span id="calories-consumed">--</span></p>
+  <p><strong>Calories Remaining:</strong> <span id="calories-remaining">--</span></p>
+</div>
+
+
 <div id="macro-summary"></div>
 
       <!-- Weekly Summary Table -->

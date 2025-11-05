@@ -11,6 +11,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const usdaSearchForm = document.getElementById("usda-search-form");
     const usdaResultsContainer = document.getElementById("usda-results");
 
+    function getNutrientValue(nutrients, label) {
+  const nutrient = nutrients.find(
+    (n) =>
+      typeof n.nutrientName === "string" &&
+      n.nutrientName.toLowerCase().includes(label.toLowerCase())
+  );
+  return nutrient?.value ?? null;
+}
+
     const {
       data: { session },
       error: authError,
@@ -57,31 +66,38 @@ document.addEventListener("DOMContentLoaded", async () => {
       totals.protein * 4 + totals.carbs * 4 + totals.fat * 9;
     const caloriesRemaining = Math.max(goalData.calories - caloriesConsumed, 0);
 
-    // ✅ Macro Doughnut Chart
-    new Chart(macroChartCanvas, {
-      type: "doughnut",
-      data: {
-        labels: ["Carbs", "Protein", "Fat"],
-        datasets: [{
-          label: "Macros Consumed",
-          data: [totals.carbs, totals.protein, totals.fat],
-          backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
-          borderWidth: 1,
-        }],
-      },
-      options: {
-        responsive: true,
-        cutout: "70%",
-        plugins: {
-          legend: { position: "bottom" },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `${ctx.label}: ${ctx.formattedValue}g`,
-            }
+// Update calorie stats below the chart
+document.getElementById("calories-consumed").textContent = `${totalCaloriesConsumed} kcal`;
+document.getElementById("calories-remaining").textContent = `${caloriesRemaining} kcal`;
+
+new Chart(macroChartCanvas, {
+  type: "doughnut",
+  data: {
+    labels: ["Carbs", "Protein", "Fat"],
+    datasets: [{
+      label: "Consumed (g)",
+      data: [totals.carbs, totals.protein, totals.fat],
+      backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
+      borderWidth: 2,
+    }],
+  },
+  options: {
+    cutout: "60%",
+    plugins: {
+      legend: { position: "bottom" },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const label = context.label || '';
+            const value = context.parsed;
+            return `${label}: ${value}g`;
           }
-        },
-      },
-    });
+        }
+      }
+    },
+  },
+});
+
 
     // ✅ Display Calorie Summary
     if (macroSummary) {
@@ -128,96 +144,104 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // ✅ USDA Search
-    usdaSearchForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const query = document.getElementById("usda-search-input").value.trim();
-      if (!query) return;
+usdaSearchForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const query = document.getElementById("usda-search-input").value.trim();
+  if (!query) return;
 
-      usdaResultsContainer.innerHTML = "<p>Searching...</p>";
+  usdaResultsContainer.innerHTML = "<p>Searching...</p>";
 
-      try {
-        const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
-        const data = await res.json();
+  try {
+    const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
 
-        if (!data.foods?.length) {
-          usdaResultsContainer.innerHTML = "<p>No results found.</p>";
-          return;
-        }
+    if (!data.foods?.length) {
+      usdaResultsContainer.innerHTML = "<p>No results found.</p>";
+      return;
+    }
 
-        const sortedFoods = data.foods.sort((a, b) => {
-          return a.dataType === "Branded" ? 1 : -1;
-        });
-
-        const seen = new Set();
-        const uniqueFoods = sortedFoods.filter((food) => {
-          const desc = food.description.toLowerCase().trim();
-          if (seen.has(desc)) return false;
-          seen.add(desc);
-          return true;
-        }).slice(0, 10);
-
-        usdaResultsContainer.innerHTML = uniqueFoods.map((food) => {
-          const name = food.description.replace(/'/g, "");
-          const nutrients = food.foodNutrients || [];
-          const protein = getNutrient(nutrients, "protein");
-          const carbs = getNutrient(nutrients, "carbohydrate");
-          const fat = getNutrient(nutrients, "fat") || getNutrient(nutrients, "lipid");
-
-          return `
-            <div class="card p-3 mb-3">
-              <h6 class="mb-1">${name}</h6>
-              <p class="mb-2">Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g</p>
-              <button class="btn btn-primary-custom" onclick="logUSDAFood(${food.fdcId}, '${name}')">Log This</button>
-            </div>`;
-        }).join("");
-
-      } catch (err) {
-        console.error("USDA search error", err);
-        usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
-      }
+    const sortedFoods = data.foods.sort((a, b) => {
+      const aType = a.dataType || "";
+      const bType = b.dataType || "";
+      return aType === "Branded" ? 1 : -1;
     });
 
+    const seen = new Set();
+    const uniqueFoods = sortedFoods.filter((food) => {
+      const desc = food.description.toLowerCase().trim();
+      if (seen.has(desc)) return false;
+      seen.add(desc);
+      return true;
+    }).slice(0, 10);
+
+    usdaResultsContainer.innerHTML = uniqueFoods
+      .map((food) => {
+        const name = food.description.replace(/'/g, "");
+        const nutrients = food.foodNutrients || [];
+
+        const protein = getNutrientValue(nutrients, "Protein") ?? 0;
+        const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
+        const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
+
+        return `
+          <div class="card p-3 mb-3">
+            <h6 class="mb-1">${name}</h6>
+            <p class="mb-2">Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g</p>
+            <button class="btn btn-primary-custom" onclick="logUSDAFood(${food.fdcId}, '${name.replace(/"/g, '&quot;')}')">Log This</button>
+          </div>`;
+      })
+      .join("");
+  } catch (err) {
+    console.error("USDA search error", err);
+    usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
+  }
+});
+
+
     // ✅ USDA Logging Function (more robust)
-    window.logUSDAFood = async (fdcId, name) => {
-      try {
-        const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
-        const data = await res.json();
+window.logUSDAFood = async (fdcId, name) => {
+  try {
+    const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
+    const data = await res.json();
 
-        const nutrients = (data.foodNutrients || []).reduce((acc, n) => {
-          const label = (n.nutrientName || "").toLowerCase();
-          if (label.includes("protein")) acc.protein = n.value;
-          if (label.includes("carbohydrate")) acc.carbs = n.value;
-          if (label.includes("fat") || label.includes("lipid")) acc.fat = n.value;
-          return acc;
-        }, { protein: null, carbs: null, fat: null });
+    const nutrients = (data.foodNutrients || []).reduce((acc, n) => {
+      const label = (n.nutrientName || "").toLowerCase();
+      if (label.includes("protein")) acc.protein = n.value;
+      if (label.includes("carbohydrate")) acc.carbs = n.value;
+      if (label.includes("fat") || label.includes("lipid")) acc.fat = n.value;
+      return acc;
+    }, { protein: 0, carbs: 0, fat: 0 });
 
-        if ([nutrients.protein, nutrients.carbs, nutrients.fat].every(v => v == null)) {
-          alert("⚠️ No macro data found for this item.");
-          return;
-        }
+    const { protein, carbs, fat } = nutrients;
 
-        const { error } = await supabase.from("macro_log").insert([{
-          user_id: cleanUserId,
-          date: today,
-          name,
-          protein: nutrients.protein ?? 0,
-          carbs: nutrients.carbs ?? 0,
-          fat: nutrients.fat ?? 0,
-          created_at: new Date().toISOString(),
-        }]);
+    if (protein === 0 && carbs === 0 && fat === 0) {
+      alert("⚠️ No macro data found for this item.");
+      return;
+    }
 
-        if (error) {
-          alert("❌ Error logging food.");
-        } else {
-          alert(`✅ Logged "${name}"`);
-          location.reload();
-        }
+    const { error } = await supabase.from("macro_log").insert([{
+      user_id: cleanUserId,
+      date: today,
+      name,
+      protein,
+      carbs,
+      fat,
+      created_at: new Date().toISOString(),
+    }]);
 
-      } catch (err) {
-        console.error("USDA log error", err);
-        alert("❌ Failed to fetch nutrition info.");
-      }
-    };
+    if (error) {
+      alert("❌ Error logging food.");
+      console.error(error);
+    } else {
+      alert(`✅ Logged "${name}"`);
+      location.reload();
+    }
+  } catch (err) {
+    console.error("❌ Error fetching USDA food details:", err);
+    alert("Error fetching nutrition info. Try a different item.");
+  }
+};
+
 
     // ✅ Helper for nutrient extraction
     function getNutrient(arr, name) {
