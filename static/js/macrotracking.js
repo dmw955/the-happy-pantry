@@ -3,22 +3,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     const supabase = window.supabaseClient;
-    if (!supabase) throw new Error("❌ Supabase not initialized. Make sure auth.js runs before this script.");
+    if (!supabase) throw new Error("❌ Supabase not initialized.");
 
     const macroChartCanvas = document.getElementById("macroCircleChart");
+    const macroSummary = document.getElementById("macro-summary");
     const weeklyTableBody = document.getElementById("weekly-macros");
     const usdaSearchForm = document.getElementById("usda-search-form");
     const usdaResultsContainer = document.getElementById("usda-results");
-
-    // ✅ Helper: Safely get nutrient values
-    function getNutrientValue(nutrients, label) {
-      const nutrient = nutrients.find(
-        (n) =>
-          typeof n.nutrientName === "string" &&
-          n.nutrientName.toLowerCase().includes(label.toLowerCase())
-      );
-      return nutrient?.value ?? null;
-    }
 
     const {
       data: { session },
@@ -26,9 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } = await supabase.auth.getSession();
 
     const user = session?.user;
-
     if (authError || !user) {
-      console.warn("User not logged in:", authError);
       window.location.href = "/login";
       return;
     }
@@ -36,18 +25,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const cleanUserId = user.id.split(":")[0];
     const today = new Date().toISOString().split("T")[0];
 
+    // ✅ Load macro goals
     const { data: goalData } = await supabase
       .from("macro_goals")
       .select("calories, protein, carbs, fat")
       .eq("user_id", cleanUserId)
       .maybeSingle();
 
-    if (!goalData) {
-      console.warn("No macro goals found, redirecting...");
-      window.location.href = "/macrogoals";
-      return;
-    }
+    if (!goalData) return (window.location.href = "/macrogoals");
 
+    // ✅ Load today's logs
     const { data: todayLogsRaw } = await supabase
       .from("macro_log")
       .select("protein, carbs, fat")
@@ -66,46 +53,63 @@ document.addEventListener("DOMContentLoaded", async () => {
       { protein: 0, carbs: 0, fat: 0 }
     );
 
+    const caloriesConsumed =
+      totals.protein * 4 + totals.carbs * 4 + totals.fat * 9;
+    const caloriesRemaining = Math.max(goalData.calories - caloriesConsumed, 0);
+
+    // ✅ Macro Doughnut Chart
     new Chart(macroChartCanvas, {
       type: "doughnut",
       data: {
         labels: ["Carbs", "Protein", "Fat"],
-        datasets: [
-          {
-            label: "Consumed",
-            data: [totals.carbs, totals.protein, totals.fat],
-            backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
-            borderWidth: 1,
-          },
-        ],
+        datasets: [{
+          label: "Macros Consumed",
+          data: [totals.carbs, totals.protein, totals.fat],
+          backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
+          borderWidth: 1,
+        }],
       },
       options: {
+        responsive: true,
         cutout: "70%",
-        plugins: { legend: { position: "bottom" } },
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.label}: ${ctx.formattedValue}g`,
+            }
+          }
+        },
       },
     });
 
+    // ✅ Display Calorie Summary
+    if (macroSummary) {
+      macroSummary.innerHTML = `
+        <div class="text-center mt-3">
+          <h5>Daily Summary</h5>
+          <p><strong>Calories Consumed:</strong> ${Math.round(caloriesConsumed)} kcal</p>
+          <p><strong>Goal:</strong> ${goalData.calories} kcal</p>
+          <p><strong>Remaining:</strong> ${Math.round(caloriesRemaining)} kcal</p>
+        </div>`;
+    }
+
+    // ✅ Load 7-day macro log
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    console.log("📅 Looking for entries created on/after:", sevenDaysAgo.toISOString());
-
-    const { data: weeklyLogs = [], error } = await supabase
+    const { data: weeklyLogs = [] } = await supabase
       .from("macro_log")
       .select("created_at, date, name, protein, carbs, fat")
       .eq("user_id", cleanUserId)
       .gte("created_at", sevenDaysAgo.toISOString())
       .order("date", { ascending: true });
 
-    console.log("✅ Clean user ID:", cleanUserId);
-    console.log("📊 Weekly logs returned:", weeklyLogs);
-    if (error) console.error("❌ Error loading macro logs:", error);
-
     weeklyTableBody.innerHTML = "";
 
     if (weeklyLogs.length === 0) {
-      weeklyTableBody.innerHTML = `<tr><td colspan="5">No macros logged in the past 7 days.</td></tr>`;
+      weeklyTableBody.innerHTML = `<tr><td colspan="5">No macros logged.</td></tr>`;
     } else {
       weeklyLogs.forEach((entry) => {
         const calories =
@@ -122,37 +126,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           </tr>`;
       });
     }
-
-    // ✅ Manual Meal Logging
-    const mealForm = document.getElementById("meal-form");
-    mealForm?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const name = document.getElementById("meal-name").value.trim();
-      const protein = parseFloat(document.getElementById("protein").value);
-      const carbs = parseFloat(document.getElementById("carbs").value);
-      const fat = parseFloat(document.getElementById("fat").value);
-      const logStatus = document.getElementById("log-status");
-
-      const { error } = await supabase.from("macro_log").insert([{
-        user_id: cleanUserId,
-        date: today,
-        name,
-        protein,
-        carbs,
-        fat,
-        created_at: new Date().toISOString(),
-      }]);
-
-      if (error) {
-        logStatus.textContent = "❌ Failed to log meal.";
-        logStatus.classList.add("text-danger");
-      } else {
-        logStatus.textContent = "✅ Meal logged!";
-        logStatus.classList.remove("text-danger");
-        logStatus.classList.add("text-success");
-        setTimeout(() => location.reload(), 1000);
-      }
-    });
 
     // ✅ USDA Search
     usdaSearchForm?.addEventListener("submit", async (e) => {
@@ -172,9 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const sortedFoods = data.foods.sort((a, b) => {
-          const aType = a.dataType || "";
-          const bType = b.dataType || "";
-          return aType === "Branded" ? 1 : -1;
+          return a.dataType === "Branded" ? 1 : -1;
         });
 
         const seen = new Set();
@@ -185,28 +156,28 @@ document.addEventListener("DOMContentLoaded", async () => {
           return true;
         }).slice(0, 10);
 
-        usdaResultsContainer.innerHTML = uniqueFoods
-          .map((food) => {
-            const name = food.description.replace(/'/g, "");
-            const nutrients = food.foodNutrients || [];
-            const protein = getNutrientValue(nutrients, "Protein") ?? 0;
-            const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
-            const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
+        usdaResultsContainer.innerHTML = uniqueFoods.map((food) => {
+          const name = food.description.replace(/'/g, "");
+          const nutrients = food.foodNutrients || [];
+          const protein = getNutrient(nutrients, "protein");
+          const carbs = getNutrient(nutrients, "carbohydrate");
+          const fat = getNutrient(nutrients, "fat") || getNutrient(nutrients, "lipid");
 
-            return `
-              <div class="card p-3 mb-3">
-                <h6 class="mb-1">${name}</h6>
-                <p class="mb-2">Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g</p>
-                <button class="btn btn-primary-custom" onclick="logUSDAFood(${food.fdcId}, '${name}')">Log This</button>
-              </div>`;
-          }).join("");
+          return `
+            <div class="card p-3 mb-3">
+              <h6 class="mb-1">${name}</h6>
+              <p class="mb-2">Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g</p>
+              <button class="btn btn-primary-custom" onclick="logUSDAFood(${food.fdcId}, '${name}')">Log This</button>
+            </div>`;
+        }).join("");
+
       } catch (err) {
         console.error("USDA search error", err);
         usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
       }
     });
 
-    // ✅ Log USDA Food
+    // ✅ USDA Logging Function (more robust)
     window.logUSDAFood = async (fdcId, name) => {
       try {
         const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
@@ -218,11 +189,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (label.includes("carbohydrate")) acc.carbs = n.value;
           if (label.includes("fat") || label.includes("lipid")) acc.fat = n.value;
           return acc;
-        }, { protein: 0, carbs: 0, fat: 0 });
+        }, { protein: null, carbs: null, fat: null });
 
-        const { protein, carbs, fat } = nutrients;
-
-        if (protein === 0 && carbs === 0 && fat === 0) {
+        if ([nutrients.protein, nutrients.carbs, nutrients.fat].every(v => v == null)) {
           alert("⚠️ No macro data found for this item.");
           return;
         }
@@ -231,26 +200,34 @@ document.addEventListener("DOMContentLoaded", async () => {
           user_id: cleanUserId,
           date: today,
           name,
-          protein,
-          carbs,
-          fat,
+          protein: nutrients.protein ?? 0,
+          carbs: nutrients.carbs ?? 0,
+          fat: nutrients.fat ?? 0,
           created_at: new Date().toISOString(),
         }]);
 
         if (error) {
           alert("❌ Error logging food.");
-          console.error(error);
         } else {
           alert(`✅ Logged "${name}"`);
           location.reload();
         }
+
       } catch (err) {
-        console.error("❌ Error fetching USDA food details:", err);
-        alert("Error fetching nutrition info. Try a different item.");
+        console.error("USDA log error", err);
+        alert("❌ Failed to fetch nutrition info.");
       }
     };
 
-    // ✅ Clear USDA Results
+    // ✅ Helper for nutrient extraction
+    function getNutrient(arr, name) {
+      const found = arr.find(n =>
+        (n.nutrientName || "").toLowerCase().includes(name.toLowerCase())
+      );
+      return found?.value ?? 0;
+    }
+
+    // ✅ Clear Button
     const clearBtn = document.getElementById("clear-results-btn");
     const usdaResultsWrapper = document.getElementById("usda-results-wrapper");
 
@@ -261,72 +238,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       usdaResultsContainer.innerHTML = "";
     });
 
-    // ✅ Favorite Recipes Collapse: Logging a saved recipe
-    const favCollapse = document.getElementById("fav-recipes-collapse");
-    const favoritesContainer = document.getElementById("favorite-recipes-container");
-    let favoritesLoaded = false;
-
-    favCollapse?.addEventListener("shown.bs.collapse", async () => {
-      if (favoritesLoaded) return;
-      favoritesLoaded = true;
-
-      favoritesContainer.innerHTML = `
-        <div class="text-center py-3">
-          <div class="spinner-border text-success" role="status"></div>
-          <p class="mt-2">Loading favorites...</p>
-        </div>
-      `;
-
-      const { data: favorites, error } = await supabase
-        .from("favorite_recipes")
-        .select("id, title, calories, protein, carbs, fat")
-        .eq("user_id", cleanUserId);
-
-      if (error || !favorites?.length) {
-        favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
-        console.error("Favorite fetch error:", error);
-        return;
-      }
-
-      favoritesContainer.innerHTML = favorites.map(recipe => `
-        <div class="col-md-4">
-          <div class="card mb-3 p-3">
-            <h5>${recipe.title}</h5>
-            <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
-            <button class="btn btn-sm btn-success mt-2" data-recipe-id="${recipe.id}" data-title="${recipe.title}">
-              Log This
-            </button>
-          </div>
-        </div>
-      `).join("");
-
-      favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
-        button.addEventListener("click", async () => {
-          const name = button.dataset.title;
-          const recipe = favorites.find(r => r.id == button.dataset.recipeId);
-
-          const { error: insertError } = await supabase.from("macro_log").insert([{
-            user_id: cleanUserId,
-            date: today,
-            name,
-            protein: recipe.protein,
-            carbs: recipe.carbs,
-            fat: recipe.fat,
-            created_at: new Date().toISOString(),
-          }]);
-
-          if (insertError) {
-            alert("❌ Error logging recipe");
-            console.error(insertError);
-          } else {
-            alert(`✅ Logged "${name}"`);
-            location.reload();
-          }
-        });
-      });
-    });
-
   } catch (err) {
-    console.error("🔥 Unexpected error loading macro tracking:", err);
+    console.error("🔥 Unexpected error:", err);
   }
 });
