@@ -7,7 +7,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const macroChartCanvas = document.getElementById("macroCircleChart");
     const macroSummary = document.getElementById("macro-summary");
-    const weeklyTableBody = document.getElementById("weekly-macros");
     const usdaSearchForm = document.getElementById("usda-search-form");
     const usdaResultsContainer = document.getElementById("usda-results");
 
@@ -100,49 +99,33 @@ new Chart(macroChartCanvas, {
 });
 
 
-    // ✅ Display Calorie Summary
-    if (macroSummary) {
-      macroSummary.innerHTML = `
-        <div class="text-center mt-3">
-          <h5>Daily Summary</h5>
-          <p><strong>Calories Consumed:</strong> ${Math.round(caloriesConsumed)} kcal</p>
-          <p><strong>Goal:</strong> ${goalData.calories} kcal</p>
-          <p><strong>Remaining:</strong> ${Math.round(caloriesRemaining)} kcal</p>
-        </div>`;
-    }
-
+ 
     // ✅ Load 7-day macro log
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    const { data: weeklyLogs = [] } = await supabase
-      .from("macro_log")
-      .select("created_at, date, name, protein, carbs, fat")
-      .eq("user_id", cleanUserId)
-      .gte("created_at", sevenDaysAgo.toISOString())
-      .order("date", { ascending: true });
+   const todayMealsBody = document.getElementById("today-meals-body");
+todayMealsBody.innerHTML = "";
 
-    weeklyTableBody.innerHTML = "";
+if (todayLogs.length === 0) {
+  todayMealsBody.innerHTML = `<tr><td colspan="5">No meals logged today.</td></tr>`;
+} else {
+  todayLogs.forEach((entry) => {
+    const calories = (entry.protein || 0) * 4 +
+                     (entry.carbs || 0) * 4 +
+                     (entry.fat || 0) * 9;
+    todayMealsBody.innerHTML += `
+      <tr>
+        <td>${entry.name || "—"}</td>
+        <td>${entry.protein}</td>
+        <td>${entry.carbs}</td>
+        <td>${entry.fat}</td>
+        <td>${Math.round(calories)}</td>
+      </tr>`;
+  });
+}
 
-    if (weeklyLogs.length === 0) {
-      weeklyTableBody.innerHTML = `<tr><td colspan="5">No macros logged.</td></tr>`;
-    } else {
-      weeklyLogs.forEach((entry) => {
-        const calories =
-          (entry.protein || 0) * 4 +
-          (entry.carbs || 0) * 4 +
-          (entry.fat || 0) * 9;
-        weeklyTableBody.innerHTML += `
-          <tr>
-            <td>${entry.date}</td>
-            <td>${entry.carbs || 0}</td>
-            <td>${entry.protein || 0}</td>
-            <td>${entry.fat || 0}</td>
-            <td>${Math.round(calories)}</td>
-          </tr>`;
-      });
-    }
 
     // ✅ USDA Search
 usdaSearchForm?.addEventListener("submit", async (e) => {
@@ -279,10 +262,11 @@ favCollapse?.addEventListener("shown.bs.collapse", async () => {
     </div>
   `;
 
-  const { data: favorites, error } = await supabase
-    .from("favorite_recipes")
-    .select("id, title, calories, protein, carbs, fat")
-    .eq("user_id", cleanUserId);
+const { data: favorites, error } = await supabase
+  .from("favorite_recipes")
+  .select("id, title, calories, protein, carbs, fat, portion_note")
+  .eq("user_id", cleanUserId);
+
 
   if (error || !favorites?.length) {
     favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
@@ -290,17 +274,30 @@ favCollapse?.addEventListener("shown.bs.collapse", async () => {
     return;
   }
 
-  favoritesContainer.innerHTML = favorites.map(recipe => `
-    <div class="col-md-4">
-      <div class="card mb-3 p-3">
-        <h5>${recipe.title}</h5>
-        <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
-        <button class="btn btn-sm btn-success mt-2" data-recipe-id="${recipe.id}" data-title="${recipe.title}">
-          Log This
-        </button>
+favoritesContainer.innerHTML = favorites.map(recipe => `
+  <div class="col-md-4">
+    <div class="card mb-3 p-3" 
+         data-recipe-id="${recipe.id}" 
+         data-title="${recipe.title}" 
+         data-protein="${recipe.protein}" 
+         data-carbs="${recipe.carbs}" 
+         data-fat="${recipe.fat}">
+      <h5>${recipe.title}</h5>
+      <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
+      
+      <div class="input-group input-group-sm mb-1" style="max-width: 120px;">
+        <input type="number" class="form-control form-control-sm" min="0.1" step="0.1" value="1" placeholder="Serving" data-serving-input>
       </div>
+      
+      ${recipe.portion_note ? `<small class="text-muted d-block mb-2">${recipe.portion_note}</small>` : ''}
+
+      <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}">
+        Log This
+      </button>
     </div>
-  `).join("");
+  </div>
+`).join("");
+
 
   favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
     button.addEventListener("click", async () => {
