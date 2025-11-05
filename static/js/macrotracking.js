@@ -278,11 +278,11 @@ supabase
 
 
 
-  if (error || !favorites?.length) {
-    favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
-    console.error("Favorite fetch error:", error);
-    return;
-  }
+if (fetchError || !favorites?.length) {
+  favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
+  console.error("Favorite fetch error:", fetchError);
+  return;
+}
 
 favoritesContainer.innerHTML = favorites.map(recipe => `
   <div class="col-md-4">
