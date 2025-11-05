@@ -43,11 +43,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!goalData) return (window.location.href = "/macrogoals");
 
     // ✅ Load today's logs
-    const { data: todayLogsRaw } = await supabase
-      .from("macro_log")
-      .select("protein, carbs, fat")
-      .eq("user_id", cleanUserId)
-      .eq("date", today);
+const { data: todayLogsRaw } = await supabase
+  .from("macro_log")
+  .select("name, protein, carbs, fat")
+  .eq("user_id", cleanUserId)
+  .eq("date", today);
+
 
     const todayLogs = Array.isArray(todayLogsRaw) ? todayLogsRaw : [];
 
@@ -262,10 +263,19 @@ favCollapse?.addEventListener("shown.bs.collapse", async () => {
     </div>
   `;
 
-const { data: favorites, error } = await supabase
+supabase
   .from("favorite_recipes")
-  .select("id, title, calories, protein, carbs, fat, portion_note")
+  .select(`
+    id,
+    title,
+    calories,
+    protein,
+    carbs,
+    fat,
+    recipe:recipes (portion_note)
+  `)
   .eq("user_id", cleanUserId);
+
 
 
   if (error || !favorites?.length) {
