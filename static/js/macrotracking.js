@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const cleanUserId = user.id.split(":")[0]; // ✅ Fix for 400 error
+    const cleanUserId = user.id.split(":")[0];
     const today = new Date().toISOString().split("T")[0];
 
     const { data: goalData } = await supabase
@@ -85,7 +85,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     });
 
-    // ✅ Get logs from the past 7 days
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -124,28 +123,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // ✅ Manual meal logging form
+    // ✅ Manual Meal Logging
     const mealForm = document.getElementById("meal-form");
     mealForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       const name = document.getElementById("meal-name").value.trim();
       const protein = parseFloat(document.getElementById("protein").value);
       const carbs = parseFloat(document.getElementById("carbs").value);
       const fat = parseFloat(document.getElementById("fat").value);
       const logStatus = document.getElementById("log-status");
 
-      const { error } = await supabase.from("macro_log").insert([
-        {
-          user_id: cleanUserId,
-          date: today,
-          name,
-          protein,
-          carbs,
-          fat,
-          created_at: new Date().toISOString(),
-        },
-      ]);
+      const { error } = await supabase.from("macro_log").insert([{
+        user_id: cleanUserId,
+        date: today,
+        name,
+        protein,
+        carbs,
+        fat,
+        created_at: new Date().toISOString(),
+      }]);
 
       if (error) {
         logStatus.textContent = "❌ Failed to log meal.";
@@ -158,7 +154,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // ✅ USDA Search with macros shown
+    // ✅ USDA Search
     usdaSearchForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const query = document.getElementById("usda-search-input").value.trim();
@@ -203,48 +199,43 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <p class="mb-2">Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g</p>
                 <button class="btn btn-primary-custom" onclick="logUSDAFood(${food.fdcId}, '${name}')">Log This</button>
               </div>`;
-          })
-          .join("");
+          }).join("");
       } catch (err) {
         console.error("USDA search error", err);
         usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
       }
     });
 
-    // ✅ Safe USDA Logging
+    // ✅ Log USDA Food
     window.logUSDAFood = async (fdcId, name) => {
       try {
         const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
         const data = await res.json();
 
-        if (!Array.isArray(data.foodNutrients)) {
-          alert("❌ This food has no nutrient data.");
+        const nutrients = (data.foodNutrients || []).reduce((acc, n) => {
+          const label = (n.nutrientName || "").toLowerCase();
+          if (label.includes("protein")) acc.protein = n.value;
+          if (label.includes("carbohydrate")) acc.carbs = n.value;
+          if (label.includes("fat") || label.includes("lipid")) acc.fat = n.value;
+          return acc;
+        }, { protein: 0, carbs: 0, fat: 0 });
+
+        const { protein, carbs, fat } = nutrients;
+
+        if (protein === 0 && carbs === 0 && fat === 0) {
+          alert("⚠️ No macro data found for this item.");
           return;
         }
 
-        const nutrients = data.foodNutrients.reduce(
-          (acc, n) => {
-            if (typeof n.nutrientName !== "string") return acc;
-            const lname = n.nutrientName.toLowerCase();
-            if (lname.includes("protein")) acc.protein = n.value;
-            if (lname.includes("carbohydrate")) acc.carbs = n.value;
-            if (lname.includes("lipid") || lname.includes("fat")) acc.fat = n.value;
-            return acc;
-          },
-          { protein: 0, carbs: 0, fat: 0 }
-        );
-
-        const { error } = await supabase.from("macro_log").insert([
-          {
-            user_id: cleanUserId,
-            date: today,
-            name,
-            protein: nutrients.protein,
-            carbs: nutrients.carbs,
-            fat: nutrients.fat,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        const { error } = await supabase.from("macro_log").insert([{
+          user_id: cleanUserId,
+          date: today,
+          name,
+          protein,
+          carbs,
+          fat,
+          created_at: new Date().toISOString(),
+        }]);
 
         if (error) {
           alert("❌ Error logging food.");
@@ -254,8 +245,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           location.reload();
         }
       } catch (err) {
-        console.error("Error logging USDA food", err);
-        alert("❌ Unexpected error.");
+        console.error("❌ Error fetching USDA food details:", err);
+        alert("Error fetching nutrition info. Try a different item.");
       }
     };
 
@@ -269,6 +260,72 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       usdaResultsContainer.innerHTML = "";
     });
+
+    // ✅ Favorite Recipes Collapse: Logging a saved recipe
+    const favCollapse = document.getElementById("fav-recipes-collapse");
+    const favoritesContainer = document.getElementById("favorite-recipes-container");
+    let favoritesLoaded = false;
+
+    favCollapse?.addEventListener("shown.bs.collapse", async () => {
+      if (favoritesLoaded) return;
+      favoritesLoaded = true;
+
+      favoritesContainer.innerHTML = `
+        <div class="text-center py-3">
+          <div class="spinner-border text-success" role="status"></div>
+          <p class="mt-2">Loading favorites...</p>
+        </div>
+      `;
+
+      const { data: favorites, error } = await supabase
+        .from("favorite_recipes")
+        .select("id, title, calories, protein, carbs, fat")
+        .eq("user_id", cleanUserId);
+
+      if (error || !favorites?.length) {
+        favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
+        console.error("Favorite fetch error:", error);
+        return;
+      }
+
+      favoritesContainer.innerHTML = favorites.map(recipe => `
+        <div class="col-md-4">
+          <div class="card mb-3 p-3">
+            <h5>${recipe.title}</h5>
+            <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
+            <button class="btn btn-sm btn-success mt-2" data-recipe-id="${recipe.id}" data-title="${recipe.title}">
+              Log This
+            </button>
+          </div>
+        </div>
+      `).join("");
+
+      favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const name = button.dataset.title;
+          const recipe = favorites.find(r => r.id == button.dataset.recipeId);
+
+          const { error: insertError } = await supabase.from("macro_log").insert([{
+            user_id: cleanUserId,
+            date: today,
+            name,
+            protein: recipe.protein,
+            carbs: recipe.carbs,
+            fat: recipe.fat,
+            created_at: new Date().toISOString(),
+          }]);
+
+          if (insertError) {
+            alert("❌ Error logging recipe");
+            console.error(insertError);
+          } else {
+            alert(`✅ Logged "${name}"`);
+            location.reload();
+          }
+        });
+      });
+    });
+
   } catch (err) {
     console.error("🔥 Unexpected error loading macro tracking:", err);
   }
