@@ -178,10 +178,12 @@ return `
        data-fat="${fat}"
        data-calories="${calories}">
     <h6 class="mb-1">${name}</h6>
-    <p class="mb-2">
-      Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
-      <strong>Calories:</strong> ${calories}
-    </p>
+<p class="mb-2">
+  Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
+  <strong>Calories:</strong> ${calories}
+  ${food.servingSize ? `<br><em>Serving Size: ${food.servingSize} ${food.servingSizeUnit || ''}</em>` : ""}
+</p>
+
 
     <div class="mb-2">
       <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
@@ -212,18 +214,19 @@ usdaResultsContainer.addEventListener("click", async (e) => {
   const card = button.closest(".usda-card");
   if (!card) return;
 
-  const name = card.getAttribute("data-name");
-  const baseProtein = parseFloat(card.getAttribute("data-protein")) || 0;
-  const baseCarbs = parseFloat(card.getAttribute("data-carbs")) || 0;
-  const baseFat = parseFloat(card.getAttribute("data-fat")) || 0;
-  const baseCalories = Math.round(baseProtein * 4 + baseCarbs * 4 + baseFat * 9);
+const name = card.getAttribute("data-name");
+const baseProtein = parseFloat(card.getAttribute("data-protein")) || 0;
+const baseCarbs = parseFloat(card.getAttribute("data-carbs")) || 0;
+const baseFat = parseFloat(card.getAttribute("data-fat")) || 0;
 
-  const multiplier = parseFloat(card.querySelector("[data-serving-input]")?.value || "1");
+const multiplier = parseFloat(card.querySelector("[data-serving-input]")?.value || "1");
 
-  const protein = baseProtein * multiplier;
-  const carbs = baseCarbs * multiplier;
-  const fat = baseFat * multiplier;
-  const calories = baseCalories * multiplier;
+const protein = Math.ceil(baseProtein * multiplier);
+const carbs = Math.ceil(baseCarbs * multiplier);
+const fat = Math.ceil(baseFat * multiplier);
+const calories = Math.ceil(protein * 4 + carbs * 4 + fat * 9);
+
+
 
   if (protein === 0 && carbs === 0 && fat === 0) {
     alert("⚠️ No macro data found for this item.");
