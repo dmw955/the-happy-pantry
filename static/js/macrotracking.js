@@ -159,23 +159,37 @@ usdaSearchForm?.addEventListener("submit", async (e) => {
       return true;
     }).slice(0, 10);
 
-    usdaResultsContainer.innerHTML = uniqueFoods
-      .map((food) => {
-        const name = food.description.replace(/'/g, "");
-        const nutrients = food.foodNutrients || [];
+usdaResultsContainer.innerHTML = uniqueFoods.map((food) => {
+  const name = food.description.replace(/'/g, "");
+  const nutrients = food.foodNutrients || [];
 
-        const protein = getNutrientValue(nutrients, "Protein") ?? 0;
-        const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
-        const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
+  const protein = getNutrientValue(nutrients, "Protein") ?? 0;
+  const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
+  const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
 
-        return `
-          <div class="card p-3 mb-3">
-            <h6 class="mb-1">${name}</h6>
-            <p class="mb-2">Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g</p>
-            <button class="btn btn-primary-custom" onclick="logUSDAFood(${food.fdcId}, '${name.replace(/"/g, '&quot;')}')">Log This</button>
-          </div>`;
-      })
-      .join("");
+  return `
+    <div class="card p-3 mb-3" 
+         data-fdc-id="${food.fdcId}" 
+         data-name="${name}" 
+         data-protein="${protein}" 
+         data-carbs="${carbs}" 
+         data-fat="${fat}">
+      <h6 class="mb-1">${name}</h6>
+      <p class="mb-2">Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g</p>
+
+      <div class="mb-2">
+        <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
+        <input type="number" class="form-control form-control-sm" 
+               min="0.1" step="0.1" value="1" 
+               placeholder="Servings" data-serving-input style="max-width: 120px;">
+      </div>
+
+      <button class="btn btn-primary-custom btn-sm" onclick="logUSDAFood(this.parentElement)">
+        Log This
+      </button>
+    </div>`;
+}).join("");
+
   } catch (err) {
     console.error("USDA search error", err);
     usdaResultsContainer.innerHTML = "<p>Error searching food.</p>";
@@ -184,7 +198,14 @@ usdaSearchForm?.addEventListener("submit", async (e) => {
 
 
     // ✅ USDA Logging Function (more robust)
-window.logUSDAFood = async (fdcId, name) => {
+window.logUSDAFood = async (cardElement) => {
+  const name = cardElement.getAttribute("data-name");
+  const fdcId = cardElement.getAttribute("data-fdc-id");
+
+  const multiplier = parseFloat(
+    cardElement.querySelector("[data-serving-input]")?.value || "1"
+  );
+
   try {
     const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
     const data = await res.json();
@@ -197,7 +218,11 @@ window.logUSDAFood = async (fdcId, name) => {
       return acc;
     }, { protein: 0, carbs: 0, fat: 0 });
 
-    const { protein, carbs, fat } = nutrients;
+    const { protein, carbs, fat } = {
+      protein: nutrients.protein * multiplier,
+      carbs: nutrients.carbs * multiplier,
+      fat: nutrients.fat * multiplier,
+    };
 
     if (protein === 0 && carbs === 0 && fat === 0) {
       alert("⚠️ No macro data found for this item.");
@@ -218,7 +243,7 @@ window.logUSDAFood = async (fdcId, name) => {
       alert("❌ Error logging food.");
       console.error(error);
     } else {
-      alert(`✅ Logged "${name}"`);
+      alert(`✅ Logged "${name}" (${multiplier}x)`);
       location.reload();
     }
   } catch (err) {
@@ -226,6 +251,7 @@ window.logUSDAFood = async (fdcId, name) => {
     alert("Error fetching nutrition info. Try a different item.");
   }
 };
+
 
 
     // ✅ Helper for nutrient extraction
@@ -293,11 +319,13 @@ favCollapse?.addEventListener("shown.bs.collapse", async () => {
         <h5>${recipe.title}</h5>
         <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
 
-        <div class="input-group input-group-sm mb-1" style="max-width: 120px;">
-          <input type="number" class="form-control form-control-sm" 
-                 min="0.1" step="0.1" value="1" 
-                 placeholder="Serving" data-serving-input>
-        </div>
+<div class="mb-1">
+  <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
+  <input type="number" class="form-control form-control-sm" 
+         min="0.1" step="0.1" value="1" 
+         placeholder="Servings" data-serving-input style="max-width: 120px;">
+</div>
+
 
         ${recipe.recipe?.portion_note ? `<small class="text-muted d-block mb-2">${recipe.recipe.portion_note}</small>` : ''}
 
