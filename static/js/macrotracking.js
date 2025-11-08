@@ -67,8 +67,9 @@ const { data: todayLogsRaw } = await supabase
     const caloriesRemaining = Math.max(goalData.calories - caloriesConsumed, 0);
 
 // Update calorie stats below the chart
-document.getElementById("calories-consumed").textContent = `${caloriesConsumed} kcal`;
-document.getElementById("calories-remaining").textContent = `${caloriesRemaining} kcal`;
+document.getElementById("calories-consumed").textContent = `${Math.round(caloriesConsumed)} kcal`;
+document.getElementById("calories-remaining").textContent = `${Math.round(caloriesRemaining)} kcal`;
+
 
 
 new Chart(macroChartCanvas, {
