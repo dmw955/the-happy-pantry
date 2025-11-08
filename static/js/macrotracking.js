@@ -189,9 +189,10 @@ return `
              placeholder="Servings" data-serving-input style="max-width: 120px;">
     </div>
 
-    <button class="btn btn-primary-custom btn-sm" onclick="logUSDAFood(this.parentElement)">
-      Log This
-    </button>
+<button class="btn btn-primary-custom btn-sm log-usda-btn">
+  Log This
+</button>
+
   </div>`;
 
 }).join("");
@@ -203,32 +204,22 @@ return `
 });
 
 
-    // ✅ USDA Logging Function (more robust)
-window.logUSDAFood = async (cardElement) => {
-  const name = cardElement.getAttribute("data-name");
-  const fdcId = cardElement.getAttribute("data-fdc-id");
+document.querySelectorAll(".log-usda-btn").forEach(button => {
+  button.addEventListener("click", async (e) => {
+    const card = e.target.closest(".usda-card");
 
-  const multiplier = parseFloat(
-    cardElement.querySelector("[data-serving-input]")?.value || "1"
-  );
+    const name = card.getAttribute("data-name");
+    const fdcId = card.getAttribute("data-fdc-id");
+    const baseProtein = parseFloat(card.getAttribute("data-protein"));
+    const baseCarbs = parseFloat(card.getAttribute("data-carbs"));
+    const baseFat = parseFloat(card.getAttribute("data-fat"));
+    const baseCalories = parseFloat(card.getAttribute("data-calories"));
+    const multiplier = parseFloat(card.querySelector("[data-serving-input]")?.value || "1");
 
-  try {
-    const res = await fetch(`/usda/detail?fdcId=${fdcId}`);
-    const data = await res.json();
-
-    const nutrients = (data.foodNutrients || []).reduce((acc, n) => {
-      const label = (n.nutrientName || "").toLowerCase();
-      if (label.includes("protein")) acc.protein = n.value;
-      if (label.includes("carbohydrate")) acc.carbs = n.value;
-      if (label.includes("fat") || label.includes("lipid")) acc.fat = n.value;
-      return acc;
-    }, { protein: 0, carbs: 0, fat: 0 });
-
-    const { protein, carbs, fat } = {
-      protein: nutrients.protein * multiplier,
-      carbs: nutrients.carbs * multiplier,
-      fat: nutrients.fat * multiplier,
-    };
+    const protein = baseProtein * multiplier;
+    const carbs = baseCarbs * multiplier;
+    const fat = baseFat * multiplier;
+    const calories = baseCalories * multiplier;
 
     if (protein === 0 && carbs === 0 && fat === 0) {
       alert("⚠️ No macro data found for this item.");
@@ -242,6 +233,7 @@ window.logUSDAFood = async (cardElement) => {
       protein,
       carbs,
       fat,
+      calories,
       created_at: new Date().toISOString(),
     }]);
 
@@ -252,11 +244,8 @@ window.logUSDAFood = async (cardElement) => {
       alert(`✅ Logged "${name}" (${multiplier}x)`);
       location.reload();
     }
-  } catch (err) {
-    console.error("❌ Error fetching USDA food details:", err);
-    alert("Error fetching nutrition info. Try a different item.");
-  }
-};
+  });
+});
 
 
 
