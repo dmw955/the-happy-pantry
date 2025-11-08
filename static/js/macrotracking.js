@@ -175,7 +175,8 @@ return `
        data-name="${name}" 
        data-protein="${protein}" 
        data-carbs="${carbs}" 
-       data-fat="${fat}">
+       data-fat="${fat}"
+       data-calories="${calories}">
     <h6 class="mb-1">${name}</h6>
     <p class="mb-2">
       Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
@@ -204,48 +205,51 @@ return `
 });
 
 
-document.querySelectorAll(".log-usda-btn").forEach(button => {
-  button.addEventListener("click", async (e) => {
-    const card = e.target.closest(".usda-card");
+usdaResultsContainer.addEventListener("click", async (e) => {
+  const button = e.target.closest(".log-usda-btn");
+  if (!button) return;
 
-    const name = card.getAttribute("data-name");
-    const fdcId = card.getAttribute("data-fdc-id");
-    const baseProtein = parseFloat(card.getAttribute("data-protein"));
-    const baseCarbs = parseFloat(card.getAttribute("data-carbs"));
-    const baseFat = parseFloat(card.getAttribute("data-fat"));
-    const baseCalories = parseFloat(card.getAttribute("data-calories"));
-    const multiplier = parseFloat(card.querySelector("[data-serving-input]")?.value || "1");
+  const card = button.closest(".usda-card");
+  if (!card) return;
 
-    const protein = baseProtein * multiplier;
-    const carbs = baseCarbs * multiplier;
-    const fat = baseFat * multiplier;
-    const calories = baseCalories * multiplier;
+  const name = card.getAttribute("data-name");
+  const baseProtein = parseFloat(card.getAttribute("data-protein")) || 0;
+  const baseCarbs = parseFloat(card.getAttribute("data-carbs")) || 0;
+  const baseFat = parseFloat(card.getAttribute("data-fat")) || 0;
+  const baseCalories = Math.round(baseProtein * 4 + baseCarbs * 4 + baseFat * 9);
 
-    if (protein === 0 && carbs === 0 && fat === 0) {
-      alert("⚠️ No macro data found for this item.");
-      return;
-    }
+  const multiplier = parseFloat(card.querySelector("[data-serving-input]")?.value || "1");
 
-    const { error } = await supabase.from("macro_log").insert([{
-      user_id: cleanUserId,
-      date: today,
-      name,
-      protein,
-      carbs,
-      fat,
-      calories,
-      created_at: new Date().toISOString(),
-    }]);
+  const protein = baseProtein * multiplier;
+  const carbs = baseCarbs * multiplier;
+  const fat = baseFat * multiplier;
+  const calories = baseCalories * multiplier;
 
-    if (error) {
-      alert("❌ Error logging food.");
-      console.error(error);
-    } else {
-      alert(`✅ Logged "${name}" (${multiplier}x)`);
-      location.reload();
-    }
-  });
+  if (protein === 0 && carbs === 0 && fat === 0) {
+    alert("⚠️ No macro data found for this item.");
+    return;
+  }
+
+  const { error } = await supabase.from("macro_log").insert([{
+    user_id: cleanUserId,
+    date: today,
+    name,
+    protein,
+    carbs,
+    fat,
+    calories,
+    created_at: new Date().toISOString(),
+  }]);
+
+  if (error) {
+    alert("❌ Error logging food.");
+    console.error(error);
+  } else {
+    alert(`✅ Logged "${name}" (${multiplier}x)`);
+    location.reload();
+  }
 });
+
 
 
 
