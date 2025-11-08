@@ -130,6 +130,7 @@ if (todayLogs.length === 0) {
 
 
     // ✅ USDA Search
+// ✅ USDA Search
 usdaSearchForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
   const query = document.getElementById("usda-search-input").value.trim();
@@ -139,7 +140,24 @@ usdaSearchForm?.addEventListener("submit", async (e) => {
 
   try {
     const res = await fetch(`/usda/search?query=${encodeURIComponent(query)}`);
-    const data = await res.json();
+
+    // 🛑 Catch bad responses early (e.g. 500 errors)
+    if (!res.ok) {
+      console.error(`❌ Server returned status ${res.status}`);
+      usdaResultsContainer.innerHTML = "<p>⚠️ Server error. Please try again later.</p>";
+      return;
+    }
+
+    const text = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseErr) {
+      console.error("⚠️ Invalid JSON response. Likely a server error page:", text);
+      usdaResultsContainer.innerHTML = "<p>⚠️ Unexpected server error. Please try again shortly.</p>";
+      return;
+    }
 
     if (!data.foods?.length) {
       usdaResultsContainer.innerHTML = "<p>No results found.</p>";
@@ -160,46 +178,46 @@ usdaSearchForm?.addEventListener("submit", async (e) => {
       return true;
     }).slice(0, 10);
 
-usdaResultsContainer.innerHTML = uniqueFoods.map((food) => {
-  const name = food.description.replace(/'/g, "");
-  const nutrients = food.foodNutrients || [];
+    usdaResultsContainer.innerHTML = uniqueFoods.map((food) => {
+      const name = food.description.replace(/'/g, "");
+      const nutrients = food.foodNutrients || [];
 
-  const protein = getNutrientValue(nutrients, "Protein") ?? 0;
-  const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
-  const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
-  const calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
+      const protein = getNutrientValue(nutrients, "Protein") ?? 0;
+      const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
+      const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
+      const calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
 
-  const servingSize = food.servingSize || null;
-  const servingUnit = food.servingSizeUnit || "";
+      const servingSize = food.servingSize || null;
+      const servingUnit = food.servingSizeUnit || "";
 
-  return `
-    <div class="card p-3 mb-3 usda-card"
-         data-fdc-id="${food.fdcId}" 
-         data-name="${name}" 
-         data-protein="${protein}" 
-         data-carbs="${carbs}" 
-         data-fat="${fat}"
-         data-calories="${calories}">
-      <h6 class="mb-1">${name}</h6>
-      <p class="mb-2">
-        Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
-        <strong>Calories:</strong> ${calories}
-      </p>
-      ${servingSize ? `<small class="text-muted d-block">Serving Size: ${servingSize} ${servingUnit}</small>` : ""}
+     return `
+  <div class="card p-3 mb-3 usda-card"
+       data-fdc-id="${food.fdcId}" 
+       data-name="${name}" 
+       data-protein="${protein}" 
+       data-carbs="${carbs}" 
+       data-fat="${fat}"
+       data-calories="${calories}">
+    <h6 class="mb-1">${name}</h6>
+    <p class="mb-2">
+      Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
+      <strong>Calories:</strong> ${calories}<br>
+      ${servingSize ? `<small class="text-muted">Serving Size: ${servingSize} ${servingUnit}</small>` : ""}
+    </p>
 
-      <div class="mb-2">
-        <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
-        <input type="number" class="form-control form-control-sm" 
-               min="0.1" step="0.1" value="1" 
-               placeholder="Servings" data-serving-input style="max-width: 120px;">
-      </div>
+    <div class="mb-2">
+      <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
+      <input type="number" class="form-control form-control-sm" 
+             min="0.1" step="0.1" value="1" 
+             placeholder="Servings" data-serving-input style="max-width: 120px;">
+    </div>
 
-      <button class="btn btn-primary-custom btn-sm log-usda-btn">
-        Log This
-      </button>
-    </div>`;
-}).join("");
+    <button class="btn btn-primary-custom btn-sm log-usda-btn">
+      Log This
+    </button>
+  </div>`;
 
+    }).join("");
 
   } catch (err) {
     console.error("USDA search error", err);
