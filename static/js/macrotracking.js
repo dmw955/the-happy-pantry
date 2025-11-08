@@ -263,64 +263,68 @@ favCollapse?.addEventListener("shown.bs.collapse", async () => {
     </div>
   `;
 
-supabase
-  .from("favorite_recipes")
-  .select(`
-    id,
-    title,
-    calories,
-    protein,
-    carbs,
-    fat,
-    recipe:recipes (portion_note)
-  `)
-  .eq("user_id", cleanUserId);
+  const { data: favorites, error: fetchError } = await supabase
+    .from("favorite_recipes")
+    .select(`
+      id,
+      title,
+      calories,
+      protein,
+      carbs,
+      fat,
+      recipe:recipes (portion_note)
+    `)
+    .eq("user_id", cleanUserId);
 
+  if (fetchError || !favorites?.length) {
+    favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
+    console.error("Favorite fetch error:", fetchError);
+    return;
+  }
 
+  favoritesContainer.innerHTML = favorites.map(recipe => `
+    <div class="col-md-4">
+      <div class="card mb-3 p-3" 
+           data-recipe-id="${recipe.id}" 
+           data-title="${recipe.title}" 
+           data-protein="${recipe.protein}" 
+           data-carbs="${recipe.carbs}" 
+           data-fat="${recipe.fat}">
+        <h5>${recipe.title}</h5>
+        <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
 
-if (fetchError || !favorites?.length) {
-  favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
-  console.error("Favorite fetch error:", fetchError);
-  return;
-}
+        <div class="input-group input-group-sm mb-1" style="max-width: 120px;">
+          <input type="number" class="form-control form-control-sm" 
+                 min="0.1" step="0.1" value="1" 
+                 placeholder="Serving" data-serving-input>
+        </div>
 
-favoritesContainer.innerHTML = favorites.map(recipe => `
-  <div class="col-md-4">
-    <div class="card mb-3 p-3" 
-         data-recipe-id="${recipe.id}" 
-         data-title="${recipe.title}" 
-         data-protein="${recipe.protein}" 
-         data-carbs="${recipe.carbs}" 
-         data-fat="${recipe.fat}">
-      <h5>${recipe.title}</h5>
-      <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
-      
-      <div class="input-group input-group-sm mb-1" style="max-width: 120px;">
-        <input type="number" class="form-control form-control-sm" min="0.1" step="0.1" value="1" placeholder="Serving" data-serving-input>
+        ${recipe.recipe?.portion_note ? `<small class="text-muted d-block mb-2">${recipe.recipe.portion_note}</small>` : ''}
+
+        <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}">
+          Log This
+        </button>
       </div>
-      
-      ${recipe.portion_note ? `<small class="text-muted d-block mb-2">${recipe.portion_note}</small>` : ''}
-
-      <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}">
-        Log This
-      </button>
     </div>
-  </div>
-`).join("");
-
+  `).join("");
 
   favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
     button.addEventListener("click", async () => {
-      const name = button.dataset.title;
-      const recipe = favorites.find(r => r.id == button.dataset.recipeId);
+      const card = button.closest(".card");
+      const multiplier = parseFloat(card.querySelector("[data-serving-input]")?.value || "1");
+
+      const name = card.getAttribute("data-title");
+      const protein = parseFloat(card.getAttribute("data-protein")) * multiplier;
+      const carbs = parseFloat(card.getAttribute("data-carbs")) * multiplier;
+      const fat = parseFloat(card.getAttribute("data-fat")) * multiplier;
 
       const { error: insertError } = await supabase.from("macro_log").insert([{
         user_id: cleanUserId,
         date: today,
         name,
-        protein: recipe.protein,
-        carbs: recipe.carbs,
-        fat: recipe.fat,
+        protein,
+        carbs,
+        fat,
         created_at: new Date().toISOString(),
       }]);
 
@@ -328,12 +332,13 @@ favoritesContainer.innerHTML = favorites.map(recipe => `
         alert("❌ Error logging recipe");
         console.error(insertError);
       } else {
-        alert(`✅ Logged "${name}"`);
+        alert(`✅ Logged "${name}" (${multiplier}x)`);
         location.reload();
       }
     });
   });
 });
+
 
   } catch (err) {
     console.error("🔥 Unexpected error:", err);
