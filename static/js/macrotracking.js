@@ -170,7 +170,7 @@ const calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
 
 
 return `
-  <div class="card p-3 mb-3" 
+  <div class="card p-3 mb-3 usda-card"
        data-fdc-id="${food.fdcId}" 
        data-name="${name}" 
        data-protein="${protein}" 
