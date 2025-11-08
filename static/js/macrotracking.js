@@ -163,42 +163,42 @@ usdaResultsContainer.innerHTML = uniqueFoods.map((food) => {
   const name = food.description.replace(/'/g, "");
   const nutrients = food.foodNutrients || [];
 
-const protein = getNutrientValue(nutrients, "Protein") ?? 0;
-const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
-const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
-const calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
+  const protein = getNutrientValue(nutrients, "Protein") ?? 0;
+  const carbs = getNutrientValue(nutrients, "Carbohydrate") ?? 0;
+  const fat = getNutrientValue(nutrients, "Total lipid") ?? 0;
+  const calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
 
+  const servingSize = food.servingSize || null;
+  const servingUnit = food.servingSizeUnit || "";
 
-return `
-  <div class="card p-3 mb-3 usda-card"
-       data-fdc-id="${food.fdcId}" 
-       data-name="${name}" 
-       data-protein="${protein}" 
-       data-carbs="${carbs}" 
-       data-fat="${fat}"
-       data-calories="${calories}">
-    <h6 class="mb-1">${name}</h6>
-<p class="mb-2">
-  Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
-  <strong>Calories:</strong> ${calories}
-  ${food.servingSize ? `<br><em>Serving Size: ${food.servingSize} ${food.servingSizeUnit || ''}</em>` : ""}
-</p>
+  return `
+    <div class="card p-3 mb-3 usda-card"
+         data-fdc-id="${food.fdcId}" 
+         data-name="${name}" 
+         data-protein="${protein}" 
+         data-carbs="${carbs}" 
+         data-fat="${fat}"
+         data-calories="${calories}">
+      <h6 class="mb-1">${name}</h6>
+      <p class="mb-2">
+        Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
+        <strong>Calories:</strong> ${calories}
+      </p>
+      ${servingSize ? `<small class="text-muted d-block">Serving Size: ${servingSize} ${servingUnit}</small>` : ""}
 
+      <div class="mb-2">
+        <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
+        <input type="number" class="form-control form-control-sm" 
+               min="0.1" step="0.1" value="1" 
+               placeholder="Servings" data-serving-input style="max-width: 120px;">
+      </div>
 
-    <div class="mb-2">
-      <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
-      <input type="number" class="form-control form-control-sm" 
-             min="0.1" step="0.1" value="1" 
-             placeholder="Servings" data-serving-input style="max-width: 120px;">
-    </div>
-
-<button class="btn btn-primary-custom btn-sm log-usda-btn">
-  Log This
-</button>
-
-  </div>`;
-
+      <button class="btn btn-primary-custom btn-sm log-usda-btn">
+        Log This
+      </button>
+    </div>`;
 }).join("");
+
 
   } catch (err) {
     console.error("USDA search error", err);
