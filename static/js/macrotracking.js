@@ -202,7 +202,10 @@ usdaSearchForm?.addEventListener("submit", async (e) => {
     <p class="mb-2">
       Protein: ${protein}g | Carbs: ${carbs}g | Fat: ${fat}g<br>
       <strong>Calories:</strong> ${calories}<br>
-      ${servingSize ? `<small class="text-muted">Serving Size: ${servingSize} ${servingUnit}</small>` : ""}
+      ${servingSize 
+  ? `<small class="text-muted d-block">Serving Size: ${servingSize} ${servingUnit}</small>` 
+  : `<small class="text-muted d-block">*Assumed per 100g</small>`}
+
     </p>
 
     <div class="mb-2">
