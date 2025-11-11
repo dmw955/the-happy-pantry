@@ -308,6 +308,46 @@ const calories = Math.ceil(protein * 4 + carbs * 4 + fat * 9);
 });
 
 
+// Manual Entry Handler
+document.getElementById("manual-entry-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("manual-name").value.trim();
+  const protein = parseFloat(document.getElementById("manual-protein").value) || 0;
+  const carbs = parseFloat(document.getElementById("manual-carbs").value) || 0;
+  const fat = parseFloat(document.getElementById("manual-fat").value) || 0;
+  const calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
+
+  if (!name || (protein === 0 && carbs === 0 && fat === 0)) {
+    alert("⚠️ Please enter a name and at least one macro.");
+    return;
+  }
+
+  const supabase = window.supabaseClient;
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  const cleanUserId = user.id.split(":")[0];
+  const today = new Date().toISOString().split("T")[0];
+
+  const { error } = await supabase.from("macro_log").insert([{
+    user_id: cleanUserId,
+    date: today,
+    name,
+    protein,
+    carbs,
+    fat,
+    calories,
+    created_at: new Date().toISOString()
+  }]);
+
+  if (error) {
+    alert("❌ Error logging manual entry.");
+    console.error(error);
+  } else {
+    alert(`✅ Logged "${name}"`);
+    location.reload();
+  }
+});
 
 
 

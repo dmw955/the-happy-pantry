@@ -188,29 +188,56 @@
       </div>
 
 <div class="card p-3 mb-4">
-  <h5 class="mb-3">Search USDA Food Database</h5>
-  <form id="usda-search-form" class="d-flex gap-2 mb-3 flex-wrap">
-    <input type="text" id="usda-search-input" class="form-control" placeholder="e.g. Chicken Breast" />
-    <button type="submit" class="btn btn-warning">Search</button>
-    <button type="button" class="btn btn-outline-danger" id="clear-results-btn">❌ Clear Results</button>
-  </form>
+  <div class="row">
+    <!-- USDA Search Section -->
+    <div class="col-12">
+      <h5 class="mb-3">Search USDA Food Database</h5>
+      <form id="usda-search-form" class="row g-2 mb-3">
+        <div class="col-md-6 col-12">
+          <input type="text" id="usda-search-input" class="form-control" placeholder="e.g. Chicken Breast" />
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-warning w-100">Search</button>
+        </div>
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-danger w-100" id="clear-results-btn">❌ Clear</button>
+        </div>
+      </form>
+    </div>
 
-  <hr class="my-3" />
+    <!-- USDA Results -->
+    <div class="col-12 mt-3">
+      <div class="collapse show" id="usda-results-wrapper">
+        <div id="usda-results"></div>
+      </div>
+    </div>
 
-  <h5 class="mb-3">Manual Macro Entry</h5>
-  <form id="manual-entry-form" class="d-flex gap-2 flex-wrap align-items-end">
-    <input type="text" class="form-control" id="manual-name" placeholder="Item name (e.g., Protein Bar)" />
-    <input type="number" class="form-control" id="manual-protein" placeholder="Protein (g)" min="0" step="0.1" />
-    <input type="number" class="form-control" id="manual-carbs" placeholder="Carbs (g)" min="0" step="0.1" />
-    <input type="number" class="form-control" id="manual-fat" placeholder="Fat (g)" min="0" step="0.1" />
-    <button type="submit" class="btn btn-primary">Log Manually</button>
-  </form>
+    <hr class="my-4" />
+
+    <!-- Manual Entry Section -->
+    <div class="col-12">
+      <h5 class="mb-3">Manual Macro Entry</h5>
+      <form id="manual-entry-form" class="row g-2 align-items-end">
+        <div class="col-md-4 col-12">
+          <input type="text" class="form-control" id="manual-name" placeholder="Item name (e.g., Protein Bar)" />
+        </div>
+        <div class="col-md-2 col-4">
+          <input type="number" class="form-control" id="manual-protein" placeholder="Protein (g)" min="0" step="0.1" />
+        </div>
+        <div class="col-md-2 col-4">
+          <input type="number" class="form-control" id="manual-carbs" placeholder="Carbs (g)" min="0" step="0.1" />
+        </div>
+        <div class="col-md-2 col-4">
+          <input type="number" class="form-control" id="manual-fat" placeholder="Fat (g)" min="0" step="0.1" />
+        </div>
+        <div class="col-md-2 col-12">
+          <button type="submit" class="btn btn-primary w-100">Log Manually</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
-<!-- USDA Search Results Inject Here -->
-<div id="usda-results-wrapper">
-  <div id="usda-results"></div>
-</div>
 
 
   <!-- Collapsible Results Section -->
