@@ -190,6 +190,28 @@
     </div>
   </form>
 
+  <div class="card p-3 mb-4">
+  <h5>Manual Macro Entry</h5>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <input type="text" class="form-control" id="manual-title" placeholder="Item name (e.g., Protein Bar)">
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" id="manual-protein" placeholder="Protein (g)" min="0">
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" id="manual-carbs" placeholder="Carbs (g)" min="0">
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" id="manual-fat" placeholder="Fat (g)" min="0">
+    </div>
+    <div class="col-md-2 d-grid">
+      <button class="btn btn-primary" id="manual-log-btn">Log Manually</button>
+    </div>
+  </div>
+</div>
+
+
   <!-- Collapsible Results Section -->
   <div class="collapse show mt-3" id="usda-results-wrapper">
     <div id="usda-results"></div>

@@ -228,6 +228,38 @@ usdaSearchForm?.addEventListener("submit", async (e) => {
   }
 });
 
+document.getElementById("manual-log-btn")?.addEventListener("click", async () => {
+  const name = document.getElementById("manual-title").value.trim() || "Manual Entry";
+  const protein = parseFloat(document.getElementById("manual-protein").value) || 0;
+  const carbs = parseFloat(document.getElementById("manual-carbs").value) || 0;
+  const fat = parseFloat(document.getElementById("manual-fat").value) || 0;
+  const calories = Math.round(protein * 4 + carbs * 4 + fat * 9);
+
+  if (protein === 0 && carbs === 0 && fat === 0) {
+    alert("Please enter at least one macronutrient.");
+    return;
+  }
+
+  const { error } = await supabase.from("macro_log").insert([{
+    user_id: cleanUserId,
+    date: today,
+    name,
+    protein,
+    carbs,
+    fat,
+    calories,
+    created_at: new Date().toISOString(),
+  }]);
+
+  if (error) {
+    alert("❌ Error logging manual entry.");
+    console.error(error);
+  } else {
+    alert(`✅ Logged "${name}" manually.`);
+    location.reload();
+  }
+});
+
 
 usdaResultsContainer.addEventListener("click", async (e) => {
   const button = e.target.closest(".log-usda-btn");
