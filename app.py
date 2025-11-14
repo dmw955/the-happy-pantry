@@ -564,25 +564,27 @@ import random
 
 @app.route("/recipes")
 def recipes():
+    # Page-only route (unchanged)
+    return render_template(
+        "recipes.html",
+        SUPABASE_URL=SUPABASE_URL,
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+    )
+
+@app.route("/api/recipes")
+def api_recipes():
     try:
         sb = get_supabase()
-
-        # Fetch all recipes
         response = sb.table("recipes").select("*").execute()
         data = getattr(response, "data", [])
 
-        # Shuffle the recipe order
+        # Shuffle list server‑side
         random.shuffle(data)
 
-        return render_template(
-            "recipes.html",
-            recipes=data,
-            SUPABASE_URL=SUPABASE_URL,
-            SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-        )
+        return jsonify(data)
     except Exception as e:
-        print("recipes error:", e)
-        return "Error loading recipes.", 500
+        print("api_recipes error:", e)
+        return jsonify({"error": "Error loading recipes"}), 500
 
 
 # ─────────────────────────────────────────────────────────────────────────────
