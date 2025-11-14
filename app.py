@@ -560,26 +560,30 @@ def blog_macro():
     }
     return render_template("blog_macro.html", post=post)
 
+import random
+
 @app.route("/recipes")
 def recipes():
-    return render_template("recipes.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
-
-@app.route("/recipes/<slug>")
-def recipe_page(slug):
     try:
         sb = get_supabase()
-        response = sb.table("recipes").select("*").eq("slug", slug).execute()
-        data = getattr(response, "data", None)
-        if not data:
-            return "❌ No recipe found.", 404
-        recipe = data[0]
-        for f in ["ingredients", "dressing"]:
-            if isinstance(recipe.get(f), list):
-                recipe[f] = [json.loads(i) if isinstance(i, str) else i for i in recipe[f]]
-        return render_template("recipe.html", recipe=recipe)
+
+        # Fetch all recipes
+        response = sb.table("recipes").select("*").execute()
+        data = getattr(response, "data", [])
+
+        # Shuffle the recipe order
+        random.shuffle(data)
+
+        return render_template(
+            "recipes.html",
+            recipes=data,
+            SUPABASE_URL=SUPABASE_URL,
+            SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        )
     except Exception as e:
-        print("recipe_page error:", e)
-        return "Error loading recipe.", 500
+        print("recipes error:", e)
+        return "Error loading recipes.", 500
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Diagnostics
