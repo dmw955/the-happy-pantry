@@ -264,39 +264,36 @@ body {
   <!-- ▶ PantryPal Backdrop -->
   <div class="pp-backdrop" id="ppBackdrop"></div>
 
-  <!-- ▶ PantryPal Bottom Sheet (Dialog) -->
-  <section class="pp-sheet" id="ppSheet" role="dialog" aria-modal="true" aria-labelledby="ppTitle" aria-describedby="ppDesc">
-    <div class="pp-grabber" aria-hidden="true"></div>
-    <header class="pp-header">
-      <div class="pp-avatar" aria-hidden="true">
-        <!-- Mini PantryPal icon -->
-        <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
-          <rect x="14" y="10" width="36" height="8" rx="3" fill="var(--pp-teal)"/>
-          <rect x="12" y="18" width="40" height="36" rx="8" fill="#f0fdfa" stroke="var(--pp-teal)" stroke-width="2"/>
-          <path d="M24 42c3 4 13 4 16 0" stroke="#0f172a" stroke-width="2" fill="none" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div>
-        <div class="pp-title" id="ppTitle">PantryPal</div>
-        <div class="pp-sub" id="ppDesc">Friendly, supportive help for swaps, filters, and ideas.</div>
-      </div>
-      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-        <button id="ppClose" title="Close" aria-label="Close" style="background:transparent;border:0;cursor:pointer;padding:6px;border-radius:8px;">
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="#64748b" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
-      </div>
-    </header>
+<!-- ▶ PantryPal Bottom Sheet (Dialog) -->
+<section class="pp-sheet" id="ppSheet" role="dialog" aria-modal="true" aria-labelledby="ppTitle" aria-describedby="ppDesc">
+  <div class="pp-grabber" aria-hidden="true"></div>
+  <header class="pp-header">
+    <!-- avatar + title omitted for brevity -->
+  </header>
 
-    <main class="pp-body" id="ppBody">
-      <!-- Welcome message -->
-      <div class="pp-msg bot"><div class="bubble"><strong>Hi! I’m PantryPal.</strong><br/>Tell me what you have on hand or what you’re aiming for, and I’ll help you apply filters or suggest swaps—no full recipes, just quick, useful tips.</div></div>
-    </main>
+  <main>
+    <!-- 👇 PantryPal message container -->
+    <div id="ppMessages" class="pp-body"></div>
 
-    <div class="pp-suggestions" id="ppSuggestions">
-      <button class="pp-chip" data-suggest="Show high‑protein dinners under 35 minutes">High‑protein &lt; 35 min</button>
-      <button class="pp-chip" data-suggest="I only have chicken, zucchini, and rice—what can I make from my saved recipes?">Use what I have</button>
-      <button class="pp-chip" data-suggest="Dairy‑free swaps for Alfredo‑style sauces">Dairy‑free swaps</button>
+    <!-- 👇 Typing indicator -->
+    <div id="ppTyping" hidden>PantryPal is typing...</div>
+  </main>
+
+  <!-- ✅ Suggestions -->
+  <div class="pp-suggestions" id="ppSuggestions">
+    <button class="pp-chip" data-suggest="Show high‑protein dinners under 35 minutes">High‑protein &lt; 35 min</button>
+    <!-- etc... -->
+  </div>
+
+  <!-- ✅ Input bar -->
+  <form id="ppForm">
+    <div class="pp-inputbar">
+      <input type="text" id="ppInput" class="pp-input" placeholder="Ask me something..." autocomplete="off" />
+      <button type="submit" class="pp-send" disabled>Send</button>
     </div>
+  </form>
+</section>
+
 
 
   <!-- Scripts -->

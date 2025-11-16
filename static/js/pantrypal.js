@@ -1,4 +1,3 @@
-
 const PantryPal = (() => {
   const state = {
     endpoint: "/api/pantrypal",
@@ -51,14 +50,14 @@ const PantryPal = (() => {
   }
 
   function safeContext(ctx) {
-    // Prevent accidental circular/huge payloads
     try {
       return JSON.parse(JSON.stringify(ctx || {}));
-    } catch { return {}; }
+    } catch {
+      return {};
+    }
   }
 
   function validateResponse(data) {
-    // Expected shape: { text: string, actions?: { applyFilters?, showRecipes?, suggestSwap? } }
     if (!data || typeof data.text !== "string") {
       throw new Error("Invalid AI response shape: missing text");
     }
@@ -71,22 +70,14 @@ const PantryPal = (() => {
   function dispatchActions(actions) {
     if (!actions || typeof actions !== "object") return;
 
-    // 1) Apply filters
     if (actions.applyFilters) {
-      const detail = actions.applyFilters;
-      window.dispatchEvent(new CustomEvent("pp:applyFilters", { detail }));
+      window.dispatchEvent(new CustomEvent("pp:applyFilters", { detail: actions.applyFilters }));
     }
-
-    // 2) Show recipes (limit)
     if (actions.showRecipes) {
-      const detail = actions.showRecipes; // e.g., { limit: 5 }
-      window.dispatchEvent(new CustomEvent("pp:showRecipes", { detail }));
+      window.dispatchEvent(new CustomEvent("pp:showRecipes", { detail: actions.showRecipes }));
     }
-
-    // 3) Suggest ingredient swap
     if (actions.suggestSwap) {
-      const detail = actions.suggestSwap; // e.g., { from: "broccoli", to: "asparagus" }
-      window.dispatchEvent(new CustomEvent("pp:suggestSwap", { detail }));
+      window.dispatchEvent(new CustomEvent("pp:suggestSwap", { detail: actions.suggestSwap }));
     }
   }
 
@@ -142,13 +133,9 @@ const PantryPal = (() => {
 })();
 
 // ---------------------------
-// Example wiring (listeners)
+// Event listeners
 // ---------------------------
-// Place these in a page-specific script OR keep here and call your real functions inside.
-// They listen for PantryPal's action events and bridge to your existing UI logic.
-
 window.addEventListener("pp:applyFilters", (e) => {
-  // e.detail might look like: { diet: "high-protein", exclude: ["broccoli"], timeMax: 30 }
   if (window.applyRecipeFilters) {
     window.applyRecipeFilters(e.detail);
   } else {
@@ -157,7 +144,6 @@ window.addEventListener("pp:applyFilters", (e) => {
 });
 
 window.addEventListener("pp:showRecipes", (e) => {
-  // e.detail might look like: { limit: 5 }
   if (window.showRecipesLimit) {
     window.showRecipesLimit(e.detail.limit || 6);
   } else {
@@ -166,12 +152,10 @@ window.addEventListener("pp:showRecipes", (e) => {
 });
 
 window.addEventListener("pp:suggestSwap", (e) => {
-  // e.detail might look like: { from: "broccoli", to: "asparagus" }
   if (window.showSwapSuggestion) {
     window.showSwapSuggestion(e.detail);
   } else {
     console.debug("pp:suggestSwap", e.detail);
-    // Example fallback UI (toast-like)
     try {
       const msg = document.createElement("div");
       msg.textContent = `Swap suggestion: ${e.detail.from} → ${e.detail.to}`;
@@ -188,4 +172,19 @@ window.addEventListener("pp:suggestSwap", (e) => {
       setTimeout(() => msg.remove(), 3000);
     } catch {}
   }
+});
+
+// ✅ Initialize PantryPal
+PantryPal.init({
+  selectors: {
+    form: "#ppForm",
+    input: "#ppInput",
+    messages: "#ppMessages",
+    typing: "#ppTyping"
+  },
+  getContext: () => ({
+    filters: window.currentRecipeFilters || {},
+    pantry: window.userPantryItems || [],
+    page: "recipes"
+  })
 });

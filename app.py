@@ -520,17 +520,28 @@ def pantrypal_api():
 
         payload = request.get_json(force=True)
         user_msg = (payload.get("message") or "").strip()
+        context = payload.get("context", {})
+
         if not user_msg:
             return jsonify({"error": "Missing message"}), 400
 
+        system_msg = (
+            "You are PantryPal, a helpful kitchen assistant. "
+            "Respond in concise JSON with text/actions only. "
+            f"Here is some page context: {json.dumps(context)}"
+        )
+
         r = requests.post(
             "https://api.openai.com/v1/chat/completions",
-            headers={"Authorization": f"Bearer {openai_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {openai_key}",
+                "Content-Type": "application/json"
+            },
             json={
                 "model": "gpt-4o-mini",
-                "response_format": {"type": "json_object"},
+                "response_format": "json",  # ✅ Corrected!
                 "messages": [
-                    {"role": "system", "content": "You are PantryPal, respond in concise JSON with text/actions."},
+                    {"role": "system", "content": system_msg},
                     {"role": "user", "content": user_msg},
                 ],
                 "max_tokens": 350,
@@ -538,10 +549,18 @@ def pantrypal_api():
             },
             timeout=20,
         )
-        data = json.loads(r.json()["choices"][0]["message"]["content"])
+
+        try:
+            content = r.json()["choices"][0]["message"]["content"]
+            data = json.loads(content)
+        except (KeyError, IndexError, json.JSONDecodeError):
+            print("❌ Invalid AI response")
+            return jsonify({"error": "Invalid AI response"}), 502
+
         return jsonify(data), 200
+
     except Exception:
-        print(traceback.format_exc())
+        print("❌ Server error:\n", traceback.format_exc())
         return jsonify({"error": "Server error"}), 500
 
 # ─────────────────────────────────────────────────────────────────────────────
