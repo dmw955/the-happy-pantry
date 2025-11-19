@@ -606,27 +606,34 @@ def api_recipes():
         return jsonify({"error": "Error loading recipes"}), 500
 
 
-# NEW — serve individual recipe pages by slug
 @app.route("/recipes/<slug>")
 def recipe_by_slug(slug):
-    sb = get_supabase()
+    try:
+        sb = get_supabase()
+        response = sb.table("recipes").select("*").eq("slug", slug).single().execute()
+        recipe = response.data
 
-    response = sb.table("recipes").select("*").eq("slug", slug).single().execute()
-    recipe = response.data
+        if not recipe:
+            return "Recipe not found", 404
 
-    if isinstance(recipe.get("ingredients"), str):
-        try:
-            recipe["ingredients"] = json.loads(recipe["ingredients"])
-        except Exception:
-            recipe["ingredients"] = []
+        # ✅ Fix: Parse ingredients if needed
+        import json
+        if recipe.get("ingredients") and isinstance(recipe["ingredients"][0], str):
+            try:
+                recipe["ingredients"] = [json.loads(i) for i in recipe["ingredients"]]
+            except Exception as e:
+                print("❌ Error parsing ingredients JSON:", e)
+                recipe["ingredients"] = []
 
-    return render_template(
-        "recipe.html",
-        recipe=recipe,
-        SUPABASE_URL=os.getenv("SUPABASE_URL"),            # ✅ Must exist
-        SUPABASE_ANON_KEY=os.getenv("SUPABASE_ANON_KEY")   # ✅ Must exist
-    )
-
+        return render_template(
+            "recipe.html",
+            recipe=recipe,
+            SUPABASE_URL=SUPABASE_URL,
+            SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        )
+    except Exception as e:
+        print("❌ Error loading recipe by slug:", e)
+        return "Server error", 500
 
 
 
