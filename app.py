@@ -514,7 +514,12 @@ def success():
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
     try:
+        from dotenv import load_dotenv
+        load_dotenv()
+
         openai_key = os.getenv("OPENAI_API_KEY")
+        print("🔑 OPENAI_API_KEY:", openai_key)
+
         if not openai_key:
             return jsonify({"error": "Missing OPENAI_API_KEY"}), 500
 
@@ -539,7 +544,7 @@ def pantrypal_api():
             },
             json={
                 "model": "gpt-4o-mini",
-                "response_format": "json",  # ✅ Corrected!
+                "response_format": "json",
                 "messages": [
                     {"role": "system", "content": system_msg},
                     {"role": "user", "content": user_msg},
@@ -549,6 +554,9 @@ def pantrypal_api():
             },
             timeout=20,
         )
+
+        print("📡 OpenAI response status:", r.status_code)
+        print("📦 OpenAI response body:", r.text)
 
         try:
             content = r.json()["choices"][0]["message"]["content"]
