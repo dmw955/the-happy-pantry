@@ -605,6 +605,26 @@ def api_recipes():
         print("api_recipes error:", e)
         return jsonify({"error": "Error loading recipes"}), 500
 
+@app.route("/recipe/<int:recipe_id>")
+def recipe_detail(recipe_id):
+    try:
+        sb = get_supabase()
+        response = sb.table("recipes").select("*").eq("id", recipe_id).single().execute()
+        recipe = response.data
+
+        if not recipe:
+            return "Recipe not found", 404
+
+        return render_template(
+            "recipe.html",
+            recipe=recipe,
+            SUPABASE_URL=SUPABASE_URL,
+            SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        )
+    except Exception as e:
+        print("❌ Error loading recipe:", e)
+        return "Server error", 500
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Diagnostics
