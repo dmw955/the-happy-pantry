@@ -241,61 +241,7 @@ body {
     <div>The Happy Pantry © 2025</div>
   </footer>
 
-  <!-- ▶ PantryPal FAB Button -->
-  <button class="pp-fab" id="ppFab" aria-haspopup="dialog" aria-controls="ppSheet" aria-expanded="false" aria-label="Open PantryPal">
-    <!-- PantryPal: Chef Hat Smiley -->
-    <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <!-- Hat puff -->
-      <rect x="14" y="4" width="36" height="16" rx="8" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-      <!-- Hat band -->
-      <rect x="18" y="18" width="28" height="8" rx="4" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-      <!-- Gold ring around face -->
-      <circle cx="32" cy="40" r="18" fill="var(--pp-bg)" stroke="var(--pp-gold)" stroke-width="2"/>
-      <!-- Face outline -->
-      <circle cx="32" cy="40" r="16" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-      <!-- Eyes -->
-      <circle cx="26.5" cy="37" r="2" fill="#0f172a"/>
-      <circle cx="37.5" cy="37" r="2" fill="#0f172a"/>
-      <!-- Smile -->
-      <path d="M24 43c3.5 4 12.5 4 16 0" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-  </button>
-
-  <!-- ▶ PantryPal Backdrop -->
-  <div class="pp-backdrop" id="ppBackdrop"></div>
-
-<!-- ▶ PantryPal Bottom Sheet (Dialog) -->
-<section class="pp-sheet" id="ppSheet" role="dialog" aria-modal="true" aria-labelledby="ppTitle" aria-describedby="ppDesc">
-  <div class="pp-grabber" aria-hidden="true"></div>
-  <header class="pp-header">
-    <!-- avatar + title omitted for brevity -->
-  </header>
-
-  <main>
-    <!-- 👇 PantryPal message container -->
-    <div id="ppMessages" class="pp-body"></div>
-
-    <!-- 👇 Typing indicator -->
-    <div id="ppTyping" hidden>PantryPal is typing...</div>
-  </main>
-
-  <!-- ✅ Suggestions -->
-  <div class="pp-suggestions" id="ppSuggestions">
-    <button class="pp-chip" data-suggest="Show high‑protein dinners under 35 minutes">High‑protein &lt; 35 min</button>
-    <!-- etc... -->
-  </div>
-
-  <!-- ✅ Input bar -->
-  <form id="ppForm">
-    <div class="pp-inputbar">
-      <input type="text" id="ppInput" class="pp-input" placeholder="Ask me something..." autocomplete="off" />
-      <button type="submit" class="pp-send" disabled>Send</button>
-    </div>
-  </form>
-</section>
-
-
-
+ 
   <!-- Scripts -->
   <!-- ✅ First: load the Supabase client setup -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>

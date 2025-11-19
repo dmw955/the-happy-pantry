@@ -183,8 +183,9 @@ PantryPal.init({
     typing: "#ppTyping"
   },
   getContext: () => ({
-    filters: window.currentRecipeFilters || {},
-    pantry: window.userPantryItems || [],
-    page: "recipes"
+    recipeTitle: window.currentRecipe?.title || document.querySelector("h1")?.textContent || "",
+    ingredients: window.currentRecipe?.ingredients || [],
+    page: "recipe"
   })
 });
+
