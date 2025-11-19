@@ -112,6 +112,38 @@
 .pp-sheet.open {
   display: block;
 }
+/* ▶ PantryPal FAB Button – Gold Theme */
+.pp-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--accent-color); /* Gold */
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: none;
+  z-index: 1000;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.pp-fab:hover {
+  transform: scale(1.05);
+}
+
+/* Emoji/SVG inside the FAB */
+.pp-fab svg {
+  width: 28px;
+  height: 28px;
+  background: #fff;
+  border-radius: 50%;
+  padding: 4px;
+}
 
 </style>
 
