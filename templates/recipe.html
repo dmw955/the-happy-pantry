@@ -80,6 +80,39 @@
   .footer-bg a:hover img {
     transform: scale(1.1);
   }
+  .pp-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 998;
+}
+
+.pp-backdrop.open {
+  display: block;
+}
+
+.pp-sheet {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  z-index: 999;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  padding: 16px;
+  max-height: 75vh;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
+
+.pp-sheet.open {
+  display: block;
+}
+
 </style>
 
 </head>
