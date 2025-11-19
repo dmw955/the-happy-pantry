@@ -11,11 +11,16 @@ import requests
 import traceback
 from datetime import datetime
 from dotenv import load_dotenv
+import openai
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # App Initialization
 # ─────────────────────────────────────────────────────────────────────────────
 load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -514,15 +519,6 @@ def success():
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
     try:
-        from dotenv import load_dotenv
-        load_dotenv()
-
-        openai_key = os.getenv("OPENAI_API_KEY")
-        print("🔑 OPENAI_API_KEY:", openai_key)
-
-        if not openai_key:
-            return jsonify({"error": "Missing OPENAI_API_KEY"}), 500
-
         payload = request.get_json(force=True)
         user_msg = (payload.get("message") or "").strip()
         context = payload.get("context", {})
@@ -536,29 +532,21 @@ def pantrypal_api():
             f"Here is some page context: {json.dumps(context)}"
         )
 
-        r = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {openai_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "gpt-4o-mini",
-                 "messages": [
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_msg},
-                ],
-                "max_tokens": 350,
-                "temperature": 0.3,
-            },
-            timeout=20,
+        # ✅ OpenAI SDK call
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_msg}
+            ],
+            max_tokens=350,
+            temperature=0.3,
         )
 
-        print("📡 OpenAI response status:", r.status_code)
-        print("📦 OpenAI response body:", r.text)
+        print("📡 OpenAI SDK response:", response)
 
         try:
-            content = r.json()["choices"][0]["message"]["content"]
+            content = response.choices[0].message["content"]
             data = json.loads(content)
         except (KeyError, IndexError, json.JSONDecodeError):
             print("❌ Invalid AI response")
@@ -569,6 +557,7 @@ def pantrypal_api():
     except Exception:
         print("❌ Server error:\n", traceback.format_exc())
         return jsonify({"error": "Server error"}), 500
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Blog & Recipes
