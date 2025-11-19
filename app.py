@@ -609,32 +609,24 @@ def api_recipes():
 # NEW — serve individual recipe pages by slug
 @app.route("/recipes/<slug>")
 def recipe_by_slug(slug):
-    try:
-        sb = get_supabase()
+    sb = get_supabase()
 
-        # Fetch recipe using the slug column
-        response = sb.table("recipes")\
-                     .select("*")\
-                     .eq("slug", slug)\
-                     .single()\
-                     .execute()
+    response = sb.table("recipes").select("*").eq("slug", slug).single().execute()
+    recipe = response.data
 
-        recipe = response.data
+    if isinstance(recipe.get("ingredients"), str):
+        try:
+            recipe["ingredients"] = json.loads(recipe["ingredients"])
+        except Exception:
+            recipe["ingredients"] = []
 
-        if not recipe:
-            return "Recipe not found", 404
+    return render_template(
+        "recipe.html",
+        recipe=recipe,
+        SUPABASE_URL=os.getenv("SUPABASE_URL"),            # ✅ Must exist
+        SUPABASE_ANON_KEY=os.getenv("SUPABASE_ANON_KEY")   # ✅ Must exist
+    )
 
-        # Render recipe.html WITH context so PantryPal works
-        return render_template(
-            "recipe.html",
-            recipe=recipe,
-            SUPABASE_URL=SUPABASE_URL,
-            SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
-        )
-
-    except Exception as e:
-        print("❌ Error loading recipe by slug:", e)
-        return "Server error", 500
 
 
 
