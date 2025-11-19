@@ -544,8 +544,7 @@ def pantrypal_api():
             },
             json={
                 "model": "gpt-4o-mini",
-                "response_format": "json",
-                "messages": [
+                 "messages": [
                     {"role": "system", "content": system_msg},
                     {"role": "user", "content": user_msg},
                 ],
