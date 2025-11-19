@@ -26,11 +26,13 @@
 <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
 <script>
-  window.currentRecipe = JSON.parse(`{{ {
-    "title": recipe.title | default("Untitled"),
-    "ingredients": recipe.ingredients | default([])
-  } | tojson | safe }}`);
+  window.currentRecipe = {{ {
+    "title": (recipe.title | default("Untitled")),
+    "ingredients": (recipe.ingredients | default([]))
+  } | tojson | safe }};
 </script>
+
+
 
 
 <!-- PantryPal uses this recipe context -->
