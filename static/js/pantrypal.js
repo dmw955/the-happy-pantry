@@ -1,18 +1,31 @@
 const PantryPal = (() => {
   const state = {
     endpoint: "/api/pantrypal",
-    els: { form: null, input: null, messages: null, typing: null },
+    els: {
+      form: null,
+      input: null,
+      messages: null,
+      typing: null,
+      sheet: null,
+      fab: null,
+      backdrop: null
+    },
     getContext: () => ({}),
     sending: false,
   };
 
-  function $(sel) { return document.querySelector(sel); }
+  function $(sel) {
+    return document.querySelector(sel);
+  }
 
   function ensureEls(selectors) {
     state.els.form = $(selectors.form);
     state.els.input = $(selectors.input);
     state.els.messages = $(selectors.messages);
     state.els.typing = $(selectors.typing);
+    state.els.sheet = $("#ppSheet");
+    state.els.fab = $("#ppFab");
+    state.els.backdrop = $("#ppBackdrop");
 
     if (!state.els.form || !state.els.input || !state.els.messages) {
       throw new Error("PantryPal: Missing required elements (form/input/messages)");
@@ -120,6 +133,15 @@ const PantryPal = (() => {
     document.head.appendChild(css);
   }
 
+  function toggleChat(open) {
+    const isOpen = open !== undefined ? open : !state.els.sheet.classList.contains("open");
+    if (!state.els.sheet || !state.els.backdrop || !state.els.fab) return;
+
+    state.els.sheet.classList.toggle("open", isOpen);
+    state.els.backdrop.classList.toggle("open", isOpen);
+    state.els.fab.setAttribute("aria-expanded", String(isOpen));
+  }
+
   function init(opts = {}) {
     state.endpoint = opts.endpoint || state.endpoint;
     state.getContext = typeof opts.getContext === "function" ? opts.getContext : state.getContext;
@@ -127,6 +149,8 @@ const PantryPal = (() => {
     installStylesOnce();
 
     state.els.form.addEventListener("submit", handleSubmit);
+    state.els.fab?.addEventListener("click", () => toggleChat(true));
+    state.els.backdrop?.addEventListener("click", () => toggleChat(false));
   }
 
   return { init };
@@ -188,4 +212,3 @@ PantryPal.init({
     page: "recipe"
   })
 });
-
