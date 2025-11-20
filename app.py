@@ -19,7 +19,7 @@ import openai
 # ─────────────────────────────────────────────────────────────────────────────
 load_dotenv()
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI()  
 
 
 app = Flask(__name__)
@@ -532,8 +532,8 @@ def pantrypal_api():
             f"Here is some page context: {json.dumps(context)}"
         )
 
-        # ✅ OpenAI SDK call
-        response = openai.ChatCompletion.create(
+        # ✅ NEW OpenAI SDK call (v1+)
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_msg},
@@ -543,10 +543,10 @@ def pantrypal_api():
             temperature=0.3,
         )
 
-        print("📡 OpenAI SDK response:", response)
+        print("📡 OpenAI response:", response)
 
         try:
-            content = response.choices[0].message["content"]
+            content = response.choices[0].message.content  # ✅ new syntax
             data = json.loads(content)
         except (KeyError, IndexError, json.JSONDecodeError):
             print("❌ Invalid AI response")
@@ -557,6 +557,7 @@ def pantrypal_api():
     except Exception:
         print("❌ Server error:\n", traceback.format_exc())
         return jsonify({"error": "Server error"}), 500
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
