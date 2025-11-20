@@ -524,6 +524,9 @@ def pantrypal_api():
         user_msg = (payload.get("message") or "").strip()
         context = payload.get("context", {})
 
+        print("🟢 Incoming message:", user_msg)
+        print("🟢 Context:", context)
+
         if not user_msg:
             return jsonify({"error": "Missing message"}), 400
 
@@ -533,7 +536,7 @@ def pantrypal_api():
             f"Here is some page context: {json.dumps(context)}"
         )
 
-        # ✅ NEW OpenAI SDK call (v1+)
+        # ✅ OpenAI SDK v1+ call
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -544,20 +547,22 @@ def pantrypal_api():
             temperature=0.3,
         )
 
-        print("📡 OpenAI response:", response)
+        print("🟢 Raw OpenAI response:", response)
 
         try:
-            content = response.choices[0].message.content  # ✅ new syntax
+            content = response.choices[0].message.content
+            print("🟢 Response content:", content)
             data = json.loads(content)
-        except (KeyError, IndexError, json.JSONDecodeError):
-            print("❌ Invalid AI response")
-            return jsonify({"error": "Invalid AI response"}), 502
+        except (KeyError, IndexError, json.JSONDecodeError) as e:
+            print("❌ Failed to parse OpenAI response:", str(e))
+            print("❌ Raw content:", content)
+            return jsonify({"error": "Invalid AI response format"}), 502
 
         return jsonify(data), 200
 
-    except Exception:
-        print("❌ Server error:\n", traceback.format_exc())
-        return jsonify({"error": "Server error"}), 500
+    except Exception as e:
+        print("❌ Server error:", traceback.format_exc())
+        return jsonify({"error": "Server error", "details": str(e)}), 500
 
 
 
