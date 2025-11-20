@@ -11,7 +11,8 @@ import requests
 import traceback
 from datetime import datetime
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI  # ✅ correct for new SDK
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
