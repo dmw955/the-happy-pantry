@@ -517,6 +517,9 @@ def success():
 # ─────────────────────────────────────────────────────────────────────────────
 # PantryPal AI Endpoint
 # ─────────────────────────────────────────────────────────────────────────────
+from openai import OpenAI
+from openai import RateLimitError  # ✅ add this import if not already present
+
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
     try:
@@ -537,15 +540,22 @@ def pantrypal_api():
         )
 
         # ✅ OpenAI SDK v1+ call
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": user_msg}
-            ],
-            max_tokens=350,
-            temperature=0.3,
-        )
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_msg}
+                ],
+                max_tokens=350,
+                temperature=0.3,
+            )
+        except RateLimitError as rate_err:
+            print("🚫 OpenAI Rate Limit Exceeded:", rate_err)
+            return jsonify({
+                "error": "Rate limit exceeded. Please try again later.",
+                "code": "rate_limit"
+            }), 429
 
         print("🟢 Raw OpenAI response:", response)
 
@@ -562,8 +572,10 @@ def pantrypal_api():
 
     except Exception as e:
         print("❌ Server error:", traceback.format_exc())
-        return jsonify({"error": "Server error", "details": str(e)}), 500
-
+        return jsonify({
+            "error": "Server error",
+            "details": str(e)
+        }), 500
 
 
 # ─────────────────────────────────────────────────────────────────────────────
