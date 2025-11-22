@@ -110,6 +110,93 @@ function assignFallbackGroup(name) {
 document.getElementById("clearListBtn")?.addEventListener("click", () => {
   localStorage.removeItem("selectedRecipes");
   location.reload();
+
+  document.getElementById("downloadPdfBtn")?.addEventListener("click", async () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const element = document.getElementById("listContainer");
+
+  await html2canvas(element).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png");
+    const imgProps = doc.getImageProperties(imgData);
+    const pdfWidth = doc.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    doc.save("shopping_list.pdf");
+  });
+});
+
+document.getElementById("exportCalendarBtn")?.addEventListener("click", () => {
+  const now = new Date();
+  const listContainer = document.getElementById("listContainer");
+
+  if (!listContainer) return;
+
+  const allItems = Array.from(listContainer.querySelectorAll("h3")).flatMap((heading, i, arr) => {
+    const category = heading.textContent.trim();
+    const list = heading.nextElementSibling;
+    const items = list ? Array.from(list.querySelectorAll("li")).map(li => li.textContent.trim()) : [];
+
+    return items.map(item => ({
+      category,
+      item
+    }));
+  });
+
+  const mealMap = {
+    "Breakfast": ["Grains", "Dairy", "Baking"],
+    "Lunch": ["Protein", "Produce", "Pantry"],
+    "Dinner": ["Meats", "Grains", "Produce"]
+  };
+
+  const mealTimes = {
+    "Breakfast": "08:00",
+    "Lunch": "12:00",
+    "Dinner": "18:00"
+  };
+
+  const assignedMeals = {
+    "Breakfast": [],
+    "Lunch": [],
+    "Dinner": []
+  };
+
+  // Shuffle items for variety
+  const shuffledItems = [...allItems].sort(() => Math.random() - 0.5);
+
+  // Distribute items
+  shuffledItems.forEach(({ category, item }) => {
+    for (const [meal, categories] of Object.entries(mealMap)) {
+      if (categories.includes(category)) {
+        assignedMeals[meal].push(`${item} (${category})`);
+        break;
+      }
+    }
+  });
+
+  // Generate .ics content
+  let icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\n`;
+
+  Object.entries(assignedMeals).forEach(([meal, items], index) => {
+    const date = new Date();
+    date.setDate(date.getDate() + index); // spread across days
+    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
+    const timeStr = mealTimes[meal].replace(':', '') + '00';
+
+    icsContent += `BEGIN:VEVENT\nSUMMARY:${meal} Plan\nDESCRIPTION:${items.join(', ').replace(/\n/g, '\\n')}\n`;
+    icsContent += `DTSTART:${dateStr}T${timeStr}\nDTEND:${dateStr}T${timeStr}\nEND:VEVENT\n`;
+  });
+
+  icsContent += `END:VCALENDAR`;
+
+  const blob = new Blob([icsContent], { type: "text/calendar" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "meal_plan.ics";
+  link.click();
+});
+
+
 });
 
 });
