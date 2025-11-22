@@ -115,55 +115,74 @@ document.getElementById("clearListBtn")?.addEventListener("click", () => {
 // ─── Download PDF ───────────────────────────────────────────────────────────
 document.getElementById("downloadPdfBtn")?.addEventListener("click", async () => {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'pt',
-    format: 'a4'
-  });
+  const doc = new jsPDF("p", "pt", "letter");
 
-  const element = document.getElementById("listContainer");
+  const logoUrl = "/static/assets/logo.png"; // make sure logo.png is in this public path
+  const listContainer = document.getElementById("listContainer");
+  if (!listContainer) return;
 
-  // Load your logo
-  const logo = new Image();
-  logo.src = "https://www.the-happy-pantry.com/static/assets/logo.png";
+  // Load and draw the logo
+  const logoImg = new Image();
+  logoImg.src = logoUrl;
   await new Promise(resolve => {
-    logo.onload = resolve;
-    logo.onerror = resolve;
+    logoImg.onload = resolve;
+    logoImg.onerror = resolve; // don't fail if it doesn't load
   });
 
-  // Add logo to the top of the PDF
-  doc.addImage(logo, 'PNG', 40, 30, 120, 40); // Adjust x, y, width, height as needed
-  doc.setFontSize(18);
-  doc.text("Shopping List", 180, 55);
-
-  // Convert shopping list into checkbox lines
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  const colGap = 20;
+  const colWidth = (pageWidth - margin * 2 - colGap) / 2;
+  let x = margin;
   let y = 100;
-  const categories = element.querySelectorAll("h3");
-  categories.forEach(cat => {
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(cat.innerText, 40, y);
-    y += 20;
 
-    const list = cat.nextElementSibling?.querySelectorAll("li") || [];
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
+  // Draw logo centered
+  if (logoImg.complete && logoImg.width) {
+    const logoW = 150;
+    const logoH = (logoImg.height / logoImg.width) * logoW;
+    const centerX = (pageWidth - logoW) / 2;
+    doc.addImage(logoImg, "PNG", centerX, 30, logoW, logoH);
+    y = logoH + 50;
+  }
 
-    list.forEach(li => {
-      if (y > 780) {
-        doc.addPage();
-        y = 60;
-      }
-      doc.rect(40, y - 10, 10, 10); // checkbox
-      doc.text(li.innerText, 60, y);
-      y += 20;
+  // Parse list into categories
+  const headings = listContainer.querySelectorAll("h3");
+  let items = [];
+
+  headings.forEach(heading => {
+    const cat = heading.textContent.trim();
+    const lis = heading.nextElementSibling?.querySelectorAll("li") || [];
+    lis.forEach(li => {
+      items.push({ category: cat, text: li.textContent.trim() });
     });
+  });
 
-    y += 10;
+  // Render in two columns
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "normal");
+
+  let col = 0;
+  items.forEach(({ category, text }, i) => {
+    const lineHeight = 18;
+    const checkboxSize = 10;
+
+    // Move to next column if needed
+    if (y > 700) {
+      col++;
+      x = margin + col * (colWidth + colGap);
+      y = 100;
+    }
+
+    // Draw checkbox and item
+    doc.rect(x, y, checkboxSize, checkboxSize);
+    doc.text(text, x + checkboxSize + 6, y + checkboxSize - 2);
+
+    y += lineHeight;
   });
 
   doc.save("shopping_list.pdf");
 });
+
 
 
 // ─── Export to Calendar ─────────────────────────────────────────────────────
