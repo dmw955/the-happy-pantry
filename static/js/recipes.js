@@ -50,7 +50,7 @@ waitForSupabaseClient((supabaseClient) => {
       const searchTerm = document.getElementById("searchInput")?.value.trim() || "";
       const category = document.getElementById("categoryFilter")?.value || "";
       const diet = document.getElementById("dietFilter")?.value || "";
-      const sort = document.getElementById("sortFilter")?.value || "title.asc";
+      const sort = "random"; // Force random sort every time
       const showFavorites = showFavoritesToggle?.checked;
 
       let favoriteIds = [];
@@ -63,17 +63,29 @@ waitForSupabaseClient((supabaseClient) => {
       const from = (currentPage - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      let query = supabaseClient
-        .from("recipes")
-        .select("*", { count: "exact" })
-        .order(sort.split(".")[0], { ascending: sort.split(".")[1] === "asc" })
-        .range(from, to);
+let query = supabaseClient
+  .from("recipes")
+  .select("*", { count: "exact" });
+
+if (sort === "random") {
+  query = query.order("created_at", { ascending: false }); // fake shuffle fallback
+} else {
+  query = query.order(sort.split(".")[0], { ascending: sort.split(".")[1] === "asc" });
+}
+
+query = query.range(from, to);
+
+
 
       if (searchTerm) query = query.ilike("title", `%${searchTerm}%`);
       if (category) query = query.eq("category", category);
       if (diet) query = query.contains("diet_tags", [diet]);
 
       const { data, error, count } = await query;
+      if (sort === "random" && Array.isArray(data)) {
+  data.sort(() => Math.random() - 0.5); // simple in-place shuffle
+}
+
 
       recipeContainer.innerHTML = "";
       pageInfo.textContent = `Page ${currentPage}`;
