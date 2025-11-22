@@ -68,13 +68,24 @@
       border-radius: 8px;
     }
 
-    .footer-bg {
-      background-color: var(--primary-color);
-      color: var(--text-light);
-      padding: 20px 0;
-      text-align: center;
-      font-size: 0.9rem;
-    }
+  .footer-bg {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    padding: 20px 0;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  .footer-bg a:hover img {
+    transform: scale(1.1);
+  }
+  .pp-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 998;
+}
   </style>
 </head>
 
@@ -120,11 +131,10 @@
   </div>
 
   <!-- ✅ Footer -->
-  <footer class="footer-bg text-white text-xs">
-    <div class="container mx-auto px-4 py-2 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-      <p class="m-0">&copy; 2025 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
-         class="d-inline-flex align-items-center gap-2 text-white text-decoration-none">
+  <footer class="footer-bg mt-auto">
+    <div class="container text-center">
+      <p class="mb-1">&copy; 2025 The Happy Pantry</p>
+      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
         <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
       </a>
     </div>

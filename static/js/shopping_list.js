@@ -117,67 +117,77 @@ document.getElementById("downloadPdfBtn")?.addEventListener("click", async () =>
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF("p", "pt", "letter");
 
-  const logoUrl = "/static/assets/logo.png"; // make sure logo.png is in this public path
+  const logoUrl = "/static/assets/logo.png"; // logo must be publicly accessible
   const listContainer = document.getElementById("listContainer");
   if (!listContainer) return;
 
-  // Load and draw the logo
+  // Load and draw logo
   const logoImg = new Image();
   logoImg.src = logoUrl;
   await new Promise(resolve => {
     logoImg.onload = resolve;
-    logoImg.onerror = resolve; // don't fail if it doesn't load
+    logoImg.onerror = resolve;
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 40;
-  const colGap = 20;
+  const colGap = 30;
   const colWidth = (pageWidth - margin * 2 - colGap) / 2;
   let x = margin;
   let y = 100;
 
-  // Draw logo centered
+  // Center logo
   if (logoImg.complete && logoImg.width) {
     const logoW = 150;
     const logoH = (logoImg.height / logoImg.width) * logoW;
     const centerX = (pageWidth - logoW) / 2;
     doc.addImage(logoImg, "PNG", centerX, 30, logoW, logoH);
-    y = logoH + 50;
+    y = logoH + 60;
   }
 
-  // Parse list into categories
-  const headings = listContainer.querySelectorAll("h3");
-  let items = [];
-
-  headings.forEach(heading => {
-    const cat = heading.textContent.trim();
-    const lis = heading.nextElementSibling?.querySelectorAll("li") || [];
-    lis.forEach(li => {
-      items.push({ category: cat, text: li.textContent.trim() });
-    });
-  });
-
-  // Render in two columns
-  doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
+  doc.setFontSize(12);
+
+  const headings = listContainer.querySelectorAll("h3");
 
   let col = 0;
-  items.forEach(({ category, text }, i) => {
-    const lineHeight = 18;
-    const checkboxSize = 10;
 
-    // Move to next column if needed
+  headings.forEach((heading) => {
+    const cat = heading.textContent.trim();
+    const lis = heading.nextElementSibling?.querySelectorAll("li") || [];
+
+    // Wrap to new column if too low
     if (y > 700) {
       col++;
       x = margin + col * (colWidth + colGap);
       y = 100;
     }
 
-    // Draw checkbox and item
-    doc.rect(x, y, checkboxSize, checkboxSize);
-    doc.text(text, x + checkboxSize + 6, y + checkboxSize - 2);
+    // Write category title
+    doc.setFont("helvetica", "bold");
+    doc.text(cat, x, y);
+    doc.setFont("helvetica", "normal");
+    y += 16;
 
-    y += lineHeight;
+    lis.forEach(li => {
+      if (y > 750) {
+        col++;
+        x = margin + col * (colWidth + colGap);
+        y = 100;
+        doc.setFont("helvetica", "bold");
+        doc.text(cat, x, y);
+        doc.setFont("helvetica", "normal");
+        y += 16;
+      }
+
+      const text = li.textContent.trim();
+      const boxSize = 10;
+      doc.rect(x, y, boxSize, boxSize);
+      doc.text(text, x + boxSize + 6, y + boxSize - 2);
+      y += 18;
+    });
+
+    y += 10; // extra space after category
   });
 
   doc.save("shopping_list.pdf");
