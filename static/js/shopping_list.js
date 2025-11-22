@@ -115,18 +115,56 @@ document.getElementById("clearListBtn")?.addEventListener("click", () => {
 // ─── Download PDF ───────────────────────────────────────────────────────────
 document.getElementById("downloadPdfBtn")?.addEventListener("click", async () => {
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: 'a4'
+  });
+
   const element = document.getElementById("listContainer");
 
-  await html2canvas(element).then((canvas) => {
-    const imgData = canvas.toDataURL("image/png");
-    const imgProps = doc.getImageProperties(imgData);
-    const pdfWidth = doc.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    doc.save("shopping_list.pdf");
+  // Load your logo
+  const logo = new Image();
+  logo.src = "/mnt/data/5d812932-cd59-4a80-8724-397e292ebb7f.png"; // ← path to uploaded logo
+  await new Promise(resolve => {
+    logo.onload = resolve;
+    logo.onerror = resolve;
   });
+
+  // Add logo to the top of the PDF
+  doc.addImage(logo, 'PNG', 40, 30, 120, 40); // Adjust x, y, width, height as needed
+  doc.setFontSize(18);
+  doc.text("Shopping List", 180, 55);
+
+  // Convert shopping list into checkbox lines
+  let y = 100;
+  const categories = element.querySelectorAll("h3");
+  categories.forEach(cat => {
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(cat.innerText, 40, y);
+    y += 20;
+
+    const list = cat.nextElementSibling?.querySelectorAll("li") || [];
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    list.forEach(li => {
+      if (y > 780) {
+        doc.addPage();
+        y = 60;
+      }
+      doc.rect(40, y - 10, 10, 10); // checkbox
+      doc.text(li.innerText, 60, y);
+      y += 20;
+    });
+
+    y += 10;
+  });
+
+  doc.save("shopping_list.pdf");
 });
+
 
 // ─── Export to Calendar ─────────────────────────────────────────────────────
 document.getElementById("exportCalendarBtn")?.addEventListener("click", () => {
