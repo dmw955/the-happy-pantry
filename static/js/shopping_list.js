@@ -105,11 +105,14 @@ function assignFallbackGroup(name) {
     html += `</ul>`;
   });
   listContainer.innerHTML = html;
-});
 
-// ─── Clear List ─────────────────────────────────────────────────────────────
+  // ─── Clear List ─────────────────────────────────────────────────────────────
 document.getElementById("clearListBtn")?.addEventListener("click", () => {
   localStorage.removeItem("selectedRecipes");
   location.reload();
 });
+
+});
+
+
 
