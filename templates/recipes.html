@@ -88,6 +88,14 @@ body {
   margin-bottom: 40px;
 }
 
+  .btn-success:hover {
+    background-color: #218838 !important;
+    transform: scale(1.03);
+    transition: all 0.2s ease-in-out;
+  }
+
+
+
  /* Navbar Styling */
         .navbar { background-color: var(--background-light); border-bottom: 2px solid var(--accent-color); padding: 10px 0; }
         .navbar-brand img { height: 50px; width: auto; }
@@ -183,11 +191,18 @@ body {
 
 
   <!-- Main Content -->
-  <div class="flex-grow">
-    <div class="max-w-5xl mx-auto p-6">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <a href="/shopping_list" class="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-100 shadow text-decoration-none">🛒 Generate Shopping List</a>
-      </div>
+<div class="flex-grow">
+  <div class="max-w-5xl mx-auto p-6">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <a href="/shopping_list"
+         class="btn btn-success fw-bold px-4 py-2 rounded-pill shadow-sm d-inline-flex align-items-center gap-2 text-white text-decoration-none"
+         style="font-size: 1rem;">
+        🛍️ Generate Shopping List
+      </a>
+    </div>
+  </div>
+</div>
+
 
       <!-- Search Bar -->
       <input id="searchInput" type="text" placeholder="🔍 Search recipes..." class="form-control" />
