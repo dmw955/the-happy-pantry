@@ -106,12 +106,14 @@ function assignFallbackGroup(name) {
   });
   listContainer.innerHTML = html;
 
-  // ─── Clear List ─────────────────────────────────────────────────────────────
+// ─── Clear List ─────────────────────────────────────────────────────────────
 document.getElementById("clearListBtn")?.addEventListener("click", () => {
   localStorage.removeItem("selectedRecipes");
   location.reload();
+});
 
-  document.getElementById("downloadPdfBtn")?.addEventListener("click", async () => {
+// ─── Download PDF ───────────────────────────────────────────────────────────
+document.getElementById("downloadPdfBtn")?.addEventListener("click", async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const element = document.getElementById("listContainer");
@@ -126,13 +128,12 @@ document.getElementById("clearListBtn")?.addEventListener("click", () => {
   });
 });
 
+// ─── Export to Calendar ─────────────────────────────────────────────────────
 document.getElementById("exportCalendarBtn")?.addEventListener("click", () => {
-  const now = new Date();
   const listContainer = document.getElementById("listContainer");
-
   if (!listContainer) return;
 
-  const allItems = Array.from(listContainer.querySelectorAll("h3")).flatMap((heading, i, arr) => {
+  const allItems = Array.from(listContainer.querySelectorAll("h3")).flatMap((heading) => {
     const category = heading.textContent.trim();
     const list = heading.nextElementSibling;
     const items = list ? Array.from(list.querySelectorAll("li")).map(li => li.textContent.trim()) : [];
@@ -161,10 +162,8 @@ document.getElementById("exportCalendarBtn")?.addEventListener("click", () => {
     "Dinner": []
   };
 
-  // Shuffle items for variety
   const shuffledItems = [...allItems].sort(() => Math.random() - 0.5);
 
-  // Distribute items
   shuffledItems.forEach(({ category, item }) => {
     for (const [meal, categories] of Object.entries(mealMap)) {
       if (categories.includes(category)) {
@@ -174,7 +173,6 @@ document.getElementById("exportCalendarBtn")?.addEventListener("click", () => {
     }
   });
 
-  // Generate .ics content
   let icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\n`;
 
   Object.entries(assignedMeals).forEach(([meal, items], index) => {
@@ -195,11 +193,3 @@ document.getElementById("exportCalendarBtn")?.addEventListener("click", () => {
   link.download = "meal_plan.ics";
   link.click();
 });
-
-
-});
-
-});
-
-
-
