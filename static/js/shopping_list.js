@@ -1,12 +1,36 @@
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("🛒 Shopping list script loaded");
 
-  // ─── Supabase Client Setup ─────────────────────────────────────────────────
+// ─── Supabase Client Setup ─────────────────────────────────────────────────
   const supabaseUrl = "https://ulaaelkluixsmqozeaaa.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVsYWFlbGtsdWl4c21xb3plYWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3MzQ5NDUsImV4cCI6MjA1NzMxMDk0NX0.FG3FEN51RpTmlr14vijyL_YM3jyt1lIok9Z4FsKhnMs";
   const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-  // ─── Fetch & Render Shopping List ───────────────────────────────────────────
+
+// ─── Fallback Category Mapping ───────────────────────────────────────────────
+const FALLBACK_CATEGORY_KEYWORDS = {
+  "Baking": ["chia seeds", "chia seeds or flax seeds"],
+  "Condiment": ["hummus"],
+  "Dairy": ["almond milk", "butter", "egg", "egg whites", "eggs", "eggs, beaten", "greek yogurt", "greek yogurt or sour cream", "low-fat mozzarella cheese, shredded", "milk", "milk (dairy or plant-based)", "nut butter (optional)", "parmesan", "parmesan cheese, grated", "ricotta cheese", "shredded cheddar cheese", "shredded cheddar or monterey jack cheese", "shredded mozzarella cheese", "swiss cheese slice", "swiss cheese, shredded", "unsalted butter, cold & cubed", "unsweetened almond milk"],
+  "Grains": ["all-purpose flour", "breadcrumbs", "grits", "large flour tortillas", "noodles", "pizza crust", "rolled oats", "whole wheat tortilla", "whole wheat tortilla (10-inch)", "whole wheat wrap", "ziti pasta"],
+  "Pantry": ["black beans, drained and rinsed", "brown sugar", "chicken broth", "crushed tomatoes", "fresh salsa (or pico de gallo)", "granola", "hot sauce (optional)", "maple syrup (optional)", "marinara sauce", "mustard", "olive oil", "salsa", "spaghetti", "taco seasoning", "tomato paste", "tomato sauce", "unsweetened cocoa powder", "vanilla extract"],
+  "Produce": ["apples, peeled and sliced", "avocado", "avocado, sliced (optional)", "banana", "berries or granola (optional)", "blueberries", "bok choy", "broccoli", "broccolini", "carrots", "carrots, chopped", "celery stalks, chopped", "frozen mixed berries", "grated carrot", "lettuce leaves", "mushrooms, sliced", "onion, diced", "onion, sliced", "parsley, chopped", "red onion, sliced", "ripe avocado", "shredded lettuce", "tomato slices", "tomato, diced", "zucchini, sliced"],
+  "Protein": ["chicken breast, cooked & diced", "chicken thighs", "firm tofu", "ground beef", "lean ground beef or turkey", "sea scallops", "turkey breast, sliced"],
+  "Spices": ["bay leaf", "bell peppers", "bell peppers, sliced", "dried basil", "dried oregano", "garlic", "garlic clove, minced", "garlic cloves, minced"]
+};
+
+function assignFallbackGroup(name) {
+  const l = name.toLowerCase();
+  for (const [group, keywords] of Object.entries(FALLBACK_CATEGORY_KEYWORDS)) {
+    if (keywords.some(k => l.includes(k))) {
+      return group;
+    }
+  }
+  return "Other";
+}
+
+
+// ─── Fetch & Render Shopping List ───────────────────────────────────────────
   const listContainer = document.getElementById("listContainer");
   const selectedIds = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
   console.log("📦 Selected Recipe IDs:", selectedIds);
@@ -16,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ─── Helper Functions ───────────────────────────────────────────────────────
   function decimalToFraction(d) {
     const m = {0.125:'1/8',0.25:'1/4',0.333:'1/3',0.375:'3/8',0.5:'1/2',0.625:'5/8',0.666:'2/3',0.75:'3/4',0.875:'7/8'};
     const r = Math.round(d*1000)/1000;
@@ -36,8 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   function categorizeIngredient(name) {
     const l = name.toLowerCase();
-    if (["apple","avocado","broccoli","carrot","celery","lettuce","mushroom","onion","spinach","tomato","zucchini"]
-        .some(x=>l.includes(x))) return "Produce";
+    if (["apple","avocado","broccoli","carrot","celery","lettuce","mushroom","onion","spinach","tomato","zucchini"].some(x=>l.includes(x))) return "Produce";
     if (["chicken","beef","pork","turkey","ham","sausage"].some(x=>l.includes(x))) return "Meats";
     if (["cheese","milk","cream","yogurt","butter"].some(x=>l.includes(x))) return "Dairy";
     if (["rice","pasta","quinoa","bread","flour","oats"].some(x=>l.includes(x))) return "Grains";
@@ -58,21 +80,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // ─── Group & Render ─────────────────────────────────────────────────────────
   const categoryGroups = {};
   recipes.forEach(r => {
     (r.ingredients||[]).forEach(raw => {
       const p = safelyParseIngredient(raw);
       if (!p?.item) return;
       const key = p.item.toLowerCase(), qty = convertFraction(p.quantity)||0;
-      const cat = p.category || categorizeIngredient(p.item);
+      const cat = p.group?.trim() || assignFallbackGroup(p.item);
       categoryGroups[cat] = categoryGroups[cat]||{};
       if (!categoryGroups[cat][key]) categoryGroups[cat][key] = {...p,quantity:qty};
       else categoryGroups[cat][key].quantity += qty;
     });
   });
 
-  const order = ["Produce","Spices","Meats","Dairy","Grains","Pantry","Frozen","Other"];
+  const order = ["Produce","Spices","Meats","Dairy","Grains","Pantry","Frozen","Protein","Condiment","Baking","Other"];
   let html = "";
   order.forEach(cat => {
     if (!categoryGroups[cat]) return;
@@ -83,120 +104,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     html += `</ul>`;
   });
   listContainer.innerHTML = html;
-
-  // ─── Clear List ─────────────────────────────────────────────────────────────
-  document.getElementById("clearListBtn")?.addEventListener("click", () => {
-    localStorage.removeItem("selectedRecipes");
-    location.reload();
-  });
-
-    // ─── Calendar Export (one category per day) ─────────────────────────────────
-  const defaultTimes = {
-    breakfast: { start: "070000", end: "080000" },
-    lunch:     { start: "120000", end: "130000" },
-    dinner:    { start: "180000", end: "190000" },
-  };
-  function toICSDate(d) {
-    return d.toISOString().replace(/[-:.]/g, "").split("Z")[0] + "Z";
-  }
-
-  console.log("Calendar export setup");
-  document.getElementById("exportCalendarBtn")?.addEventListener("click", async () => {
-    console.log("Export button clicked");
-    const ids = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
-    if (!ids.length) {
-      return alert("⚠️ No recipes selected to export.");
-    }
-
-    const { data: evts, error: err2 } = await supabaseClient
-      .from("recipes")
-      .select("id, slug, title, category")
-      .in("id", ids);
-    if (err2) {
-      console.error("Calendar export fetch error:", err2);
-      return alert("❌ Failed to fetch recipes for calendar export.");
-    }
-
-    // initialize ICS array
-    let ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//The Happy Pantry//Meal Plan//EN"
-    ];
-
-    // track how many of each category
-    const catCount = { breakfast: 0, lunch: 0, dinner: 0 };
-
-    evts.forEach(r => {
-      // normalize
-      let key = (r.category || "dinner").toLowerCase();
-      if (!defaultTimes[key]) {
-        console.warn("Unknown category, falling back to dinner:", r.category);
-        key = "dinner";
-      }
-
-      // increment and compute date
-      catCount[key]++;
-      const d = new Date();
-      d.setDate(d.getDate() + catCount[key]);
-      const dateStr = d.toISOString().split("T")[0].replace(/-/g, "");
-
-      const t = defaultTimes[key];
-      ics.push(
-        "BEGIN:VEVENT",
-        `UID:${r.id}@the-happy-pantry.com`,
-        `DTSTAMP:${toICSDate(new Date())}`,
-        `DTSTART:${dateStr}T${t.start}`,
-        `DTEND:${dateStr}T${t.end}`,
-        `SUMMARY:${r.title}`,
-        `DESCRIPTION:View recipe → https://the-happy-pantry.com/recipes/${r.slug}`,
-        "END:VEVENT"
-      );
-    });
-
-    ics.push("END:VCALENDAR");
-
-    const blob = new Blob([ics.join("\n")], { type: "text/calendar" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
-    a.download = "happy-pantry-meal-plan.ics";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
-
-
-  // ─── PDF Export ─────────────────────────────────────────────────────────────
-  document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
-    const c = document.getElementById("listContainer");
-    if (!c) return;
-    const pdf = new window.jspdf.jsPDF("p","mm","a4");
-    const w = pdf.internal.pageSize.getWidth(), h = pdf.internal.pageSize.getHeight();
-    let y = 15;
-
-    const logo = new Image();
-    logo.src = "/static/assets/logo.png";
-    logo.crossOrigin = "anonymous";
-    logo.onload = () => {
-      pdf.addImage(logo,"PNG",(w-40)/2,y,40,15); y += 23;
-      pdf.setFontSize(16).setTextColor(40).text("Shopping List",w/2,y,{align:"center"});
-      y += 10;
-      c.querySelectorAll("h3").forEach(sec => {
-        pdf.setFontSize(13).setTextColor(60);
-        y += 8; if (y>h-15){pdf.addPage();y=15;}
-        pdf.text(sec.textContent,15,y);
-        sec.nextElementSibling.querySelectorAll("li").forEach(li => {
-          pdf.setDrawColor(180).rect(15,y+2,4,4);
-          pdf.setFontSize(11).setTextColor(20);
-          pdf.text(li.textContent,25,y+6);
-          y += 10; if (y>h-15){pdf.addPage();y=15;}
-        });
-      });
-      pdf.save("shopping_list.pdf");
-    };
-    logo.onerror = () => alert("❌ Failed to load logo image.");
-  });
-
-}); // end DOMContentLoaded
+});
