@@ -193,3 +193,5 @@ document.getElementById("exportCalendarBtn")?.addEventListener("click", () => {
   link.download = "meal_plan.ics";
   link.click();
 });
+
+});
