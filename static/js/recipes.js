@@ -63,19 +63,17 @@ waitForSupabaseClient((supabaseClient) => {
       const from = (currentPage - 1) * pageSize;
       const to = from + pageSize - 1;
 
-let query = supabaseClient
-  .from("recipes")
-  .select("*", { count: "exact" });
+      let query = supabaseClient
+        .from("recipes")
+        .select("*", { count: "exact" });
 
-if (sort === "random") {
-  query = query.order("created_at", { ascending: false }); // fake shuffle fallback
-} else {
-  query = query.order(sort.split(".")[0], { ascending: sort.split(".")[1] === "asc" });
-}
+      if (sort === "random") {
+        query = query.order("created_at", { ascending: false });
+      } else {
+        query = query.order(sort.split(".")[0], { ascending: sort.split(".")[1] === "asc" });
+      }
 
-query = query.range(from, to);
-
-
+      query = query.range(from, to);
 
       if (searchTerm) query = query.ilike("title", `%${searchTerm}%`);
       if (category) query = query.eq("category", category);
@@ -83,9 +81,8 @@ query = query.range(from, to);
 
       const { data, error, count } = await query;
       if (sort === "random" && Array.isArray(data)) {
-  data.sort(() => Math.random() - 0.5); // simple in-place shuffle
-}
-
+        data.sort(() => Math.random() - 0.5);
+      }
 
       recipeContainer.innerHTML = "";
       pageInfo.textContent = `Page ${currentPage}`;
@@ -201,7 +198,6 @@ query = query.range(from, to);
               button.title = "Favorite";
             }
           } else {
-            // Fetch title + nutrition
             const { data: recipeData, error: fetchError } = await supabaseClient
               .from("recipes")
               .select("title, nutrition")
@@ -213,7 +209,6 @@ query = query.range(from, to);
               return;
             }
 
-            // Parse macros from JSON
             const nutrition = recipeData.nutrition || {};
             const { Fat, Carbs, Protein } = nutrition;
 
@@ -230,15 +225,7 @@ query = query.range(from, to);
 
             const { error: insertError } = await supabaseClient
               .from("favorite_recipes")
-              .insert([{
-                user_id: currentUser.id,
-                recipe_id: recipeId,
-                title: recipeData.title,
-                calories: macros.calories,
-                protein: macros.protein,
-                carbs: macros.carbs,
-                fat: macros.fat
-              }]);
+              .insert([{ user_id: currentUser.id, recipe_id: recipeId, title: recipeData.title, calories: macros.calories, protein: macros.protein, carbs: macros.carbs, fat: macros.fat }]);
 
             if (insertError) {
               console.error("❌ Failed to favorite", insertError);
@@ -253,6 +240,31 @@ query = query.range(from, to);
       });
     }
 
+    // ✅ Filters trigger refresh on change
+    document.getElementById("categoryFilter")?.addEventListener("change", () => {
+      currentPage = 1;
+      fetchRecipes();
+    });
+
+    document.getElementById("dietFilter")?.addEventListener("change", () => {
+      currentPage = 1;
+      fetchRecipes();
+    });
+
+    document.getElementById("sortFilter")?.addEventListener("change", () => {
+      currentPage = 1;
+      fetchRecipes();
+    });
+
+    document.getElementById("clearFilters")?.addEventListener("click", () => {
+      document.getElementById("categoryFilter").value = "";
+      document.getElementById("dietFilter").value = "";
+      document.getElementById("sortFilter").value = "title.asc";
+      document.getElementById("searchInput").value = "";
+      currentPage = 1;
+      fetchRecipes();
+    });
+
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
     nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
     prevPageBtn.addEventListener("click", () => { if (currentPage > 1) currentPage--; fetchRecipes(); });
@@ -260,7 +272,7 @@ query = query.range(from, to);
     fetchRecipes();
 
     function escapeHtml(str) {
-      return String(str).replace(/[&<>"]'/g, (c) => ({
+      return String(str).replace(/[&<>"']/, (c) => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       }[c]));
     }
