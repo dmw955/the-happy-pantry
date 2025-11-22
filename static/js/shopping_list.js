@@ -19,6 +19,7 @@ const FALLBACK_CATEGORY_KEYWORDS = {
   "Spices": ["bay leaf", "bell peppers", "bell peppers, sliced", "dried basil", "dried oregano", "garlic", "garlic clove, minced", "garlic cloves, minced"]
 };
 
+
 function assignFallbackGroup(name) {
   const l = name.toLowerCase();
   for (const [group, keywords] of Object.entries(FALLBACK_CATEGORY_KEYWORDS)) {
