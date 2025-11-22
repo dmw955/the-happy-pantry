@@ -125,7 +125,7 @@ document.getElementById("downloadPdfBtn")?.addEventListener("click", async () =>
 
   // Load your logo
   const logo = new Image();
-  logo.src = "/mnt/data/5d812932-cd59-4a80-8724-397e292ebb7f.png"; // ← path to uploaded logo
+  logo.src = "https://www.the-happy-pantry.com/static/assets/logo.png";
   await new Promise(resolve => {
     logo.onload = resolve;
     logo.onerror = resolve;
