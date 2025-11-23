@@ -77,7 +77,7 @@ waitForSupabaseClient((supabaseClient) => {
 
       if (searchTerm) query = query.ilike("title", `%${searchTerm}%`);
       if (category) query = query.eq("category", category);
-      if (diet) query = query.contains("diet_tags", [diet]);
+      if (diet) query = query.filter("diet_tags", "cs", [`${diet}`]);
 
       const { data, error, count } = await query;
       if (sort === "random" && Array.isArray(data)) {
