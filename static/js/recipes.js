@@ -76,8 +76,12 @@ waitForSupabaseClient((supabaseClient) => {
       query = query.range(from, to);
 
       if (searchTerm) query = query.ilike("title", `%${searchTerm}%`);
-      if (category) query = query.eq("category", category);
-      if (diet) query = query.filter("diet_tags", "cs", [diet]);
+if (category) query = query.eq("category", category);
+
+if (diet) {
+  const formatted = diet.includes(" ") ? `{"${diet}"}` : `{${diet}}`;
+  query = query.filter("diet_tags", "cs", formatted);
+}
 
 
 
