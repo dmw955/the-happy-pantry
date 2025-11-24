@@ -70,15 +70,25 @@ const PantryPal = (() => {
     }
   }
 
-  function validateResponse(data) {
-    if (!data || typeof data.text !== "string") {
-      throw new Error("Invalid AI response shape: missing text");
-    }
-    if (data.actions && typeof data.actions !== "object") {
-      throw new Error("Invalid AI response shape: actions must be an object if present");
-    }
-    return data;
+function validateResponse(data) {
+  if (!data) {
+    throw new Error("Missing response data");
   }
+
+  const hasText = typeof data.text === "string";
+  const hasList = typeof data.shopping_list === "object";
+
+  if (!hasText && !hasList) {
+    throw new Error("Invalid AI response shape: expected text or shopping_list");
+  }
+
+  if (data.actions && typeof data.actions !== "object") {
+    throw new Error("Invalid AI response shape: actions must be an object if present");
+  }
+
+  return data;
+}
+
 
   function dispatchActions(actions) {
     if (!actions || typeof actions !== "object") return;
@@ -106,18 +116,25 @@ const PantryPal = (() => {
     state.els.input.value = "";
     setTyping(true);
 
-    try {
-      const data = await sendToBackend(message);
-      const valid = validateResponse(data);
-      renderBubble(valid.text, "ai");
-      dispatchActions(valid.actions);
-    } catch (err) {
-      console.error("PantryPal error:", err);
-      renderBubble("Sorry — I hit a snag. Try again in a moment.", "ai");
-    } finally {
-      setTyping(false);
-      state.sending = false;
-    }
+try {
+  const data = await sendToBackend(message);
+  const valid = validateResponse(data);
+
+  if (valid.text) {
+    renderBubble(valid.text, "ai");
+  } else if (valid.shopping_list) {
+    renderBubble(formatShoppingList(valid.shopping_list), "ai");
+  }
+
+  dispatchActions(valid.actions);
+} catch (err) {
+  console.error("PantryPal error:", err);
+  renderBubble("Sorry — I hit a snag. Try again in a moment.", "ai");
+} finally {
+  setTyping(false);
+  state.sending = false;
+}
+
   }
 
   function installStylesOnce() {
@@ -152,6 +169,18 @@ const PantryPal = (() => {
     state.els.fab?.addEventListener("click", () => toggleChat(true));
     state.els.backdrop?.addEventListener("click", () => toggleChat(false));
   }
+
+  function formatShoppingList(list) {
+  let output = "🛒 Here's your shopping list:\n";
+  for (const [category, items] of Object.entries(list)) {
+    output += `\n${category}:\n`;
+    items.forEach(item => {
+      output += `• ${item}\n`;
+    });
+  }
+  return output;
+}
+
 
   return { init };
 })();
