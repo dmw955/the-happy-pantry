@@ -82,9 +82,6 @@ if (diet) {
   query = query.contains("diet_tags", [diet]);
 }
 
-
-
-
       const { data, error, count } = await query;
       if (sort === "random" && Array.isArray(data)) {
         data.sort(() => Math.random() - 0.5);
@@ -247,29 +244,43 @@ if (diet) {
     }
 
     // ✅ Filters trigger refresh on change
-    document.getElementById("categoryFilter")?.addEventListener("change", () => {
-      currentPage = 1;
-      fetchRecipes();
-    });
+const categoryFilter = document.getElementById("categoryFilter");
+if (categoryFilter) {
+  categoryFilter.addEventListener("change", () => {
+    currentPage = 1;
+    fetchRecipes();
+  });
+}
 
-    document.getElementById("dietFilter")?.addEventListener("change", () => {
-      currentPage = 1;
-      fetchRecipes();
-    });
+const dietFilter = document.getElementById("dietFilter");
+if (dietFilter) {
+  dietFilter.addEventListener("change", () => {
+    currentPage = 1;
+    fetchRecipes();
+  });
+}
 
-    document.getElementById("sortFilter")?.addEventListener("change", () => {
-      currentPage = 1;
-      fetchRecipes();
-    });
+const sortFilter = document.getElementById("sortFilter");
+if (sortFilter) {
+  sortFilter.addEventListener("change", () => {
+    currentPage = 1;
+    fetchRecipes();
+  });
+}
 
-    document.getElementById("clearFilters")?.addEventListener("click", () => {
-      document.getElementById("categoryFilter").value = "";
-      document.getElementById("dietFilter").value = "";
-      document.getElementById("sortFilter").value = "title.asc";
-      document.getElementById("searchInput").value = "";
-      currentPage = 1;
-      fetchRecipes();
-    });
+const clearFilters = document.getElementById("clearFilters");
+if (clearFilters) {
+  clearFilters.addEventListener("click", () => {
+    if (categoryFilter) categoryFilter.value = "";
+    if (dietFilter) dietFilter.value = "";
+    if (sortFilter) sortFilter.value = "title.asc";
+    const searchInput = document.getElementById("searchInput");
+    if (searchInput) searchInput.value = "";
+    currentPage = 1;
+    fetchRecipes();
+  });
+}
+
 
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
     nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
