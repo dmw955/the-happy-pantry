@@ -280,6 +280,17 @@ if (clearFilters) {
     fetchRecipes();
   });
 }
+const searchInput = document.getElementById("searchInput");
+if (searchInput) {
+  let debounceTimeout;
+  searchInput.addEventListener("input", () => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => {
+      currentPage = 1;
+      fetchRecipes();
+    }, 300);
+  });
+}
 
 
     showFavoritesToggle?.addEventListener("change", fetchRecipes);
