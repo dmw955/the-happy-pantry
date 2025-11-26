@@ -1,18 +1,21 @@
 const PantryPal = (() => {
   const state = {
-    endpoint: "/api/pantrypal",
-    els: {
-      form: null,
-      input: null,
-      messages: null,
-      typing: null,
-      sheet: null,
-      fab: null,
-      backdrop: null
-    },
-    getContext: () => ({}),
-    sending: false,
-  };
+  endpoint: "/api/pantrypal",
+  els: {
+    form: null,
+    input: null,
+    messages: null,
+    typing: null,
+    sheet: null,
+    fab: null,
+    backdrop: null
+  },
+  getContext: () => ({}),
+  sending: false,
+  debug: true // ← 🔍 this is what you're missing
+};
+
+
 
   function $(sel) {
     return document.querySelector(sel);
@@ -70,18 +73,30 @@ const PantryPal = (() => {
     }
   }
 function validateResponse(data) {
-  if (!data || typeof data !== "object") {
-    throw new Error("Invalid AI response: not an object");
+  if (!data) {
+    throw new Error("Missing response data");
   }
 
-  // Allow: text, shopping_list, replacement, notes, actions
-  const allowedKeys = ["text", "shopping_list", "replacement", "notes", "actions"];
+  // ✅ Normalize legacy field
+  if (typeof data.message === "string" && !data.text) {
+    data.text = data.message;
+  }
 
-  const keys = Object.keys(data);
-  const hasAllowed = keys.some(k => allowedKeys.includes(k));
+  const hasText = typeof data.text === "string";
+  const hasList = typeof data.shopping_list === "object";
+  const hasReplacement = typeof data.replacement === "string";
 
-  if (!hasAllowed) {
+  const hasRecognized = hasText || hasList || hasReplacement;
+
+  if (!hasRecognized) {
+    if (state.debug) {
+      console.warn("🔍 Unrecognized AI response structure:", data);
+    }
     throw new Error("Invalid AI response shape: no recognized fields");
+  }
+
+  if (data.actions && typeof data.actions !== "object") {
+    throw new Error("Invalid AI response shape: actions must be an object if present");
   }
 
   return data;
