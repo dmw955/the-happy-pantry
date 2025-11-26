@@ -517,8 +517,12 @@ def success():
 # ─────────────────────────────────────────────────────────────────────────────
 # PantryPal AI Endpoint
 # ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# PantryPal AI Endpoint
+# ─────────────────────────────────────────────────────────────────────────────
 from openai import OpenAI
-from openai import RateLimitError  # ✅ add this import if not already present
+from openai import RateLimitError
+import re
 
 @app.route("/api/pantrypal", methods=["POST"])
 def pantrypal_api():
@@ -533,13 +537,14 @@ def pantrypal_api():
         if not user_msg:
             return jsonify({"error": "Missing message"}), 400
 
+        # ✅ System message (correct placement & indentation)
         system_msg = (
             "You are PantryPal, a helpful kitchen assistant. "
-            "Respond in concise JSON with text/actions only. "
+            "Respond ONLY in raw JSON — no markdown, no backticks, no explanation. "
             f"Here is some page context: {json.dumps(context)}"
         )
 
-        # ✅ OpenAI SDK v1+ call
+        # ✅ OpenAI call
         try:
             response = client.chat.completions.create(
                 model="gpt-4o",
@@ -559,13 +564,19 @@ def pantrypal_api():
 
         print("🟢 Raw OpenAI response:", response)
 
+        # ✅ Extract + clean + parse AI JSON safely
         try:
             content = response.choices[0].message.content
             print("🟢 Response content:", content)
-            data = json.loads(content)
+
+            # Remove markdown code fences if present
+            clean = re.sub(r"^```(?:json)?\s*|```$", "", content.strip(), flags=re.MULTILINE)
+
+            data = json.loads(clean)
+
         except (KeyError, IndexError, json.JSONDecodeError) as e:
             print("❌ Failed to parse OpenAI response:", str(e))
-            print("❌ Raw content:", content)
+            print("❌ Raw cleaned content:", clean)
             return jsonify({"error": "Invalid AI response format"}), 502
 
         return jsonify(data), 200
