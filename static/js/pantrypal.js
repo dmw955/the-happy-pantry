@@ -158,7 +158,7 @@ if (valid.text) {
     "Here are some good replacements you can try:\n" +
     valid.replacementSuggestions.map(item => `• ${item}`).join("\n");
   renderBubble(reply, "ai");
-}} else if (valid.error) {
+} else if (valid.error) {
   if (state.debug) console.log("🧠 Response type: error");
   renderBubble(valid.error, "ai");
 }
