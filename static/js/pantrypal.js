@@ -82,11 +82,13 @@ function validateResponse(data) {
     data.text = data.message;
   }
 
-  const hasText = typeof data.text === "string";
-  const hasList = typeof data.shopping_list === "object";
-  const hasReplacement = typeof data.replacement === "string";
+const hasText = typeof data.text === "string";
+const hasList = typeof data.shopping_list === "object";
+const hasReplacement = typeof data.replacement === "string";
+const hasSuggestions = Array.isArray(data.replacementSuggestions);
 
-  const hasRecognized = hasText || hasList || hasReplacement;
+const hasRecognized = hasText || hasList || hasReplacement || hasSuggestions;
+
 
   if (!hasRecognized) {
     if (state.debug) {
@@ -135,14 +137,27 @@ async function handleSubmit(e) {
     const data = await sendToBackend(message);
     const valid = validateResponse(data);
 
-    if (valid.text) {
-      renderBubble(valid.text, "ai");
-    } else if (valid.shopping_list) {
-      renderBubble(formatShoppingList(valid.shopping_list), "ai");
-    } else if (valid.replacement) {
-      const reply = `You can replace it with **${valid.replacement}**.\n${valid.notes || ""}`;
-      renderBubble(reply, "ai");
-    }
+if (valid.text) {
+  if (state.debug) console.log("🧠 Response type: text");
+  renderBubble(valid.text, "ai");
+
+} else if (valid.shopping_list) {
+  if (state.debug) console.log("🧠 Response type: shopping_list");
+  renderBubble(formatShoppingList(valid.shopping_list), "ai");
+
+} else if (valid.replacement) {
+  if (state.debug) console.log("🧠 Response type: replacement");
+  const reply = `You can replace it with **${valid.replacement}**.\n${valid.notes || ""}`;
+  renderBubble(reply, "ai");
+
+} else if (Array.isArray(valid.replacementSuggestions)) {
+  if (state.debug) console.log("🧠 Response type: replacementSuggestions");
+  const reply =
+    "Here are some good replacements you can try:\n" +
+    valid.replacementSuggestions.map(item => `• ${item}`).join("\n");
+  renderBubble(reply, "ai");
+}
+
 
     dispatchActions(valid.actions);
   } catch (err) {
