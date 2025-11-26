@@ -69,30 +69,24 @@ const PantryPal = (() => {
       return {};
     }
   }
-
 function validateResponse(data) {
-  if (!data) {
-    throw new Error("Missing response data");
+  if (!data || typeof data !== "object") {
+    throw new Error("Invalid AI response: not an object");
   }
 
-  // ✅ Normalize OpenAI output: map `message` → `text`
-  if (typeof data.message === "string" && !data.text) {
-    data.text = data.message;
-  }
+  // Allow: text, shopping_list, replacement, notes, actions
+  const allowedKeys = ["text", "shopping_list", "replacement", "notes", "actions"];
 
-  const hasText = typeof data.text === "string";
-  const hasList = typeof data.shopping_list === "object";
+  const keys = Object.keys(data);
+  const hasAllowed = keys.some(k => allowedKeys.includes(k));
 
-  if (!hasText && !hasList) {
-    throw new Error("Invalid AI response shape: expected text or shopping_list");
-  }
-
-  if (data.actions && typeof data.actions !== "object") {
-    throw new Error("Invalid AI response shape: actions must be an object if present");
+  if (!hasAllowed) {
+    throw new Error("Invalid AI response shape: no recognized fields");
   }
 
   return data;
 }
+
 
 
 
@@ -110,38 +104,40 @@ function validateResponse(data) {
     }
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (state.sending) return;
+async function handleSubmit(e) {
+  e.preventDefault();
+  if (state.sending) return;
 
-    const message = (state.els.input.value || "").trim();
-    if (!message) return;
+  const message = (state.els.input.value || "").trim();
+  if (!message) return;
 
-    state.sending = true;
-    renderBubble(message, "user");
-    state.els.input.value = "";
-    setTyping(true);
+  state.sending = true;
+  renderBubble(message, "user");
+  state.els.input.value = "";
+  setTyping(true);
 
-try {
-  const data = await sendToBackend(message);
-  const valid = validateResponse(data);
+  try {
+    const data = await sendToBackend(message);
+    const valid = validateResponse(data);
 
-  if (valid.text) {
-    renderBubble(valid.text, "ai");
-  } else if (valid.shopping_list) {
-    renderBubble(formatShoppingList(valid.shopping_list), "ai");
+    if (valid.text) {
+      renderBubble(valid.text, "ai");
+    } else if (valid.shopping_list) {
+      renderBubble(formatShoppingList(valid.shopping_list), "ai");
+    } else if (valid.replacement) {
+      const reply = `You can replace it with **${valid.replacement}**.\n${valid.notes || ""}`;
+      renderBubble(reply, "ai");
+    }
+
+    dispatchActions(valid.actions);
+  } catch (err) {
+    console.error("PantryPal error:", err);
+    renderBubble("Sorry — I hit a snag. Try again in a moment.", "ai");
+  } finally {
+    setTyping(false);
+    state.sending = false;
   }
-
-  dispatchActions(valid.actions);
-} catch (err) {
-  console.error("PantryPal error:", err);
-  renderBubble("Sorry — I hit a snag. Try again in a moment.", "ai");
-} finally {
-  setTyping(false);
-  state.sending = false;
 }
-
-  }
 
   function installStylesOnce() {
     if (document.getElementById("pp-styles")) return;
