@@ -87,7 +87,9 @@ const hasList = typeof data.shopping_list === "object";
 const hasReplacement = typeof data.replacement === "string";
 const hasSuggestions = Array.isArray(data.replacementSuggestions);
 
-const hasRecognized = hasText || hasList || hasReplacement || hasSuggestions;
+const hasError = typeof data.error === "string";
+const hasRecognized = hasText || hasList || hasReplacement || hasSuggestions || hasError;
+
 
 
   if (!hasRecognized) {
@@ -156,7 +158,11 @@ if (valid.text) {
     "Here are some good replacements you can try:\n" +
     valid.replacementSuggestions.map(item => `• ${item}`).join("\n");
   renderBubble(reply, "ai");
+}} else if (valid.error) {
+  if (state.debug) console.log("🧠 Response type: error");
+  renderBubble(valid.error, "ai");
 }
+
 
 
     dispatchActions(valid.actions);
