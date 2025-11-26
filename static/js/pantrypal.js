@@ -75,6 +75,11 @@ function validateResponse(data) {
     throw new Error("Missing response data");
   }
 
+  // ✅ Normalize OpenAI output: map `message` → `text`
+  if (typeof data.message === "string" && !data.text) {
+    data.text = data.message;
+  }
+
   const hasText = typeof data.text === "string";
   const hasList = typeof data.shopping_list === "object";
 
@@ -88,6 +93,7 @@ function validateResponse(data) {
 
   return data;
 }
+
 
 
   function dispatchActions(actions) {
