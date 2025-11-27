@@ -270,6 +270,11 @@ def planselection():
 def pantrypost():
     return render_template("pantry_post.html")
 
+@app.route('/legal')
+def legal():
+    return render_template('legal.html')
+
+
 @app.route("/thankyou")
 def thankyou():
     return render_template("thankyou.html")
@@ -513,7 +518,6 @@ def success():
         print("❌ Uncaught exception in /success route:")
         print(traceback.format_exc())
         return "Internal server error.", 500
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PantryPal AI Endpoint
