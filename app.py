@@ -233,7 +233,8 @@ def forgot_password():
             sb = get_supabase()
             sb.auth.reset_password_for_email(
                 email,
-                options={"redirect_to": "https://the-happy-pantry.com/reset_password"}
+                options={"redirect_to": "https://www.the-happy-pantry.com/reset_password"}
+
             )
             flash("✅ If an account exists, a reset link was sent.", "success")
             return redirect(url_for("login"))
