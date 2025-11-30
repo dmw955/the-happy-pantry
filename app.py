@@ -298,6 +298,11 @@ def pantry_project():
 def payment_processing():
     return render_template("paymentprocessing.html")
 
+@app.route("/free-month")
+def free_month():
+    return render_template("free_month.html")
+
+
 @app.route("/macrotracking")
 def macro_tracking():
     return render_template("macrotracking.html",
