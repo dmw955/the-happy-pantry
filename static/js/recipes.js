@@ -310,7 +310,9 @@ if (clearFilters) {
   });
 }
 const searchInput = document.getElementById("searchInput");
-if (searchInput) {
+if (!searchInput) {
+  console.warn("⚠️ searchInput not found");
+} else {
   let debounceTimeout;
   searchInput.addEventListener("input", () => {
     clearTimeout(debounceTimeout);
@@ -320,6 +322,7 @@ if (searchInput) {
     }, 300);
   });
 }
+
 
 
 if (showFavoritesToggle) {
