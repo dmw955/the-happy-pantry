@@ -310,9 +310,7 @@ if (clearFilters) {
   });
 }
 const searchInput = document.getElementById("searchInput");
-if (!searchInput) {
-  console.warn("⚠️ searchInput not found");
-} else {
+if (searchInput) {
   let debounceTimeout;
   searchInput.addEventListener("input", () => {
     clearTimeout(debounceTimeout);
@@ -321,6 +319,8 @@ if (!searchInput) {
       fetchRecipes();
     }, 300);
   });
+} else {
+  console.warn("⚠️ searchInput not found — skipping input listener");
 }
 
 
