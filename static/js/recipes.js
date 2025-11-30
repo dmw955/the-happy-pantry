@@ -324,6 +324,8 @@ if (searchInput) {
 
 if (showFavoritesToggle) {
   showFavoritesToggle.addEventListener("change", fetchRecipes);
+} else {
+  console.warn("⚠️ showFavoritesToggle not found");
 }
 
 if (nextPageBtn) {
@@ -331,6 +333,8 @@ if (nextPageBtn) {
     currentPage++;
     fetchRecipes();
   });
+} else {
+  console.warn("⚠️ nextPageBtn not found");
 }
 
 if (prevPageBtn) {
@@ -338,9 +342,12 @@ if (prevPageBtn) {
     if (currentPage > 1) currentPage--;
     fetchRecipes();
   });
+} else {
+  console.warn("⚠️ prevPageBtn not found");
 }
 
 fetchRecipes();
+
 
 
     function escapeHtml(str) {
