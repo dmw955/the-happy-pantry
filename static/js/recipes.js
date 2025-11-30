@@ -63,25 +63,23 @@ waitForSupabaseClient((supabaseClient) => {
       const from = (currentPage - 1) * pageSize;
       const to = from + pageSize - 1;
 
-      let query = supabaseClient
-        .from("recipes")
-        .select("*", { count: "exact" });
+    let query = supabaseClient
+  .from("recipes")
+  .select("*", { count: "exact" });
 
-      if (sort === "random") {
-        query = query.order("created_at", { ascending: false });
-      } else {
-        query = query.order(sort.split(".")[0], { ascending: sort.split(".")[1] === "asc" });
-      }
-
-      query = query.range(from, to);
-
-      if (searchTerm) query = query.ilike("title", `%${searchTerm}%`);
-if (category) query = query.eq("category", category);
-
-if (diet) {
-  query = query.contains("diet_tags", [diet]);
+if (sort === "random") {
+  query = query.order("created_at", { ascending: false });
+} else {
+  query = query.order(sort.split(".")[0], { ascending: sort.split(".")[1] === "asc" });
 }
 
+query = query.range(from, to);
+
+if (searchTerm) query = query.ilike("title", `%${searchTerm}%`);
+if (category) query = query.eq("category", category);
+if (diet) query = query.contains("diet_tags", [diet]);
+
+// ✅ SAFELY fetch data here before referencing it
 const { data, error, count } = await query;
 
 if (error || !Array.isArray(data)) {
@@ -90,6 +88,7 @@ if (error || !Array.isArray(data)) {
   return;
 }
 
+// ✅ Only now safe to shuffle
 if (sort === "random") {
   const storageKey = "shuffledRecipeOrder";
   let storedIds = JSON.parse(sessionStorage.getItem(storageKey));
@@ -108,12 +107,13 @@ if (sort === "random") {
     sessionStorage.setItem(storageKey, JSON.stringify(storedIds));
   }
 
-  // Reorder data based on stored shuffled ID order
+  // Reorder data based on shuffled ID order
   const idIndexMap = new Map(storedIds.map((id, index) => [id, index]));
   data.sort((a, b) => {
     return (idIndexMap.get(a.id) ?? 9999) - (idIndexMap.get(b.id) ?? 9999);
   });
 }
+
 
 
       recipeContainer.innerHTML = "";
