@@ -82,10 +82,27 @@ if (diet) {
   query = query.contains("diet_tags", [diet]);
 }
 
-      const { data, error, count } = await query;
-      if (sort === "random" && Array.isArray(data)) {
-        data.sort(() => Math.random() - 0.5);
-      }
+if (sort === "random" && Array.isArray(data)) {
+  const storageKey = "shuffledRecipeOrder";
+  let storedIds = JSON.parse(sessionStorage.getItem(storageKey));
+
+  if (!storedIds || !Array.isArray(storedIds) || storedIds.length !== data.length) {
+    // Shuffle once and store
+    storedIds = data.map(recipe => recipe.id);
+    for (let i = storedIds.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [storedIds[i], storedIds[j]] = [storedIds[j], storedIds[i]];
+    }
+    sessionStorage.setItem(storageKey, JSON.stringify(storedIds));
+  }
+
+  // Sort data based on stored shuffled ID order
+  const idIndexMap = new Map(storedIds.map((id, index) => [id, index]));
+  data.sort((a, b) => {
+    return (idIndexMap.get(a.id) ?? 9999) - (idIndexMap.get(b.id) ?? 9999);
+  });
+}
+
 
       recipeContainer.innerHTML = "";
       pageInfo.textContent = `Page ${currentPage}`;
