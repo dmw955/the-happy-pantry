@@ -82,12 +82,24 @@ if (diet) {
   query = query.contains("diet_tags", [diet]);
 }
 
-if (sort === "random" && Array.isArray(data)) {
+const { data, error, count } = await query;
+
+if (error || !Array.isArray(data)) {
+  console.error("🔥 Supabase error:", error);
+  recipeContainer.innerHTML = '<p class="text-danger">Failed to load recipes.</p>';
+  return;
+}
+
+if (sort === "random") {
   const storageKey = "shuffledRecipeOrder";
   let storedIds = JSON.parse(sessionStorage.getItem(storageKey));
 
-  if (!storedIds || !Array.isArray(storedIds) || storedIds.length !== data.length) {
-    // Shuffle once and store
+  const needsNewShuffle =
+    !Array.isArray(storedIds) ||
+    storedIds.length !== data.length ||
+    !storedIds.every(id => data.some(recipe => recipe.id === id));
+
+  if (needsNewShuffle) {
     storedIds = data.map(recipe => recipe.id);
     for (let i = storedIds.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -96,7 +108,7 @@ if (sort === "random" && Array.isArray(data)) {
     sessionStorage.setItem(storageKey, JSON.stringify(storedIds));
   }
 
-  // Sort data based on stored shuffled ID order
+  // Reorder data based on stored shuffled ID order
   const idIndexMap = new Map(storedIds.map((id, index) => [id, index]));
   data.sort((a, b) => {
     return (idIndexMap.get(a.id) ?? 9999) - (idIndexMap.get(b.id) ?? 9999);
