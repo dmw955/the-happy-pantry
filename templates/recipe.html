@@ -147,6 +147,17 @@
   padding: 4px;
 }
 
+.btn-accent {
+  background-color: var(--accent-color);
+  color: black;
+  border: none;
+}
+
+.btn-accent:hover {
+  background-color: #e6b800; /* Slightly darker gold */
+  color: black;
+}
+
 </style>
 
 </head>
@@ -277,9 +288,12 @@
       {% endif %}
 
 <!-- ✅ Add to Shopping List Button -->
-<button id="addToShoppingList" class="btn btn-success mb-4">
-  Add Ingredients to Shopping List
-</button>
+<div class="text-center mb-4">
+  <button id="addToShoppingList" class="btn btn-accent">
+    Add Ingredients to Shopping List
+  </button>
+</div>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
