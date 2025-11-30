@@ -275,6 +275,11 @@ def pantrypost():
 def legal():
     return render_template('legal.html')
 
+@app.route("/cancel")
+def cancel():
+    return render_template("cancel.html")
+
+
 
 @app.route("/thankyou")
 def thankyou():

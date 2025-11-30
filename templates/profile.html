@@ -160,26 +160,34 @@
             </div>
           </div>
 
-          <!-- Subscription & Payment -->
-          <div class="accordion-item">
-            <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionSettings">
-                Subscription & Payment Management
-              </button>
-            </h2>
-            <div id="subscriptionSettings" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
-              <div class="accordion-body">
-                <p><strong>Current Plan:</strong> Premium ($9.99/month)</p>
-                <a href="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_manage-paylist" 
-                 target="_blank" 
-                class="btn btn-primary-custom">
-                Change Payment Method
-                </a>
+<!-- Subscription & Payment -->
+<div class="accordion-item">
+  <h2 class="accordion-header">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#subscriptionSettings">
+      Subscription & Payment Management
+    </button>
+  </h2>
+  <div id="subscriptionSettings" class="accordion-collapse collapse" data-bs-parent="#profileAccordion">
+    <div class="accordion-body">
+      <p><strong>Current Plan:</strong> Premium ($12.99/month)</p>
 
-                <a href="/contact" class="btn btn-danger-custom mt-2">Cancel Subscription</a>
-              </div>
-            </div>
-          </div>
+      <!-- ✅ LIVE PayPal management links -->
+      <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_manage-paylist" 
+         target="_blank" 
+         class="btn btn-primary-custom">
+         Change Payment Method
+      </a>
+
+      <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_manage-paylist" 
+         target="_blank" 
+         class="btn btn-danger-custom mt-2">
+         Manage or Cancel Subscription
+      </a>
+    </div> <!-- ✅ This div was missing -->
+  </div>
+</div>
+
+
 
           <!-- Help & Support -->
           <div class="accordion-item">
