@@ -321,15 +321,9 @@ body {
       function openSheet() { sheet.classList.add('open'); backdrop.classList.add('open'); fab.setAttribute('aria-expanded', 'true'); setTimeout(()=> input.focus(), 200); trapFocus(); }
       function closeSheet() { sheet.classList.remove('open'); backdrop.classList.remove('open'); fab.setAttribute('aria-expanded', 'false'); releaseFocus(); fab.focus(); }
 
-if (fab) fab.addEventListener('click', openSheet);
-else console.warn("⚠️ FAB (#ppFab) not found");
-
-if (backdrop) backdrop.addEventListener('click', closeSheet);
-else console.warn("⚠️ Backdrop (#ppBackdrop) not found");
-
-if (closeBtn) closeBtn.addEventListener('click', closeSheet);
-else console.warn("⚠️ Close button (#ppClose) not found");
-
+      fab.addEventListener('click', openSheet);
+      backdrop.addEventListener('click', closeSheet);
+      closeBtn.addEventListener('click', closeSheet);
       document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeSheet(); });
 
       // Trap focus inside sheet
