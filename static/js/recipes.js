@@ -325,31 +325,39 @@ if (searchInput) {
 
 
 
-if (showFavoritesToggle) {
-  showFavoritesToggle.addEventListener("change", fetchRecipes);
-} else {
-  console.warn("⚠️ showFavoritesToggle not found");
-}
+document.addEventListener("DOMContentLoaded", async () => {
+  ...
+  const nextPageBtn = document.getElementById("nextPage");
+  const prevPageBtn = document.getElementById("prevPage");
+  const showFavoritesToggle = document.getElementById("showFavoritesToggle");
 
-if (nextPageBtn) {
-  nextPageBtn.addEventListener("click", () => {
-    currentPage++;
-    fetchRecipes();
-  });
-} else {
-  console.warn("⚠️ nextPageBtn not found");
-}
+  console.log("🧪 Binding buttons…");
 
-if (prevPageBtn) {
-  prevPageBtn.addEventListener("click", () => {
-    if (currentPage > 1) currentPage--;
-    fetchRecipes();
-  });
-} else {
-  console.warn("⚠️ prevPageBtn not found");
-}
+  if (!nextPageBtn) console.warn("❗ nextPageBtn not found");
+  if (!prevPageBtn) console.warn("❗ prevPageBtn not found");
+  if (!showFavoritesToggle) console.warn("❗ showFavoritesToggle not found");
 
-fetchRecipes();
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener("click", () => {
+      currentPage++;
+      fetchRecipes();
+    });
+  }
+
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPage > 1) currentPage--;
+      fetchRecipes();
+    });
+  }
+
+  if (showFavoritesToggle) {
+    showFavoritesToggle.addEventListener("change", fetchRecipes);
+  }
+
+  fetchRecipes();
+});
+
 
 
 
