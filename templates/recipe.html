@@ -27,12 +27,15 @@
 
   <!-- ✅ Inject currentRecipe context -->
 <script>
-    window.currentRecipe = {{ {
-      "title": (recipe.title | default("Untitled")),
-      "ingredients": (recipe.ingredients | default([])),
-      "dressing": (recipe.dressing | default([]))
-    } | tojson | safe }};
+  window.currentRecipe = {{ {
+    "id": recipe.id,
+    "title": (recipe.title | default("Untitled")),
+    "ingredients": (recipe.ingredients | default([])),
+    "dressing": (recipe.dressing | default([]))
+  } | tojson | safe }};
 </script>
+
+
 
 
   <!-- ✅ PantryPal chatbot logic -->
@@ -288,55 +291,46 @@
       {% endif %}
 
 <!-- ✅ Add to Shopping List Button -->
-<div class="text-center mb-4">
-  <button id="addToShoppingList" class="btn btn-accent">
-    Add Ingredients to Shopping List
-  </button>
+<div class="text-center my-4">
+  <button id="addToShoppingList" class="btn btn-lg px-4 py-2" style="background-color: var(--accent-color); color: #000; font-weight: bold;">
+    🛒 Add Ingredients to List
 </div>
 
 
+
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
-  const btn = document.getElementById("addToShoppingList");
-  if (!btn) return;
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("addToShoppingList");
+    if (!btn) return;
 
-  btn.addEventListener("click", async () => {
+    btn.addEventListener("click", () => {
+      const ingredients = window.currentRecipe.ingredients || [];
+      const dressing = window.currentRecipe.dressing || [];
+      const allItems = [...ingredients, ...dressing];
 
-    const supabase = window.supabaseClient;
-    if (!supabase) return alert("Supabase not ready.");
+      if (!allItems.length) {
+        alert("No ingredients found.");
+        return;
+      }
 
-    const { data: { session }} = await supabase.auth.getSession();
-    const user = session?.user;
+      // ✅ Save ingredients
+      localStorage.setItem("selectedIngredients", JSON.stringify(allItems));
 
-    if (!user) return alert("Please log in first.");
+      // ✅ Save recipe ID for checkbox tracking
+      const selectedRecipes = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
+      const recipeId = String(window.currentRecipe.id);
+      if (!selectedRecipes.includes(recipeId)) {
+        selectedRecipes.push(recipeId);
+        localStorage.setItem("selectedRecipes", JSON.stringify(selectedRecipes));
+      }
 
-    const ingredients = window.currentRecipe.ingredients || [];
-    const dressing = window.currentRecipe.dressing || [];
-
-    const allItems = [...ingredients, ...dressing];
-
-    if (!allItems.length) return alert("No ingredients found.");
-
-    const itemsToInsert = allItems.map(i => ({
-      user_id: user.id,
-      item: i.item,
-      unit: i.unit || "",
-      quantity: i.quantity || ""
-    }));
-
-    const { error } = await supabase
-      .from("shopping_list")
-      .insert(itemsToInsert);
-
-    if (error) {
-      console.error(error);
-      alert("Something went wrong.");
-    } else {
-      alert("✔ Ingredients added to your shopping list!");
-    }
+      alert("✔ Ingredients added! Redirecting to your shopping list...");
+      window.location.href = "/shopping_list";
+    });
   });
-});
 </script>
+
+
 
 
       <div class="text-center">
