@@ -322,11 +322,26 @@ if (searchInput) {
 }
 
 
-    showFavoritesToggle?.addEventListener("change", fetchRecipes);
-    nextPageBtn.addEventListener("click", () => { currentPage++; fetchRecipes(); });
-    prevPageBtn.addEventListener("click", () => { if (currentPage > 1) currentPage--; fetchRecipes(); });
+if (showFavoritesToggle) {
+  showFavoritesToggle.addEventListener("change", fetchRecipes);
+}
 
+if (nextPageBtn) {
+  nextPageBtn.addEventListener("click", () => {
+    currentPage++;
     fetchRecipes();
+  });
+}
+
+if (prevPageBtn) {
+  prevPageBtn.addEventListener("click", () => {
+    if (currentPage > 1) currentPage--;
+    fetchRecipes();
+  });
+}
+
+fetchRecipes();
+
 
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/, (c) => ({
