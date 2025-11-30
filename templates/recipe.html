@@ -26,12 +26,14 @@
   <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
 
   <!-- ✅ Inject currentRecipe context -->
-  <script>
+<script>
     window.currentRecipe = {{ {
       "title": (recipe.title | default("Untitled")),
-      "ingredients": (recipe.ingredients | default([]))
+      "ingredients": (recipe.ingredients | default([])),
+      "dressing": (recipe.dressing | default([]))
     } | tojson | safe }};
-  </script>
+</script>
+
 
   <!-- ✅ PantryPal chatbot logic -->
   <script src="{{ url_for('static', filename='js/pantrypal.js') }}" defer></script>
@@ -185,8 +187,6 @@
       <!-- Meta badges -->
       <div class="d-flex flex-wrap gap-2 mb-4">
         <span class="badge text-bg-light border"><i class="bi bi-people me-1"></i>Servings: {{ recipe.servings | default('4') }}</span>
-        <span class="badge text-bg-light border"><i class="bi bi-stopwatch me-1"></i>Prep: {{ recipe.prep_time | default('—') }}</span>
-        <span class="badge text-bg-light border"><i class="bi bi-fire me-1"></i>Cook: {{ recipe.cook_time | default('—') }}</span>
         <span class="badge text-bg-light border"><i class="bi bi-hourglass-split me-1"></i>Total: {{ recipe.total_time | default('—') }}</span>
       </div>
 
@@ -218,6 +218,8 @@
         {% endfor %}
       </ul>
       {% endif %}
+
+
 
       <!-- Dressing (optional) -->
       {% if recipe.dressing %}
@@ -273,6 +275,55 @@
         </table>
       </div>
       {% endif %}
+
+<!-- ✅ Add to Shopping List Button -->
+<button id="addToShoppingList" class="btn btn-success mb-4">
+  Add Ingredients to Shopping List
+</button>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+  const btn = document.getElementById("addToShoppingList");
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+
+    const supabase = window.supabaseClient;
+    if (!supabase) return alert("Supabase not ready.");
+
+    const { data: { session }} = await supabase.auth.getSession();
+    const user = session?.user;
+
+    if (!user) return alert("Please log in first.");
+
+    const ingredients = window.currentRecipe.ingredients || [];
+    const dressing = window.currentRecipe.dressing || [];
+
+    const allItems = [...ingredients, ...dressing];
+
+    if (!allItems.length) return alert("No ingredients found.");
+
+    const itemsToInsert = allItems.map(i => ({
+      user_id: user.id,
+      item: i.item,
+      unit: i.unit || "",
+      quantity: i.quantity || ""
+    }));
+
+    const { error } = await supabase
+      .from("shopping_list")
+      .insert(itemsToInsert);
+
+    if (error) {
+      console.error(error);
+      alert("Something went wrong.");
+    } else {
+      alert("✔ Ingredients added to your shopping list!");
+    }
+  });
+});
+</script>
+
 
       <div class="text-center">
         <a href="{{ url_for('recipes') }}" class="text-decoration-none" style="color:var(--primary);">
@@ -338,7 +389,6 @@
       </a>
     </div>
   </footer>
-
 
 
   <!-- Bootstrap Bundle -->
