@@ -386,18 +386,21 @@ favCollapse?.addEventListener("shown.bs.collapse", async () => {
     </div>
   `;
 
-  const { data: favorites, error: fetchError } = await supabase
-    .from("favorite_recipes")
-    .select(`
-      id,
-      title,
-      calories,
-      protein,
-      carbs,
-      fat,
-      recipe:recipes (portion_note)
-    `)
-    .eq("user_id", cleanUserId);
+const { data: favorites, error: fetchError } = await supabase
+  .from("favorite_recipes")
+  .select(`
+    id,
+    title,
+    calories,
+    protein,
+    carbs,
+    fat,
+    recipes (
+      portion_note
+    )
+  `)
+  .eq("user_id", cleanUserId);
+
 
   if (fetchError || !favorites?.length) {
     favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
