@@ -390,16 +390,14 @@ const { data: favorites, error: fetchError } = await supabase
   .from("favorite_recipes")
   .select(`
     id,
-    title,
+    recipe_title,
     calories,
     protein,
     carbs,
-    fat,
-    recipes (
-      portion_note
-    )
+    fat
   `)
   .eq("user_id", cleanUserId);
+
 
 
   if (fetchError || !favorites?.length) {
@@ -409,32 +407,32 @@ const { data: favorites, error: fetchError } = await supabase
   }
 
   favoritesContainer.innerHTML = favorites.map(recipe => `
-    <div class="col-md-4">
-      <div class="card mb-3 p-3" 
-           data-recipe-id="${recipe.id}" 
-           data-title="${recipe.title}" 
-           data-protein="${recipe.protein}" 
-           data-carbs="${recipe.carbs}" 
-           data-fat="${recipe.fat}">
-        <h5>${recipe.title}</h5>
-        <p>Protein: ${recipe.protein}g<br>Carbs: ${recipe.carbs}g<br>Fat: ${recipe.fat}g<br>Calories: ${recipe.calories}</p>
+  <div class="col-md-4">
+    <div class="card mb-3 p-3" 
+         data-recipe-id="${recipe.id}" 
+         data-title="${recipe.recipe_title}" 
+         data-protein="${recipe.protein}" 
+         data-carbs="${recipe.carbs}" 
+         data-fat="${recipe.fat}">
+      <h5>${recipe.recipe_title}</h5>
+      <p>Protein: ${recipe.protein}g<br>
+         Carbs: ${recipe.carbs}g<br>
+         Fat: ${recipe.fat}g<br>
+         Calories: ${recipe.calories}</p>
 
-<div class="mb-1">
-  <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
-  <input type="number" class="form-control form-control-sm" 
-         min="0.1" step="0.1" value="1" 
-         placeholder="Servings" data-serving-input style="max-width: 120px;">
-</div>
-
-
-        ${recipe.recipe?.portion_note ? `<small class="text-muted d-block mb-2">${recipe.recipe.portion_note}</small>` : ''}
-
-        <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}">
-          Log This
-        </button>
+      <div class="mb-1">
+        <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
+        <input type="number" class="form-control form-control-sm" 
+               min="0.1" step="0.1" value="1" 
+               placeholder="Servings" data-serving-input style="max-width: 120px;">
       </div>
+
+      <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}">
+        Log This
+      </button>
     </div>
-  `).join("");
+  </div>
+`).join("");
 
   favoritesContainer.querySelectorAll("button[data-recipe-id]").forEach(button => {
     button.addEventListener("click", async () => {
