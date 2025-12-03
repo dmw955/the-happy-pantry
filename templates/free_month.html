@@ -206,6 +206,21 @@
         color: var(--muted);
       }
 
+      .equal-row {
+  display: flex;
+  gap: 1.5rem;
+}
+.equal-row > div {
+  flex: 1;
+  display: flex;
+}
+.screen-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
       @media (max-width: 991px) {
         .hero {
           padding-top: 40px;
@@ -328,37 +343,38 @@
           <h2 class="h4 fw-bold mb-2">See it before you sign up.</h2>
           <p class="text-muted mb-0">Here’s a peek at what you’ll use every week inside The Happy Pantry.</p>
         </div>
-        <div class="row g-4">
-          <div class="col-md-4">
-            <div class="screen-card">
-              <img src="{{ url_for('static', filename='assets/dashboard.png') }}" alt="Dashboard preview (placeholder)">
-              <div class="screen-card-body">
-                <h3 class="h6 fw-bold mb-1">Clean, simple dashboard</h3>
-                <p class="mb-0 text-muted">See your recipes, bundles, and shopping tools in one place.</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="screen-card">
-              <img src="{{ url_for('static', filename='assets/recipes.png') }}" alt="Recipe preview (placeholder)">
-              <div class="screen-card-body">
-                <h3 class="h6 fw-bold mb-1">Recipe library</h3>
-                <p class="mb-0 text-muted">Browse meals, save your favorites, and build your week in a few taps.</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="screen-card">
-              <img src="{{ url_for('static', filename='assets/shoppinglist.PNG') }}" alt="Shopping list preview (placeholder)">
-              <div class="screen-card-body">
-                <h3 class="h6 fw-bold mb-1">Smart shopping list</h3>
-                <p class="mb-0 text-muted">Auto-generated, organized by store section, and ready for Walmart, Shaws, or wherever you shop.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Note: replace mock-*.jpg with real screenshots when ready -->
+        <div class="equal-row">
+  <div>
+    <div class="screen-card">
+      <img src="{{ url_for('static', filename='assets/dashboard.png') }}" alt="Dashboard preview">
+      <div class="screen-card-body">
+        <h3 class="h6 fw-bold mb-1">Clean, simple dashboard</h3>
+        <p class="mb-0 text-muted">See your recipes, bundles, and shopping tools in one place.</p>
       </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="screen-card">
+      <img src="{{ url_for('static', filename='assets/recipes.png') }}" alt="Recipe preview">
+      <div class="screen-card-body">
+        <h3 class="h6 fw-bold mb-1">Recipe library</h3>
+        <p class="mb-0 text-muted">Browse meals, save your favorites, and build your week in a few taps.</p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="screen-card">
+      <img src="{{ url_for('static', filename='assets/shoppinglist.PNG') }}" alt="Shopping list preview">
+      <div class="screen-card-body">
+        <h3 class="h6 fw-bold mb-1">Smart shopping list</h3>
+        <p class="mb-0 text-muted">Auto-generated, organized by store section, and ready for Walmart, Shaws, or wherever you shop.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
     </section>
 
     <!-- How It Works -->
