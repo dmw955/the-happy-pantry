@@ -390,44 +390,54 @@ const { data: favorites, error: fetchError } = await supabase
   .from("favorite_recipes")
   .select(`
     id,
-    recipe_title,
-    calories,
-    protein,
-    carbs,
-    fat
+    recipe_id,
+    recipes (
+      title,
+      calories,
+      protein,
+      carbs,
+      fat,
+      portion_note
+    )
   `)
   .eq("user_id", cleanUserId);
 
+if (fetchError || !favorites?.length) {
+  favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
+  console.error("Favorite fetch error:", fetchError);
+  return;
+}
 
-
-  if (fetchError || !favorites?.length) {
-    favoritesContainer.innerHTML = "<p>No favorites found or error loading.</p>";
-    console.error("Favorite fetch error:", fetchError);
-    return;
-  }
-
-  favoritesContainer.innerHTML = favorites.map(recipe => `
+favoritesContainer.innerHTML = favorites.map(fav => `
   <div class="col-md-4">
-    <div class="card mb-3 p-3" 
-         data-recipe-id="${recipe.id}" 
-         data-title="${recipe.recipe_title}" 
-         data-protein="${recipe.protein}" 
-         data-carbs="${recipe.carbs}" 
-         data-fat="${recipe.fat}">
-      <h5>${recipe.recipe_title}</h5>
-      <p>Protein: ${recipe.protein}g<br>
-         Carbs: ${recipe.carbs}g<br>
-         Fat: ${recipe.fat}g<br>
-         Calories: ${recipe.calories}</p>
+    <div class="card mb-3 p-3"
+         data-recipe-id="${fav.recipe_id}"
+         data-title="${fav.recipes.title}"
+         data-protein="${fav.recipes.protein}"
+         data-carbs="${fav.recipes.carbs}"
+         data-fat="${fav.recipes.fat}">
+      
+      <h5>${fav.recipes.title}</h5>
+      <p>
+        Protein: ${fav.recipes.protein}g<br>
+        Carbs: ${fav.recipes.carbs}g<br>
+        Fat: ${fav.recipes.fat}g<br>
+        Calories: ${fav.recipes.calories}
+      </p>
+
+      ${fav.recipes.portion_note 
+        ? `<small class="text-muted d-block mb-2">${fav.recipes.portion_note}</small>`
+        : ""
+      }
 
       <div class="mb-1">
         <label class="form-label form-label-sm d-block mb-0">Number of servings</label>
-        <input type="number" class="form-control form-control-sm" 
-               min="0.1" step="0.1" value="1" 
+        <input type="number" class="form-control form-control-sm"
+               min="0.1" step="0.1" value="1"
                placeholder="Servings" data-serving-input style="max-width: 120px;">
       </div>
 
-      <button class="btn btn-sm btn-success" data-recipe-id="${recipe.id}">
+      <button class="btn btn-sm btn-success" data-recipe-id="${fav.recipe_id}">
         Log This
       </button>
     </div>
