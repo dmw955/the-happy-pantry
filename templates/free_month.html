@@ -262,10 +262,11 @@
               <!-- Example:
               <iframe src="https://www.youtube.com/embed/your-video-id" allowfullscreen></iframe>
               -->
-              <div class="video-placeholder">
-                Your walkthrough video goes here. Record a quick screen-share
-                explaining how The Happy Pantry works and how the free month works.
-              </div>
+              <video controls autoplay muted playsinline width="100%" style="border-radius: 16px;">
+              <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+
             </div>
           </div>
         </div>
@@ -330,7 +331,7 @@
         <div class="row g-4">
           <div class="col-md-4">
             <div class="screen-card">
-              <img src="{{ url_for('static', filename='assets/default.jpg') }}" alt="Dashboard preview (placeholder)">
+              <img src="{{ url_for('static', filename='assets/dashboard.PNG') }}" alt="Dashboard preview (placeholder)">
               <div class="screen-card-body">
                 <h3 class="h6 fw-bold mb-1">Clean, simple dashboard</h3>
                 <p class="mb-0 text-muted">See your recipes, bundles, and shopping tools in one place.</p>
@@ -339,7 +340,7 @@
           </div>
           <div class="col-md-4">
             <div class="screen-card">
-              <img src="{{ url_for('static', filename='assets/default.jpg') }}" alt="Recipe preview (placeholder)">
+              <img src="{{ url_for('static', filename='assets/recipes.PNG') }}" alt="Recipe preview (placeholder)">
               <div class="screen-card-body">
                 <h3 class="h6 fw-bold mb-1">Recipe library</h3>
                 <p class="mb-0 text-muted">Browse meals, save your favorites, and build your week in a few taps.</p>
@@ -348,7 +349,7 @@
           </div>
           <div class="col-md-4">
             <div class="screen-card">
-              <img src="{{ url_for('static', filename='assets/default.jpg') }}" alt="Shopping list preview (placeholder)">
+              <img src="{{ url_for('static', filename='assets/shoppinglist.PNG') }}" alt="Shopping list preview (placeholder)">
               <div class="screen-card-body">
                 <h3 class="h6 fw-bold mb-1">Smart shopping list</h3>
                 <p class="mb-0 text-muted">Auto-generated, organized by store section, and ready for Walmart, Shaws, or wherever you shop.</p>
