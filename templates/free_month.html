@@ -272,20 +272,49 @@
           </div>
 
           <div class="col-lg-6">
-            <div class="video-wrapper">
-              <!-- Replace this block with your real video (YouTube iframe or MP4) -->
-              <!-- Example:
-              <iframe src="https://www.youtube.com/embed/your-video-id" allowfullscreen></iframe>
-              -->
-              <video controls autoplay muted playsinline width="100%" style="border-radius: 16px;">
-              <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
-                Your browser does not support the video tag.
-              </video>
+<div class="video-wrapper">
 
-            </div>
-          </div>
-        </div>
-      </div>
+  <!-- 1. STATIC POSTER IMAGE (instant LCP) -->
+  <img 
+    src="{{ url_for('static', filename='assets/hero_image.webp') }}"
+    alt="The Happy Pantry Preview"
+    id="heroPoster"
+    width="1280"
+    height="720"
+    style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
+
+  <!-- 2. LAZY-LOADED VIDEO -->
+  <video 
+    id="heroVideo"
+    playsinline 
+    muted 
+    loop 
+    preload="none"
+    style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition: opacity .6s;">
+    <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
+  </video>
+
+</div>
+
+<!-- 3. Lazy-load script -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const poster = document.getElementById("heroPoster");
+  const video = document.getElementById("heroVideo");
+
+  // Start loading video after page content is ready
+  video.load();
+
+  // When video is buffered enough to start
+  video.addEventListener("canplay", () => {
+    video.play().catch(() => {});
+    // Smooth fade from image → video
+    poster.style.opacity = "0";
+    video.style.opacity = "1";
+  });
+});
+</script>
+
     </section>
 
     <!-- Features -->
