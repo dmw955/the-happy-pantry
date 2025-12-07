@@ -93,6 +93,23 @@ body {
     transform: scale(1.03);
     transition: all 0.2s ease-in-out;
   }
+.recipe-hero-img {
+    width: 100%;
+    max-width: 650px;      /* prevents huge widescreen scaling */
+    max-height: 400px;     /* keeps image from becoming tall and dominant */
+    object-fit: cover;
+    object-position: center;
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto 24px;   /* centers it beautifully */
+    background: #f3f4f6;
+}
+
+#recipeContainer .thumb {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 12px;
+}
 
 
 

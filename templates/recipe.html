@@ -161,6 +161,19 @@
   color: black;
 }
 
+/* Recipe Hero Image */
+.recipe-hero-img {
+  width: 100%;
+  max-width: 650px;       /* prevents enormous widescreen scaling */
+  max-height: 400px;      /* keeps image from being tall */
+  object-fit: cover;      /* clean proportional cropping */
+  object-position: center;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto 24px;    /* centers image and adds spacing */
+  background: #f3f4f6;    /* subtle placeholder background */
+}
+
 </style>
 
 </head>
@@ -204,17 +217,20 @@
         <span class="badge text-bg-light border"><i class="bi bi-hourglass-split me-1"></i>Total: {{ recipe.total_time | default('—') }}</span>
       </div>
 
-      <!-- Image (use image first; fallback to image_url). Do not modify filenames. -->
-      {% set _img = recipe.image or recipe.image_url %}
-      {% if _img %}
-      <div class="text-center mb-4">
-        <img
-          src="{{ url_for('static', filename='assets/' + _img) }}"
-          alt="{{ recipe.title | default('Recipe image') }}"
-          class="img-fluid rounded-xl shadow-sm"
-          loading="lazy" decoding="async" style="max-width:720px;">
-      </div>
-      {% endif %}
+<!-- Image (use image first; fallback to image_url). Do not modify filenames. -->
+{% set _img = recipe.image or recipe.image_url %}
+{% if _img %}
+<div class="text-center mb-4">
+  <img
+    src="{{ url_for('static', filename='assets/' + _img) }}"
+    alt="{{ recipe.title | default('Recipe image') }}"
+    class="recipe-hero-img"
+    loading="lazy"
+    decoding="async"
+  />
+</div>
+{% endif %}
+
 
       <!-- Ingredients -->
       {% if recipe.ingredients %}
