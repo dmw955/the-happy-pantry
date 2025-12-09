@@ -188,10 +188,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-    }
-    .screen-card img {
-      width: 100%;
-      display: block;
+
     }
     .screen-card-body {
       padding: 1rem 1.25rem 1.4rem;
@@ -246,6 +243,14 @@
       color: var(--muted);
     }
 
+    .screen-card img {
+  width: 100%;
+  height: 220px;      /* consistent height */
+  object-fit: cover;  /* zoom+crop to fill the frame */
+  display: block;
+}
+
+
     @media (max-width: 991px) {
       .hero {
         padding-top: 40px;
@@ -276,37 +281,43 @@
 
   <main>
     <!-- HERO -->
-    <section class="hero">
-      <div class="container hp-container">
-        <div class="row g-4 align-items-center">
-          <div class="col-lg-6">
-            <h1 class="hero-title mb-3">
-              Your first month at The Happy Pantry is free.
-            </h1>
-            <p class="hero-subtitle mb-3">
-              Stop guessing what to cook and what to buy. Get simple recipes, a smart shopping list that builds itself,
-              and macros you can actually track—without spreadsheets or apps you hate using.
-            </p>
-            <ul class="hero-bullets mb-3">
-              <li>Pick your meals in minutes, not hours.</li>
-              <li>Get an organized grocery list that mirrors the store.</li>
-              <li>See protein, carbs, and fats per serving at a glance.</li>
-            </ul>
-            <button class="hero-cta mt-1"
-                    onclick="document.getElementById('signup').scrollIntoView({behavior: 'smooth'})">
-              Start Your Free Month
-            </button>
+<section class="hero">
+  <div class="container hp-container">
+    <div class="row justify-content-center text-center">
+      <div class="col-lg-8">
 
-            <div class="trust-bar d-flex flex-wrap gap-2 align-items-center">
-              <span class="fw-semibold">Why members love it:</span>
-              <span class="trust-pill"><i class="bi bi-mortarboard"></i> Built by a clinical nutritionist</span>
-              <span class="trust-pill"><i class="bi bi-clock-history"></i> Designed for real life, not fad diets</span>
-              <span class="trust-pill"><i class="bi bi-x-circle"></i> Cancel anytime, no pressure</span>
-            </div>
-          </div>
+        <h1 class="hero-title mb-3">
+          Your first month at The Happy Pantry is free.
+        </h1>
 
+        <p class="hero-subtitle mb-3">
+          Stop guessing what to cook and what to buy. Get simple recipes, a smart shopping list that builds itself,
+          and macros you can actually track—without spreadsheets or apps you hate using.
+        </p>
 
-    </section>
+        <ul class="hero-bullets mb-3 text-start mx-auto" style="max-width: 480px;">
+          <li>Pick your meals in minutes, not hours.</li>
+          <li>Get an organized grocery list that mirrors the store.</li>
+          <li>See protein, carbs, and fats per serving at a glance.</li>
+        </ul>
+
+        <button class="hero-cta mt-1"
+                onclick="document.getElementById('signup').scrollIntoView({behavior: 'smooth'})">
+          Start Your Free Month
+        </button>
+
+        <div class="trust-bar d-inline-flex flex-wrap gap-2 align-items-center mt-4">
+          <span class="fw-semibold">Why members love it:</span>
+          <span class="trust-pill"><i class="bi bi-mortarboard"></i> Built by a clinical nutritionist</span>
+          <span class="trust-pill"><i class="bi bi-clock-history"></i> Designed for real life, not fad diets</span>
+          <span class="trust-pill"><i class="bi bi-x-circle"></i> Cancel anytime, no pressure</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
 
     <!-- WHO IT'S FOR -->
     <section class="py-4 py-md-5">
@@ -470,28 +481,29 @@
               <li>Where to see your macros and serving info</li>
             </ul>
           </div>
-          <div class="col-lg-6">
-            <div class="walkthrough-card">
-          <div class="col-lg-6">
-            <!-- Hero video preview (silent autoplay loop) -->
-            <div class="video-wrapper">
-              <!-- Static poster for instant load -->
-              <img
-                src="{{ url_for('static', filename='assets/hero_image.webp') }}"
-                alt="The Happy Pantry Preview"
-                id="heroPoster">
+<div class="col-lg-6">
+  <div class="walkthrough-card">
 
-              <!-- Lazy-loaded video -->
-              <video id="heroVideo" playsinline muted loop preload="none">
-                <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
-              </video>
-            </div>
-              <p class="mt-2 mb-0 text-muted small text-center">
-                Real footage from inside the app, not a mockup.
-              </p>
-            </div>
-          </div>
-        </div>
+    <div class="video-wrapper">
+      <!-- Static poster -->
+      <img
+        src="{{ url_for('static', filename='assets/hero_image.webp') }}"
+        alt="The Happy Pantry Preview"
+        id="walkPoster">
+
+      <!-- Lazy-loaded video -->
+      <video id="walkVideo" playsinline muted loop preload="none">
+        <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
+      </video>
+    </div>
+
+    <p class="mt-2 mb-0 text-muted small text-center">
+      Real footage from inside the app, not a mockup.
+    </p>
+
+  </div>
+</div>
+
       </div>
     </section>
 
@@ -554,7 +566,7 @@
                 Your first month is 100% free.
               </h2>
               <p class="mb-3 price-main">
-                $12.99<span class="fs-6 fw-normal text-muted"> / month after that</span>
+                $4.99<span class="fs-6 fw-normal text-muted"> / month after that</span>
               </p>
 
               <ul class="text-start mb-3">
@@ -602,21 +614,39 @@
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Hero lazy video load
-    document.addEventListener("DOMContentLoaded", () => {
-      const poster = document.getElementById("heroPoster");
-      const video  = document.getElementById("heroVideo");
-      if (!poster || !video) return;
 
-      video.load();
+<script>
+// Lazy load HERO video (only works if markup exists)
+document.addEventListener("DOMContentLoaded", () => {
+  const heroPoster = document.getElementById("heroPoster");
+  const heroVideo  = document.getElementById("heroVideo");
 
-      video.addEventListener("canplay", () => {
-        video.play().catch(() => {});
-        poster.style.opacity = "0";
-        video.style.opacity  = "1";
-      });
+  if (heroPoster && heroVideo) {
+    heroVideo.load();
+    heroVideo.addEventListener("canplay", () => {
+      heroVideo.play().catch(() => {});
+      heroPoster.style.opacity = "0";
+      heroVideo.style.opacity  = "1";
     });
-  </script>
+  }
+});
+
+// Lazy load WALKTHROUGH video
+document.addEventListener("DOMContentLoaded", () => {
+  const poster = document.getElementById("walkPoster");
+  const video  = document.getElementById("walkVideo");
+
+  if (!poster || !video) return;
+
+  video.load();
+
+  video.addEventListener("canplay", () => {
+    video.play().catch(() => {});
+    poster.style.opacity = "0";
+    video.style.opacity  = "1";
+  });
+});
+</script>
+
 </body>
 </html>
