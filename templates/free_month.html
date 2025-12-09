@@ -305,26 +305,7 @@
             </div>
           </div>
 
-          <div class="col-lg-6">
-            <!-- Hero video preview (silent autoplay loop) -->
-            <div class="video-wrapper">
-              <!-- Static poster for instant load -->
-              <img
-                src="{{ url_for('static', filename='assets/hero_image.webp') }}"
-                alt="The Happy Pantry Preview"
-                id="heroPoster">
 
-              <!-- Lazy-loaded video -->
-              <video id="heroVideo" playsinline muted loop preload="none">
-                <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
-              </video>
-            </div>
-            <p class="mt-2 text-muted small text-center">
-              A quick peek inside the dashboard. No sound needed.
-            </p>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- WHO IT'S FOR -->
@@ -491,12 +472,20 @@
           </div>
           <div class="col-lg-6">
             <div class="walkthrough-card">
-              <!-- If you have a separate walkthrough video file, swap the src below -->
-              <div class="ratio ratio-16x9">
-                <video controls playsinline>
-                  <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
-                </video>
-              </div>
+          <div class="col-lg-6">
+            <!-- Hero video preview (silent autoplay loop) -->
+            <div class="video-wrapper">
+              <!-- Static poster for instant load -->
+              <img
+                src="{{ url_for('static', filename='assets/hero_image.webp') }}"
+                alt="The Happy Pantry Preview"
+                id="heroPoster">
+
+              <!-- Lazy-loaded video -->
+              <video id="heroVideo" playsinline muted loop preload="none">
+                <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
+              </video>
+            </div>
               <p class="mt-2 mb-0 text-muted small text-center">
                 Real footage from inside the app, not a mockup.
               </p>
