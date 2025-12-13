@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PG41EN917B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+  <!-- End GA4 -->
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Subscribe | The Happy Pantry</title>
@@ -133,47 +144,60 @@
 
 
   <!-- PayPal Button Logic -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      try {
-        paypal.Buttons({
-          style: {
-            shape: "rect",
-            color: "gold",
-            layout: "vertical",
-            label: "subscribe",
-          },
-          createSubscription: function (data, actions) {
-            return actions.subscription.create({
-              plan_id: "{{ PAYPAL_PLAN_ID }}"
-            });
-          },
-          onApprove: function (data) {
-            console.log("✅ Subscription Approved:", data);
-            window.location.href = "/success?subscription_id=" + data.subscriptionID;
-          },
-          onCancel: function () {
-            window.location.href = "/cancel";
-          },
-          onError: function (err) {
-            console.error("❌ PayPal Error:", err);
-            document.getElementById("paypal-button-container").innerHTML = `
-              <div class="alert alert-danger mt-3">
-                Something went wrong with PayPal. Please refresh and try again.
-              </div>
-            `;
-          }
-        }).render("#paypal-button-container");
-      } catch (err) {
-        console.error("❌ Failed to render PayPal button:", err);
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+
+    // Track page load
+    gtag('event', 'subscribe_page_view', {
+      page_path: '/subscribe'
+    });
+
+    paypal.Buttons({
+      style: {
+        shape: "rect",
+        color: "gold",
+        layout: "vertical",
+        label: "subscribe",
+      },
+
+      createSubscription: function (data, actions) {
+        // Track PayPal button click
+        gtag('event', 'paypal_button_clicked');
+
+        return actions.subscription.create({
+          plan_id: "{{ PAYPAL_PLAN_ID }}"
+        });
+      },
+
+      onApprove: function (data) {
+        // Track successful subscription
+        gtag('event', 'subscription_approved', {
+          subscription_id: data.subscriptionID
+        });
+
+        window.location.href = "/success?subscription_id=" + data.subscriptionID;
+      },
+
+      onCancel: function () {
+        gtag('event', 'paypal_cancelled');
+        window.location.href = "/cancel";
+      },
+
+      onError: function (err) {
+        gtag('event', 'paypal_error');
+        console.error("❌ PayPal Error:", err);
+
         document.getElementById("paypal-button-container").innerHTML = `
           <div class="alert alert-danger mt-3">
-            Unable to load PayPal. Please refresh the page.
+            Something went wrong with PayPal. Please refresh and try again.
           </div>
         `;
       }
-    });
-  </script>
+
+    }).render("#paypal-button-container");
+  });
+</script>
+
 
   <!-- Supabase Client Init (public, sessionless) -->
   <script>
