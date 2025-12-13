@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+  <!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PG41EN917B"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PG41EN917B');
+</script>
+<!-- End GA4 -->
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Success | The Happy Pantry</title>
@@ -30,6 +41,20 @@
   </style>
 </head>
 <body>
+
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const subscriptionId = params.get("subscription_id");
+
+    gtag('event', 'subscription_success_page_view', {
+      event_category: 'subscription',
+      event_label: 'success_page',
+      subscription_id: subscriptionId || 'unknown'
+    });
+  });
+</script>
+
   <div class="success-container">
     <img src="https://www.the-happy-pantry.com/static/assets/logo.png" alt="The Happy Pantry Logo" class="logo">
 
