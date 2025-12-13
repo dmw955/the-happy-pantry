@@ -9,14 +9,14 @@
     gtag('js', new Date());
     gtag('config', 'G-PG41EN917B');
   </script>
-  <!-- End Google Analytics -->
+  <!-- End GA4 -->
 
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Your First Month Free | The Happy Pantry</title>
 
   <meta name="description"
-        content="Your first month at The Happy Pantry is free. Pick recipes, generate a smart shopping list, and track macros—without spreadsheets.">
+        content="Your first month at The Happy Pantry is free. Pick meals, generate a smart shopping list, and track macros—without spreadsheets.">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
   <!-- Bootstrap & Icons -->
@@ -31,11 +31,13 @@
       --muted:#6B7280;
       --bg:#F8FAFC;
     }
+
     body{
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--dark);
     }
+
     .hp-container{ max-width: 1040px; }
 
     /* Header */
@@ -48,30 +50,29 @@
     .hp-btn{
       background: var(--accent);
       color:#111827;
-      font-weight:800;
+      font-weight:900;
       border-radius:999px;
-      padding:.85rem 1.8rem;
+      padding:.85rem 1.9rem;
       border:none;
       text-decoration:none;
       display:inline-flex;
       align-items:center;
-      justify-content:center;
       gap:.5rem;
     }
     .hp-btn:hover{ background:#ffdd71; color:#111827; }
 
     /* Hero */
-    .hero{ padding: 44px 0 26px; }
-    .hero-title{ font-size: 2.2rem; font-weight:900; color:var(--primary); }
-    .hero-sub{ color:var(--dark); font-size:1.05rem; }
+    .hero{ padding: 44px 0 28px; }
+    .hero-title{ font-size: 2.3rem; font-weight:900; color:var(--primary); }
+    .hero-sub{ font-size:1.05rem; }
     .trust-row{
-      display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center;
+      display:flex; flex-wrap:wrap; gap:.5rem;
       margin-top: 14px;
     }
     .trust-pill{
       display:inline-flex; align-items:center; gap:.4rem;
       padding:.38rem .9rem; border-radius:999px;
-      background:#E0F2FE; font-size:.85rem; color:#0f172a;
+      background:#E0F2FE; font-size:.85rem;
       white-space:nowrap;
     }
 
@@ -88,42 +89,47 @@
     }
     .video-wrapper img,.video-wrapper video{
       position:absolute; inset:0; width:100%; height:100%;
-      object-fit:cover; border:0;
+      object-fit:cover;
     }
-    #walkVideo{ opacity:0; transition: opacity .5s; }
-    #walkPoster{ transition: opacity .5s; }
+    #walkVideo{ opacity:0; transition:.5s; }
 
     /* Sections */
-    .card-soft{
-      background:#fff;
-      border-radius:16px;
-      padding:18px;
-      box-shadow:0 10px 25px rgba(15,23,42,.05);
-      height:100%;
-    }
-    .mini-title{ font-weight:900; margin-bottom:.25rem; }
+    .section{ padding:64px 0; }
+    .section-light{ background:#fff; }
     .muted{ color:var(--muted); }
+
+    .value-step{
+      font-weight:900;
+      color:var(--primary);
+      min-width:36px;
+    }
+
+    /* Testimonials */
+    .feature-quote{
+      padding:24px;
+      background:#fff;
+      border-left:4px solid var(--primary);
+      box-shadow:0 10px 25px rgba(15,23,42,.05);
+    }
 
     /* Pricing */
     .pricing{
       background:#fff;
       border-radius:22px;
-      padding:28px;
+      padding:30px;
       box-shadow:0 18px 50px rgba(15,23,42,.10);
     }
     .price-main{
-      font-size:2.2rem;
+      font-size:2.3rem;
       font-weight:900;
       color:var(--primary);
-      margin: 0;
     }
     .tiny{ font-size:.9rem; color:var(--muted); }
 
-    /* Footer */
     footer{ font-size:.85rem; color:var(--muted); }
 
-    @media (max-width: 991px){
-      .hero-title{ font-size: 1.9rem; }
+    @media(max-width:991px){
+      .hero-title{ font-size:2rem; }
     }
   </style>
 </head>
@@ -131,9 +137,9 @@
 <body>
 
 <header class="hp-header py-3">
-  <div class="container hp-container d-flex align-items-center justify-content-between">
-    <a href="{{ url_for('home') }}" class="hp-logo d-flex align-items-center text-decoration-none">
-      <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+  <div class="container hp-container d-flex justify-content-between align-items-center">
+    <a href="{{ url_for('home') }}" class="hp-logo">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry">
     </a>
     <a href="{{ url_for('login') }}" class="hp-login-link">Already a member? Log in</a>
   </div>
@@ -141,230 +147,211 @@
 
 <main>
 
-  <!-- HERO + VIDEO FIRST -->
-  <section class="hero">
-    <div class="container hp-container">
-      <div class="row g-4 align-items-center">
+<!-- HERO -->
+<section class="hero">
+  <div class="container hp-container">
+    <div class="row g-4 align-items-center">
 
-        <div class="col-lg-6 text-center text-lg-start">
-          <h1 class="hero-title mb-2">Your first month is free.</h1>
-          <p class="hero-sub mb-3">
-            Pick meals fast → your shopping list builds itself → track macros without the headache.
-          </p>
+      <div class="col-lg-6">
+        <h1 class="hero-title mb-2">Your first month is free.</h1>
+        <p class="hero-sub mb-3">
+          Pick meals fast → your shopping list builds itself → track macros without the headache.
+        </p>
 
-          <div class="d-flex gap-2 justify-content-center justify-content-lg-start flex-wrap mb-2">
-            <a class="hp-btn" href="{{ url_for('subscribe') }}">
-              <i class="bi bi-paypal"></i> Start My Free Month
-            </a>
-            <button class="hp-btn" style="background:#fff;border:2px solid #e5e7eb;color:#111827;"
-              onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">
-              How it works
-            </button>
-          </div>
-
-          <div class="trust-row">
-            <span class="trust-pill"><i class="bi bi-mortarboard"></i> Built by a clinical nutritionist</span>
-            <span class="trust-pill"><i class="bi bi-x-circle"></i> Cancel anytime</span>
-            <span class="trust-pill"><i class="bi bi-lightning-charge"></i> Takes minutes, not hours</span>
-          </div>
-
-          <p class="tiny mt-3 mb-0">
-            You won’t be charged today. Renewal date shows in PayPal.
-          </p>
+        <a class="hp-btn mb-2" href="{{ url_for('subscribe') }}">
+          <i class="bi bi-paypal"></i> Start My Free Month
+        </a>
+        <div>
+          <a href="#how" class="text-muted small">See how it works →</a>
         </div>
 
-        <div class="col-lg-6">
-          <div class="video-card">
-            <div class="video-wrapper">
-              <img src="{{ url_for('static', filename='assets/hero_image.webp') }}"
-                   alt="The Happy Pantry Preview" id="walkPoster">
-              <video id="walkVideo" playsinline muted loop preload="none">
-                <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
-              </video>
-            </div>
-            <p class="tiny text-center mt-2 mb-0">Real footage from inside the app.</p>
-          </div>
+        <div class="trust-row mt-3">
+          <span class="trust-pill"><i class="bi bi-mortarboard"></i> Built by a clinical nutritionist</span>
+          <span class="trust-pill"><i class="bi bi-x-circle"></i> Cancel anytime</span>
+          <span class="trust-pill"><i class="bi bi-lightning-charge"></i> Takes minutes, not hours</span>
         </div>
 
-      </div>
-    </div>
-  </section>
-
-  <!-- WHAT YOU GET -->
-  <section class="py-4">
-    <div class="container hp-container">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="card-soft">
-            <div class="mini-title">Recipes that don’t waste your time</div>
-            <div class="muted">Simple, repeatable, macro-friendly meals.</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-soft">
-            <div class="mini-title">Smart list, organized like the store</div>
-            <div class="muted">No messy notes. No re-typing ingredients.</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-soft">
-            <div class="mini-title">Macros per serving (fast)</div>
-            <div class="muted">Protein, carbs, fats—clear and trackable.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- WHO IT'S FOR (SHORT) -->
-  <section class="py-4">
-    <div class="container hp-container">
-      <div class="text-center mb-3">
-        <h2 class="h5 fw-bold mb-1">Built for real people.</h2>
-        <p class="muted mb-0">If this is you, you’ll love it:</p>
-      </div>
-      <div class="row g-3">
-        <div class="col-md-4"><div class="card-soft">Trying to lose weight without living on “diet food.”</div></div>
-        <div class="col-md-4"><div class="card-soft">Tracking macros but sick of boring meals.</div></div>
-        <div class="col-md-4"><div class="card-soft">Busy and tired of planning every week from scratch.</div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SOCIAL PROOF -->
-  <section class="py-4">
-    <div class="container hp-container">
-      <div class="text-center mb-3">
-        <h2 class="h5 fw-bold mb-1">What members say</h2>
-        <p class="muted mb-0">Replace these with real quotes as they come in.</p>
-      </div>
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="card-soft">
-            “I stopped overthinking meals. The list alone saves me so much time.”
-            <div class="tiny mt-2">— Pantry Fam member</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-soft">
-            “Macros are easy now. I can stay consistent without eating the same thing.”
-            <div class="tiny mt-2">— Pantry Fam member</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card-soft">
-            “This finally feels simple. Pick meals, shop once, cook through the week.”
-            <div class="tiny mt-2">— Pantry Fam member</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- HOW IT WORKS (SHORT) -->
-  <section id="how" class="py-4">
-    <div class="container hp-container">
-      <div class="row g-3 align-items-stretch">
-        <div class="col-md-4"><div class="card-soft"><b>1) Start free</b><div class="muted">Activate with PayPal. No charge today.</div></div></div>
-        <div class="col-md-4"><div class="card-soft"><b>2) Pick meals</b><div class="muted">Select recipes → list builds automatically.</div></div></div>
-        <div class="col-md-4"><div class="card-soft"><b>3) Keep or cancel</b><div class="muted">Cancel anytime in PayPal before renewal.</div></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING / CTA -->
-  <section class="py-5">
-    <div class="container hp-container">
-      <div class="row justify-content-center">
-        <div class="col-lg-7">
-          <div class="pricing text-center">
-            <div class="tiny text-uppercase fw-bold" style="letter-spacing:.12em;">Membership</div>
-            <h2 class="h4 fw-bold mb-2">First month free.</h2>
-            <p class="price-main">$4.99 <span class="fs-6 fw-normal text-muted">/ month after</span></p>
-
-            <ul class="text-start mt-3 mb-3">
-              <li>Full access to recipes + tools</li>
-              <li>Shopping list + macro-friendly nutrition info</li>
-              <li>Ongoing improvements</li>
-            </ul>
-
-            <a class="hp-btn" href="{{ url_for('subscribe') }}">
-              <i class="bi bi-paypal"></i> Start My Free Month
-            </a>
-
-            <div class="tiny mt-3">
-              Secure checkout powered by PayPal. Cancel anytime.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="pb-5">
-    <div class="container hp-container">
-      <div class="text-center mb-3">
-        <h2 class="h5 fw-bold mb-1">Quick questions</h2>
+        <p class="tiny mt-3 mb-0">You won’t be charged today.</p>
       </div>
 
-      <div class="row g-3">
-        <div class="col-md-6">
-          <div class="card-soft">
-            <b>Will I be charged today?</b>
-            <div class="muted">No. Your first month is free. You’ll see the renewal date in PayPal.</div>
+      <div class="col-lg-6">
+        <div class="video-card">
+          <div class="video-wrapper">
+            <img src="{{ url_for('static', filename='assets/hero_image.webp') }}" id="walkPoster">
+            <video id="walkVideo" muted loop playsinline preload="none">
+              <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
+            </video>
           </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card-soft">
-            <b>Can I cancel anytime?</b>
-            <div class="muted">Yes — cancel in PayPal in a couple clicks before renewal.</div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card-soft">
-            <b>Do I need to meal prep?</b>
-            <div class="muted">No. Pick recipes that fit your week—quick meals included.</div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card-soft">
-            <b>Is this good for macros?</b>
-            <div class="muted">Yes—macros per serving are shown so you can track easily.</div>
-          </div>
+          <p class="tiny text-center mt-2 mb-0">Real footage from inside the app.</p>
         </div>
       </div>
 
     </div>
-  </section>
+  </div>
+</section>
+
+<!-- VALUE -->
+<section class="section">
+  <div class="container hp-container">
+    <div class="row g-5 align-items-center">
+
+      <div class="col-lg-6">
+        <h2 class="fw-bold mb-3">Meal planning that finally feels manageable.</h2>
+        <p class="muted mb-4">
+          The Happy Pantry removes the friction between choosing meals,
+          shopping efficiently, and staying consistent.
+        </p>
+
+        <ul class="list-unstyled">
+          <li class="d-flex gap-3 mb-2">
+            <span class="value-step">01</span>
+            <span>Simple, repeatable recipes designed for real schedules</span>
+          </li>
+          <li class="d-flex gap-3 mb-2">
+            <span class="value-step">02</span>
+            <span>Auto-built grocery lists organized exactly like the store</span>
+          </li>
+          <li class="d-flex gap-3">
+            <span class="value-step">03</span>
+            <span>Macros shown clearly so tracking stays effortless</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="p-4 bg-white rounded-4 shadow-sm">
+          <p class="tiny fw-bold text-uppercase">What this replaces</p>
+          <ul class="muted mb-0">
+            <li>Spreadsheet meal plans</li>
+            <li>Re-typing grocery lists</li>
+            <li>Repeating the same meals</li>
+            <li>Sunday-night planning stress</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- WHO IT’S FOR -->
+<section class="section section-light">
+  <div class="container hp-container text-center">
+    <h2 class="fw-bold mb-3">Built for people who want consistency — not perfection.</h2>
+    <p class="muted mb-4">Most members say at least one of these feels familiar:</p>
+
+    <div class="mx-auto" style="max-width:640px;">
+      <div class="border-bottom py-3">You want to lose weight without living on “diet food.”</div>
+      <div class="border-bottom py-3">You track macros but refuse to eat bland meals forever.</div>
+      <div class="py-3">You’re busy and tired of starting from scratch every week.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="section">
+  <div class="container hp-container">
+    <div class="row g-5">
+
+      <div class="col-lg-4">
+        <h2 class="fw-bold mb-2">What members notice first</h2>
+        <p class="muted">Less thinking. More follow-through.</p>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="feature-quote mb-4">
+          “I stopped overthinking meals completely.
+          The shopping list alone saves me time every single week.”
+          <div class="tiny mt-2">— Natasha F.</div>
+        </div>
+
+        <blockquote class="mb-4">
+          “Macros finally feel sustainable.
+          I stay consistent without eating the same meals.”
+          <footer class="tiny">— Chris M.</footer>
+        </blockquote>
+
+        <blockquote>
+          “Pick meals once, shop once, cook through the week.”
+          <footer class="tiny">— Alex R.</footer>
+        </blockquote>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="section section-light">
+  <div class="container hp-container text-center">
+    <h2 class="fw-bold mb-2">How your free month works</h2>
+    <p class="muted mb-4">Simple, transparent, no pressure.</p>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="fw-bold fs-4 text-primary mb-2">1</div>
+        <p>Activate with PayPal. You won’t be charged today.</p>
+      </div>
+      <div class="col-md-4">
+        <div class="fw-bold fs-4 text-primary mb-2">2</div>
+        <p>Select recipes and your shopping list builds automatically.</p>
+      </div>
+      <div class="col-md-4">
+        <div class="fw-bold fs-4 text-primary mb-2">3</div>
+        <p>Keep it—or cancel anytime before renewal.</p>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <a class="hp-btn" href="{{ url_for('subscribe') }}">
+        <i class="bi bi-paypal"></i> Start My Free Month
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section">
+  <div class="container hp-container text-center">
+    <div class="pricing mx-auto" style="max-width:560px;">
+      <p class="tiny fw-bold text-uppercase">Membership</p>
+      <h2 class="fw-bold mb-2">First month free.</h2>
+      <p class="price-main">$4.99 <span class="fs-6 text-muted">/ month after</span></p>
+
+      <ul class="text-start mt-3 mb-3">
+        <li>Full access to recipes + tools</li>
+        <li>Shopping list + macro-friendly nutrition info</li>
+        <li>Ongoing improvements</li>
+      </ul>
+
+      <a class="hp-btn" href="{{ url_for('subscribe') }}">
+        <i class="bi bi-paypal"></i> Start My Free Month
+      </a>
+
+      <p class="tiny mt-3">
+        No contracts. No emails required to cancel.
+      </p>
+    </div>
+  </div>
+</section>
 
 </main>
 
 <footer class="py-3">
-  <div class="container hp-container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
-    <span>© 2025 The Happy Pantry. All rights reserved.</span>
-    <div class="d-flex align-items-center gap-3">
-      <a href="{{ url_for('legal') }}" class="text-muted text-decoration-none">Legal &amp; Privacy</a>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
-        <img src="{{ url_for('static', filename='assets/facebook-icon-gold.svg') }}"
-             alt="Facebook" style="width: 26px; height: 26px;">
-      </a>
-    </div>
+  <div class="container hp-container d-flex justify-content-between align-items-center">
+    <span>© 2025 The Happy Pantry</span>
+    <a href="{{ url_for('legal') }}" class="text-muted">Legal & Privacy</a>
   </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-// Lazy load WALKTHROUGH video
 document.addEventListener("DOMContentLoaded", () => {
   const poster = document.getElementById("walkPoster");
   const video  = document.getElementById("walkVideo");
-  if (!poster || !video) return;
-
   video.load();
   video.addEventListener("canplay", () => {
-    video.play().catch(() => {});
+    video.play().catch(()=>{});
     poster.style.opacity = "0";
     video.style.opacity  = "1";
   });
