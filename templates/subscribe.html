@@ -123,15 +123,20 @@
       <div class="card-header">Monthly Plan</div>
       <div class="card-body text-center">
         <p>Unlock all recipes, shopping lists, and smart meal planning tools:</p>
-        <div class="plan-price">$4.99 / month</div>
+        <div class="plan-price">Start your free month</div>
+      <p class="text-muted small mt-1">
+      No charge today • Cancel anytime before renewal
+      </p>
 
-        <ul class="text-start list-unstyled mt-3 mb-4">
-          <li>✓ First month free</li>
-          <li>✓ 100+ curated recipes</li>
-          <li>✓ AI-driven ingredient swaps</li>
-          <li>✓ Weekly meal planning tools</li>
-          <li>✓ Cancel anytime</li>
-        </ul>
+
+<ul class="text-start list-unstyled mt-3 mb-4">
+  <li>✓ First month free — no charge today</li>
+  <li>✓ $4.99/month after your trial (clearly shown in PayPal)</li>
+  <li>✓ Full access to 100+ curated, macro-friendly recipes</li>
+  <li>✓ Smart shopping lists + weekly meal planning tools</li>
+  <li>✓ Cancel anytime before renewal — no emails or hoops</li>
+</ul>
+
 
         <!-- PayPal Button Container -->
         <div id="paypal-button-container"></div>
@@ -155,50 +160,51 @@
     });
 
     paypal.Buttons({
-      style: {
-        shape: "rect",
-        color: "gold",
-        layout: "vertical",
-        label: "subscribe",
-      },
+  style: {
+    shape: "rect",
+    color: "gold",
+    layout: "vertical",
+    label: "subscribe",
+  },
 
-      createSubscription: function (data, actions) {
-        // Track PayPal button click
-        gtag('event', 'paypal_button_clicked');
+  onClick: function () {
+    if (!paypalClickTracked) {
+      gtag('event', 'paypal_button_clicked', {
+        event_category: 'subscription',
+        event_label: 'paypal_subscribe'
+      });
+      paypalClickTracked = true;
+    }
+  },
 
-        return actions.subscription.create({
-          plan_id: "{{ PAYPAL_PLAN_ID }}"
-        });
-      },
+  createSubscription: function (data, actions) {
+    return actions.subscription.create({
+      plan_id: "{{ PAYPAL_PLAN_ID }}"
+    });
+  },
 
-onApprove: function (data) {
-  // Track successful subscription (conversion)
-  gtag('event', 'subscription_approved', {
-    subscription_id: data.subscriptionID,
-    value: 4.99,
-    currency: 'USD'
-  });
+  onApprove: function (data) {
+    gtag('event', 'subscription_approved', {
+      subscription_id: data.subscriptionID,
+      value: 4.99,
+      currency: 'USD'
+    });
 
-  window.location.href = "/success?subscription_id=" + data.subscriptionID;
-},
+    window.location.href = "/success?subscription_id=" + data.subscriptionID;
+  },
 
-      onCancel: function () {
-        gtag('event', 'paypal_cancelled');
-        window.location.href = "/cancel";
-      },
+  onCancel: function () {
+    gtag('event', 'paypal_cancelled');
+    window.location.href = "/cancel";
+  },
 
-      onError: function (err) {
-        gtag('event', 'paypal_error');
-        console.error("❌ PayPal Error:", err);
+  onError: function (err) {
+    gtag('event', 'paypal_error');
+    console.error("❌ PayPal Error:", err);
+  }
 
-        document.getElementById("paypal-button-container").innerHTML = `
-          <div class="alert alert-danger mt-3">
-            Something went wrong with PayPal. Please refresh and try again.
-          </div>
-        `;
-      }
+}).render("#paypal-button-container");
 
-    }).render("#paypal-button-container");
   });
 </script>
 
