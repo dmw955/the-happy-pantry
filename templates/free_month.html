@@ -93,6 +93,26 @@
     }
     #walkVideo{ opacity:0; transition:.5s; }
 
+    .unmute-btn {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.unmute-btn.hidden {
+  display: none;
+}
+
+
     /* Sections */
     .section{ padding:64px 0; }
     .section-light{ background:#fff; }
@@ -152,6 +172,7 @@
   <div class="container hp-container">
     <div class="row g-4 align-items-center">
 
+
       <div class="col-lg-6">
         <h1 class="hero-title mb-2">Your first month is free.</h1>
         <p class="hero-sub mb-3">
@@ -174,21 +195,38 @@
         <p class="tiny mt-3 mb-0">You won’t be charged today.</p>
       </div>
 
-      <div class="col-lg-6">
-        <div class="video-card">
-          <div class="video-wrapper">
-            <img src="{{ url_for('static', filename='assets/hero_image.webp') }}" id="walkPoster">
-            <video id="walkVideo" muted loop playsinline preload="none">
-              <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
-            </video>
-          </div>
-          <p class="tiny text-center mt-2 mb-0">Real footage from inside the app.</p>
-        </div>
-      </div>
+<div class="col-lg-6">
+  <div class="video-card">
+    <div class="video-wrapper">
+      <img src="{{ url_for('static', filename='assets/hero_image.webp') }}" id="walkPoster">
+
+      <video
+        id="walkVideo"
+        muted
+        loop
+        playsinline
+        preload="none"
+      >
+        <source src="{{ url_for('static', filename='assets/hero_video.mp4') }}" type="video/mp4">
+      </video>
+
+<button
+  id="unmuteBtn"
+  class="unmute-btn"
+  aria-label="Unmute video"
+>
+  🔊 Tap for sound
+</button>
 
     </div>
-  </div>
-</section>
+
+    <p class="tiny text-center mt-2 mb-0">Real footage from inside the app.</p>
+      </div>
+    </div> <!-- end col-lg-6 (video) -->
+
+    </div> <!-- end row -->
+  </div> <!-- end container -->
+</section> <!-- end hero -->
 
 <!-- VALUE -->
 <section class="section">
@@ -238,7 +276,7 @@
 <section class="section section-light">
   <div class="container hp-container text-center">
     <h2 class="fw-bold mb-3">Built for people who want consistency — not perfection.</h2>
-    <p class="muted mb-4">Most members say at least one of these feels familiar:</p>
+    <p class="muted mb-4">Most members come in feeling at least one of these:</p>
 
     <div class="mx-auto" style="max-width:640px;">
       <div class="border-bottom py-3">You want to lose weight without living on “diet food.”</div>
@@ -258,24 +296,21 @@
         <p class="muted">Less thinking. More follow-through.</p>
       </div>
 
-      <div class="col-lg-8">
-        <div class="feature-quote mb-4">
-          “I stopped overthinking meals completely.
-          The shopping list alone saves me time every single week.”
-          <div class="tiny mt-2">— Natasha F.</div>
-        </div>
+<div class="feature-quote mb-4">
+  “I stopped overthinking meals completely. The shopping list alone saves me time every single week.”
+  <div class="tiny mt-2">— Natasha F.</div>
+</div>
 
-        <blockquote class="mb-4">
-          “Macros finally feel sustainable.
-          I stay consistent without eating the same meals.”
-          <footer class="tiny">— Chris M.</footer>
-        </blockquote>
+<div class="feature-quote mb-4">
+  “Macros finally feel sustainable. I stay consistent without eating the same meals.”
+  <div class="tiny mt-2">— Chris M.</div>
+</div>
 
-        <blockquote>
-          “Pick meals once, shop once, cook through the week.”
-          <footer class="tiny">— Alex R.</footer>
-        </blockquote>
-      </div>
+<div class="feature-quote">
+  “Pick meals once, shop once, cook through the week.”
+  <div class="tiny mt-2">— Alex R.</div>
+</div>
+
 
     </div>
   </div>
@@ -302,12 +337,6 @@
       </div>
     </div>
 
-    <div class="mt-4">
-      <a class="hp-btn" href="{{ url_for('subscribe') }}">
-        <i class="bi bi-paypal"></i> Start My Free Month
-      </a>
-    </div>
-  </div>
 </section>
 
 <!-- PRICING -->
@@ -355,14 +384,28 @@
 document.addEventListener("DOMContentLoaded", () => {
   const poster = document.getElementById("walkPoster");
   const video  = document.getElementById("walkVideo");
+  const btn    = document.getElementById("unmuteBtn");
+
+  // Load + autoplay muted (required for mobile)
   video.load();
+
   video.addEventListener("canplay", () => {
-    video.play().catch(()=>{});
+    video.play().catch(() => {});
     poster.style.opacity = "0";
     video.style.opacity  = "1";
   });
+
+  // Tap-to-unmute (mobile-safe user gesture)
+  if (btn) {
+    btn.addEventListener("click", () => {
+      video.muted = false;
+      video.volume = 1;
+      btn.classList.add("hidden");
+    });
+  }
 });
 </script>
+
 
 </body>
 </html>
