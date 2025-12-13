@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
 
-    <!-- Google Analytics (GA4) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PG41EN917B"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX');
-  </script>
-  <!-- End GA4 -->
+
+<!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PG41EN917B"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PG41EN917B');
+</script>
+<!-- End GA4 -->
+
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -169,14 +171,16 @@
         });
       },
 
-      onApprove: function (data) {
-        // Track successful subscription
-        gtag('event', 'subscription_approved', {
-          subscription_id: data.subscriptionID
-        });
+onApprove: function (data) {
+  // Track successful subscription (conversion)
+  gtag('event', 'subscription_approved', {
+    subscription_id: data.subscriptionID,
+    value: 4.99,
+    currency: 'USD'
+  });
 
-        window.location.href = "/success?subscription_id=" + data.subscriptionID;
-      },
+  window.location.href = "/success?subscription_id=" + data.subscriptionID;
+},
 
       onCancel: function () {
         gtag('event', 'paypal_cancelled');
