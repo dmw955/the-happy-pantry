@@ -398,6 +398,15 @@ def success():
         subscription_id = request.args.get("subscription_id")
         if not subscription_id:
             return "Missing subscription ID.", 400
+        
+        # 🔓 DEV-ONLY BYPASS (REMOVE AFTER TESTING)
+        if subscription_id == "test":
+            print("🧪 DEV MODE: Bypassing PayPal verification")
+            return render_template(
+        "success.html",
+        email="test@the-happy-pantry.com",
+        status="ACTIVE"
+    )
 
         print(f"🔄 Handling success for PayPal subscription: {subscription_id}")
 
