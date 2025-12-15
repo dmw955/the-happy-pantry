@@ -51,14 +51,15 @@
       min-height: 100vh;
     }
 
-    body::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.5);
-      z-index: 0;
-    }
+body::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+background: rgba(255, 255, 255, 0.82);
+backdrop-filter: blur(3px);
+  z-index: 0;
+}
 
     .container { position: relative; z-index: 1; }
 
@@ -112,27 +113,28 @@
     .terms-note a:hover {
       text-decoration: underline;
     }
+
+    .card-body {
+  padding: 1.75rem;
+}
+
   </style>
 </head>
 
 <body>
-  <div class="container py-5">
-    <h2 class="text-center mb-3 fw-bold">
-  Start your free month
-</h2>
-<p class="text-center text-muted mb-4">
-  You won’t be charged today.
-</p>
+  <div class="container py-5 text-center" style="max-width: 720px;">
+  <h2 class="mb-2 fw-bold">Start your free month</h2>
+  <p class="text-muted mb-4">You won’t be charged today.</p>
 
+  <div class="mx-auto mb-4 p-3 bg-white rounded-3 shadow-sm text-start">
+    <strong class="d-block mb-2">What happens after you click:</strong>
+    <ul class="mb-0 ps-3">
+      <li>Confirm in PayPal (no charge today)</li>
+      <li>Get instant access to recipes and tools</li>
+      <li>Cancel anytime before your trial ends</li>
+    </ul>
+  </div>
 
-<div class="text-start small text-muted mb-3">
-  <strong>What happens after you click:</strong>
-  <ul class="mb-0">
-    <li>Confirm in PayPal (no charge today)</li>
-    <li>Get instant access to recipes and tools</li>
-    <li>Cancel anytime before your trial ends</li>
-  </ul>
-</div>
 
 
     <div class="card shadow-lg">
@@ -140,6 +142,8 @@
       <div class="card-body text-center">
         <p>Unlock all recipes, shopping lists, and smart meal planning tools:</p>
         <div class="plan-price">Free for 30 days</div>
+<p class="small text-muted mb-2">$4.99/month after your trial</p>
+
       <p class="text-muted small mt-1">
       No charge today • Cancel anytime before renewal
       </p>
