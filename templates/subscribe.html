@@ -117,13 +117,29 @@
 
 <body>
   <div class="container py-5">
-    <h2 class="text-center mb-4 fw-bold">Join The Happy Pantry</h2>
+    <h2 class="text-center mb-3 fw-bold">
+  Start your free month
+</h2>
+<p class="text-center text-muted mb-4">
+  You won’t be charged today.
+</p>
+
+
+<div class="text-start small text-muted mb-3">
+  <strong>What happens after you click:</strong>
+  <ul class="mb-0">
+    <li>Confirm in PayPal (no charge today)</li>
+    <li>Get instant access to recipes and tools</li>
+    <li>Cancel anytime before your trial ends</li>
+  </ul>
+</div>
+
 
     <div class="card shadow-lg">
       <div class="card-header">Monthly Plan</div>
       <div class="card-body text-center">
         <p>Unlock all recipes, shopping lists, and smart meal planning tools:</p>
-        <div class="plan-price">Start your free month</div>
+        <div class="plan-price">Free for 30 days</div>
       <p class="text-muted small mt-1">
       No charge today • Cancel anytime before renewal
       </p>
@@ -141,7 +157,11 @@
         <!-- PayPal Button Container -->
         <div id="paypal-button-container"></div>
 
-<p class="secure-text"><i class="bi bi-lock-fill"></i> Secure payments powered by PayPal</p>
+<p class="secure-text">
+  <i class="bi bi-lock-fill"></i>
+  Managed entirely through PayPal — cancel anytime with one click
+</p>
+
 <p class="terms-note">
   By subscribing, you agree to our
   <a href="/legal#terms" target="_blank">Terms of Service</a> and
@@ -158,6 +178,8 @@
     gtag('event', 'subscribe_page_view', {
       page_path: '/subscribe'
     });
+
+let paypalClickTracked = false;
 
     paypal.Buttons({
   style: {
