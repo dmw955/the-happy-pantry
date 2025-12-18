@@ -73,6 +73,9 @@ recipes.forEach(r => {
 
     // FIXED: normalize single "Grain" → "Grains"
     if (cat && cat.toLowerCase() === "grain") cat = "Grains";
+    // Normalize Protein → Meats
+if (cat && cat.toLowerCase() === "protein") cat = "Meats";
+
 
     categoryGroups[cat] = categoryGroups[cat] || {};
 
@@ -85,7 +88,7 @@ recipes.forEach(r => {
 });
 
 
-  const order = ["Produce","Spices","Meats","Dairy","Grains","Pantry","Frozen","Other"];
+  const order = ["Produce","Spices","Protein","Meats","Dairy","Grains","Pantry","Frozen","Other"];
   let html = "";
   order.forEach(cat => {
     if (!categoryGroups[cat]) return;
