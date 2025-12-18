@@ -196,7 +196,21 @@ if (cat && cat.toLowerCase() === "protein") cat = "Meats";
     logo.src = "/static/assets/logo.png";
     logo.crossOrigin = "anonymous";
     logo.onload = () => {
-      pdf.addImage(logo,"PNG",(w-40)/2,y,40,15); y += 23;
+      const logoWidth = 35;
+const logoRatio = logo.height / logo.width;
+const logoHeight = logoWidth * logoRatio;
+
+pdf.addImage(
+  logo,
+  "PNG",
+  (w - logoWidth) / 2,
+  y,
+  logoWidth,
+  logoHeight
+);
+
+y += logoHeight + 8;
+
       pdf.setFontSize(16).setTextColor(40).text("Shopping List",w/2,y,{align:"center"});
       y += 10;
 // ─── Recipes Selected ─────────────────────────────
