@@ -199,23 +199,23 @@ if (cat && cat.toLowerCase() === "protein") cat = "Meats";
       pdf.addImage(logo,"PNG",(w-40)/2,y,40,15); y += 23;
       pdf.setFontSize(16).setTextColor(40).text("Shopping List",w/2,y,{align:"center"});
       y += 10;
-      // ─── Recipes Included ─────────────────────────────
-pdf.setFontSize(13).setTextColor(60);
-pdf.text("Recipes Included", 15, y);
-y += 6;
+// ─── Recipes Selected ─────────────────────────────
+pdf.setFontSize(15).setTextColor(40);
+pdf.text("Recipes Selected", w / 2, y, { align: "center" });
+y += 8;
 
 pdf.setFontSize(11).setTextColor(20);
 recipes.forEach(r => {
-if (y > h - 15) {
-  pdf.addPage();
-  y = 15;
-  pdf.setFontSize(13).setTextColor(60);
-  pdf.text("Recipes Included (cont.)", 15, y);
-  y += 6;
-  pdf.setFontSize(11).setTextColor(20);
-}
+  if (y > h - 15) {
+    pdf.addPage();
+    y = 15;
+    pdf.setFontSize(15).setTextColor(40);
+    pdf.text("Recipes Selected (cont.)", w / 2, y, { align: "center" });
+    y += 8;
+    pdf.setFontSize(11).setTextColor(20);
+  }
 
-  pdf.text(`• ${r.title}`, 18, y);
+  pdf.text(`• ${r.title}`, 20, y);
   y += 6;
 });
 
@@ -224,6 +224,7 @@ y += 4;
 pdf.setDrawColor(180);
 pdf.line(15, y, w - 15, y);
 y += 8;
+
 
       c.querySelectorAll("h3").forEach(sec => {
         pdf.setFontSize(13).setTextColor(60);
