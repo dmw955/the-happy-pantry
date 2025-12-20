@@ -111,13 +111,16 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">The Pantry Project</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('whyitworks') }}">How It Works</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
-        </ul>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('home') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact Us</a></li>
+                     <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">The Pantry Project</a>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('whyitworks') }}">Why It Works</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}">Login</a></li>
+                    <li class="nav-item">
+                        <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('subscribe') }}">Sign Up</a>
+                        </ul>
       </div>
     </div>
   </nav>
