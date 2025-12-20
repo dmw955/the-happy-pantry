@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% set p = post|default({}) %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Macro Manipulation — The Pantry Post">
+  <meta name="description" content="{{ p.get('summary', 'The Pantry Post — Evidence-based nutrition insights') }}">
 
-  {% set p = post|default({}) %}
-  <title>{{ p.get('title', 'Macro Manipulation') }} | The Pantry Post</title>
+
+  
+  <title>{{ p.get('title', 'Processed Oils, Seed Oils, and What the Evidence Actually Says') }} | The Pantry Post</title>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
@@ -27,7 +29,7 @@
     }
 
     /* Navbar & footer — match homepage */
-    .navbar { background-color: var(--background-light); border-bottom: 2px solid var(--accent-color); padding: 10px 0; }
+    .navbar { background-image: url("{{ p.get('hero') or url_for('static', filename='assets/blog/default.jpg') }}");}
     .navbar-brand img { height: 50px; width: auto; }
     .navbar-nav .nav-link { color: var(--text-dark); font-weight: bold; transition: color 0.3s ease-in-out; }
     .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
@@ -113,7 +115,7 @@
       <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
                 <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
                     <span>•</span>
-          <time datetime="{{ p.get('published_iso', '2025-10-01') }}">{{ p.get('published_text', 'Nov 1, 2025') }}</time>
+          <time datetime="{{ p.get('published_iso', '2025-12-21') }}">{{ p.get('published_text', 'Dec 21, 2025') }}</time>
           <span>•</span>
           <span>{{ p.get('read_time', 10) }} min read</span>
         </div>
@@ -128,42 +130,72 @@
       <div class="col-lg-9">
         <article id="articleContent" class="article-body">
 
-          <p>Ever grab a granola bag that screams “High Protein!” across the front, only to find out the serving size is so tiny you’d need three bowls just to feel full? That’s not nutrition—it’s marketing sleight of hand.</p>
+    <p>Oils—especially so-called “seed oils”—have become one of the most polarizing topics in nutrition. Some voices label them toxic, others defend them as essential. Much of the confusion comes from treating all oils—and all processing—the same.</p>
 
-          <p>Food companies know today’s buzzword is protein. They splash it across peanut butter jars, yogurt cups, cereal boxes, and snack bars to win your attention. But here’s the truth: macros can be manipulated on labels just as easily as in the kitchen.</p>
+<p>To understand where concerns are justified (and where they aren’t), we need to ask better questions: what actually differentiates one oil from another, how does processing change oils, and what does the evidence suggest we should prioritize?</p>
 
-          <h2>The Macro Spotlight Trick</h2>
-          <p>The front of the package always tells you what they want you to see.</p>
-          <ul>
-            <li><strong>“20g protein!”</strong> → but from a 400-calorie protein bar with as much sugar as a candy bar.</li>
-            <li><strong>“0g fat!”</strong> → but the product is loaded with added sugar instead.</li>
-            <li><strong>“High protein peanut butter!”</strong> → but 70% of its calories still come from fat.</li>
-          </ul>
-          <p>These labels focus on one macro while conveniently downplaying the others.</p>
+<h2>Why Oils Have Such a Confusing Reputation</h2>
+<p>Dietary fat has cycled through decades of conflicting advice. As recommendations evolved, vegetable oils became a staple of modern food systems because they’re inexpensive, shelf-stable, and versatile.</p>
 
-          <h2>Serving Size Shenanigans</h2>
-          <p>Here’s where the game gets sneaky: companies adjust serving sizes to bump up their numbers.</p>
-          <p><strong>Granola:</strong> That “High Protein Granola” touting 10g protein? That’s in a ⅓ cup serving—about what you’d pour into your palm. Pour a normal bowl (1 cup or more) and suddenly you’ve tripled the sugar and calories right alongside the protein.</p>
-          <p><strong>Protein Bars:</strong> Some brands list nutrition for half a bar. But who really eats half a bar and saves the rest for later? That “200-calorie” snack is actually closer to 400 if you eat it as intended.</p>
-          <p><strong>Chips &amp; Snacks:</strong> Bags labeled as “single serve” often hide 2–3 servings inside. That means the fat, sodium, and calories you’re actually consuming are way higher than the label suggests.</p>
+<p>At the same time, ultra-processed foods expanded rapidly—and refined oils became one of their most common ingredients. That overlap has made oils an easy target, even though oils are ingredients, not diets.</p>
 
-          <h2>Why It Matters</h2>
-          <p>This kind of macro manipulation isn’t about keeping you healthy—it’s about making products look healthier.</p>
-          <p>When people believe something is “high protein” or “low fat,” they’re more likely to overeat it. Psychologists call it the health halo effect—your brain says, “This is healthy, so I can have more.” In reality, that marketing spin might be the very thing keeping your goals stuck.</p>
+<h2>Understanding Fats: What Actually Differentiates Oils</h2>
+<p>All oils are made of fatty acids, but their structure affects how they behave during cooking and processing.</p>
 
-          <h2>How to Outsmart the Label</h2>
-          <p>You don’t need to be a food scientist to see through the tricks. Here’s what to do:</p>
-          <ul>
-            <li><strong>Flip the box:</strong> Always check the nutrition facts on the back.</li>
-            <li><strong>Check the serving size:</strong> Is it realistic for how much you’d actually eat?</li>
-            <li><strong>Do a quick ratio check:</strong> If a “protein snack” has more sugar than protein, it’s not what it claims to be.</li>
-            <li><strong>Compare by 100g (or per cup):</strong> This levels the playing field between brands.</li>
-          </ul>
+<ul>
+  <li><strong>Saturated fats:</strong> Structurally stable and resistant to oxidation, especially at higher temperatures.</li>
+  <li><strong>Monounsaturated fats:</strong> Found in olive and avocado oil; balance stability with flexibility.</li>
+  <li><strong>Polyunsaturated fats:</strong> Common in many seed oils; include omega-6 and omega-3 fats that are essential but more sensitive to heat and processing.</li>
+</ul>
 
-          <h2>The Bottom Line</h2>
-          <p>Granola, protein bars, nut butters—none of these foods are “bad.” The problem is how they’re marketed. Companies know exactly which macros catch your eye, and they’ll bend serving sizes to fit the trend.</p>
-          <p>Don’t let the label do the thinking for you. Macros don’t lie—but marketing does.</p>
-          <p><strong>👉 Pantry Fam Challenge:</strong> Next time you’re at the store, compare two “high protein” products side by side. Look at the serving size, protein, and calories. You might be surprised at which one actually delivers the better deal for your goals.</p>
+<p>Omega-6 fats are often portrayed as inflammatory, yet human data does not clearly support that claim at typical intakes. What matters more than fat category alone is how the oil is processed and used.</p>
+
+<h2>How Vegetable Oils Are Made — and Why Processing Matters</h2>
+<p>Most industrial vegetable oils are extracted using chemical solvents, commonly <strong>n-hexane</strong>, and then refined through steps known as degumming, bleaching, and deodorizing. These processes remove odors, pigments, and impurities, leaving a neutral, shelf-stable oil.</p>
+
+<p>This makes oils functional for large-scale food production—but it comes with nutritional trade-offs.</p>
+
+<ul>
+  <li>Removes naturally occurring antioxidants</li>
+  <li>Reduces vitamin E and polyphenol content</li>
+  <li>Can create small amounts of <strong>trans fats</strong></li>
+  <li>Can generate processing byproducts such as <strong>glycidyl esters</strong> and <strong>3-MCPD esters</strong></li>
+</ul>
+
+<p>These compounds are regulated and typically present at low levels, but their formation highlights that processing meaningfully alters oils.</p>
+
+<h2>Processed Oils and Health: What the Evidence Suggests</h2>
+<p>Human studies do not clearly show that refined vegetable oils, when used occasionally or in moderation, are inherently harmful. In controlled dietary settings, unsaturated oils often show neutral or favorable cardiometabolic outcomes.</p>
+
+<p>However, most oil consumption doesn’t occur in controlled settings.</p>
+
+<p>It occurs through ultra-processed foods and commercial frying, where oils are repeatedly heated, exposed to oxygen, and used beyond optimal stability. Under these conditions, oils degrade and form oxidation byproducts that are associated with inflammation and cardiovascular risk.</p>
+
+<h2>Home Cooking vs. Ultra-Processed Foods</h2>
+<p>Cooking with oil at home is not the same as consuming oil from industrial food systems.</p>
+
+<p>Occasional sautéing or roasting bears little resemblance to oils embedded in packaged snacks, fast food, or repeatedly reheated fryers. Across studies, overall diet quality and processing level consistently outweigh the impact of any single oil choice.</p>
+
+<h2>Choosing Oils Based on Evidence, Not Fear</h2>
+<p>Rather than asking which oils are “good” or “bad,” a more useful question is which oils make sense for how you actually cook and eat.</p>
+
+<ul>
+  <li>Degree of processing</li>
+  <li>Heat stability</li>
+  <li>Presence of naturally occurring antioxidants</li>
+  <li>Frequency of use</li>
+</ul>
+
+<p>Less-refined options like <strong>extra-virgin olive oil</strong>, <strong>avocado oil</strong>, and other cold-pressed oils retain more protective compounds and work well for everyday use. Refined oils can still serve a purpose—particularly for higher-heat cooking—but relying on them primarily through packaged foods is where concerns accumulate.</p>
+
+<h2>The Bottom Line</h2>
+<p>Oils aren’t the problem—highly processed diets are.</p>
+
+<p>The evidence does not support fear around a tablespoon of oil used at home. It does support caution around diets dominated by ultra-processed foods where refined oils are repeatedly heated and combined with sugar, salt, and refined carbohydrates.</p>
+
+<p>Focus less on demonizing individual ingredients and more on overall dietary patterns. The clearest signal in the data is simple:</p>
+
+<p><strong>Less processing. More whole foods. Better outcomes.</strong></p>
 
           <!-- Optional extra HTML from CMS -->
           <section>

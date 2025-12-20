@@ -627,6 +627,23 @@ def blog_macro():
     }
     return render_template("blog_macro.html", post=post)
 
+@app.route("/blog_oil")
+def blog_oil():
+    post = {
+        "title": "Seed Oils, Processing, and the Real Health Debate",
+        "slug": "seed-oils-processing-health",
+        "author": "The Happy Pantry",
+        "date": "2025-12-21",
+        "hero": url_for("static", filename="assets/blog/oil-hero.jpg"),
+        "summary": (
+            "A practical, evidence-based look at how seed oils are made, "
+            "why processing matters, and where the real health concerns come from."
+        ),
+        "content": [],
+    }
+    return render_template("blog_oil.html", post=post)
+
+
 import random
 
 @app.route("/recipes")
