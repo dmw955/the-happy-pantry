@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% set p = post|default({}) %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Why a calorie deficit remains the most effective and sustainable way to lose weight compared to fad diets.">
+
+  <title>Why a Calorie Deficit Still Beats Every Fad Diet | The Pantry Post</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #008080;
+      --accent-color: #FFC72C;
+      --text-dark: #2E2E2E;
+      --text-light: #FFFFFF;
+    }
+
+    .navbar { background-image: url("{{ url_for('static', filename='assets/blog_diet.jpg') }}"); }
+    .navbar-brand img { height: 50px; }
+
+    .hero-banner {
+      background-image: url("{{ url_for('static', filename='assets/blog_diet.jpg') }}");
+      background-size: cover;
+      background-position: center;
+      height: 360px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero-overlay {
+      background: rgba(0,128,128,.65);
+      color: #fff;
+      padding: 36px;
+      border-radius: 8px;
+      max-width: 900px;
+    }
+
+    .article-body h2 {
+      margin-top: 2rem;
+      border-left: 5px solid var(--accent-color);
+      padding-left: .75rem;
+    }
+
+    .article-body p {
+      line-height: 1.8;
+      color: var(--text-dark);
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="readProgress"></div>
+
+<nav class="navbar navbar-expand-lg">
+  <div class="container px-5">
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry">
+    </a>
+  </div>
+</nav>
+
+<section class="mb-4 p-4 p-md-5 bg-white rounded-4 shadow-sm border">
+  <div class="text-center">
+    <h1 class="display-5 fw-bold mb-3">Why a Calorie Deficit Still Beats Every Fad Diet</h1>
+    <p class="lead mb-4 text-muted">
+      Simple, evidence-based weight loss without overcomplicating nutrition
+    </p>
+    <div class="small text-muted">
+      <time datetime="2025-12-21">Dec 21, 2025</time> • 6 min read
+    </div>
+  </div>
+</section>
+
+<main class="container px-4 px-md-5">
+  <div class="row g-5">
+    <div class="col-lg-9">
+      <article id="articleContent" class="article-body">
+
+        <p>
+          Every year brings a new diet trend promising fast results — keto, cleanses, fasting windows, carb cycling.
+          Many of them work at first. Almost none of them work forever.
+        </p>
+
+        <p>
+          If weight loss feels confusing or frustrating, the problem usually isn’t effort or discipline.
+          It’s that most fad diets are built for short-term results, not long-term success.
+        </p>
+
+        <h2>Why Fad Diets Rarely Work Long Term</h2>
+        <p>
+          Fad diets rely on restriction. They cut entire food groups, impose rigid rules,
+          or promise rapid change through extremes.
+        </p>
+
+        <p>
+          While this often leads to quick weight loss, it also leads to burnout, cravings,
+          and weight regain once normal eating resumes.
+        </p>
+
+        <p>
+          The issue isn’t willpower — it’s sustainability.
+        </p>
+
+        <h2>The One Thing All Successful Weight Loss Has in Common</h2>
+        <p>
+          No matter the name of the diet, weight loss only occurs when you consistently eat fewer calories than your body uses.
+        </p>
+
+        <p>
+          Low-carb diets, fasting, and cleanses don’t bypass this rule.
+          They work only because they reduce calorie intake — often unintentionally.
+        </p>
+
+        <p>
+          There is no metabolic loophole, special food, or timing trick that overrides energy balance.
+        </p>
+
+        <h2>Why Tracking Calories and Macros Works Better</h2>
+        <p>
+          Tracking calories and macros removes the guesswork.
+          Instead of eliminating foods, it focuses on awareness, balance, and consistency.
+        </p>
+
+        <p>
+          This approach works better long term because it’s flexible.
+          You can eat carbs. You can enjoy foods you like.
+          Nothing is “off limits.”
+        </p>
+
+        <p>
+          Most importantly, it teaches skills you can use for life — not rules you abandon once a diet ends.
+        </p>
+
+        <h2>Keep It Simple</h2>
+        <p>
+          Sustainable weight loss doesn’t require extremes.
+          It requires a moderate calorie deficit, enough protein,
+          mostly whole foods, and patience.
+        </p>
+
+        <p>
+          If a diet promises fast results by making eating miserable or complicated,
+          that’s a red flag — not a solution.
+        </p>
+
+        <h2>The Bottom Line</h2>
+        <p>
+          Simple beats trendy. Consistency beats restriction.
+        </p>
+
+        <p>
+          A calorie deficit remains the most effective, proven way to lose weight —
+          and keep it off — without overcomplicating nutrition.
+        </p>
+
+      </article>
+
+      <div class="mt-4">
+        <a class="btn btn-primary btn-sm"
+           href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}"
+           target="_blank">
+          <i class="bi bi-facebook"></i> Share on Facebook
+        </a>
+      </div>
+    </div>
+
+    <aside class="col-lg-3">
+      <div id="toc" class="toc border rounded-3 p-3 bg-white shadow-sm"></div>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer-bg mt-5">
+  <div class="container text-center text-white py-3">
+    © 2025 The Happy Pantry
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  document.addEventListener('scroll', function () {
+    const d = document.documentElement;
+    document.getElementById('readProgress').style.width =
+      (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 + '%';
+  });
+</script>
+
+</body>
+</html>
