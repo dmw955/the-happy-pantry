@@ -279,6 +279,9 @@ def legal():
 def cancel():
     return render_template("cancel.html")
 
+@app.route("/blog/diets")
+def blog_diets():
+    return render_template("blog_diets.html")
 
 
 @app.route("/thankyou")
