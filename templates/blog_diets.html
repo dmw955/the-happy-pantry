@@ -72,27 +72,50 @@
 
 <body>
 
-<div id="readProgress"></div>
+  <div id="readProgress"></div>
 
-<nav class="navbar navbar-expand-lg">
-  <div class="container px-5">
-    <a class="navbar-brand" href="{{ url_for('home') }}">
-      <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry">
-    </a>
-  </div>
-</nav>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg">
+    <div class="container px-5">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+      </a>
 
-<section class="mb-4 p-4 p-md-5 bg-white rounded-4 shadow-sm border">
-  <div class="text-center">
-    <h1 class="display-5 fw-bold mb-3">Why a Calorie Deficit Still Beats Every Fad Diet</h1>
-    <p class="lead mb-4 text-muted">
-      Simple, evidence-based weight loss without overcomplicating nutrition
-    </p>
-    <div class="small text-muted">
-      <time datetime="2025-12-21">Dec 21, 2025</time> • 6 min read
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('pantrypost') }}">Back To The Pantry Post</a>
+          </li>
+        </ul>
+      </div>
     </div>
-  </div>
-</section>
+  </nav>
+
+  <!-- Blog Title Card (title/byline only) -->
+  <section class="mb-4 p-4 p-md-5 bg-white rounded-4 shadow-sm border">
+    <div class="text-center">
+      <h1 class="display-5 fw-bold mb-3">{{ p.get('title', 'Why a Calorie Deficit Still Beats Every Fad Diet') }}</h1>
+
+      {% if p.get('subtitle') %}
+        <p class="lead mb-4 text-muted">{{ p.get('subtitle') }}</p>
+      {% endif %}
+
+      <!-- Author Info -->
+      <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
+                    <span>•</span>
+          <time datetime="{{ p.get('published_iso', '2025-12-28') }}">{{ p.get('published_text', 'Dec 28, 2025') }}</time>
+          <span>•</span>
+          <span>{{ p.get('read_time', 6) }} min read</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
 <main class="container px-4 px-md-5">
   <div class="row g-5">
