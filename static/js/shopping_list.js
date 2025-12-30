@@ -57,6 +57,85 @@ document.addEventListener("DOMContentLoaded", async () => {
     listContainer.innerHTML = `<p class="text-red-500">Failed to load shopping list.</p>`;
     return;
   }
+const CANONICAL_GROUPS = [
+  "Produce",
+  "Spices",
+  "Meats",
+  "Dairy",
+  "Grains",
+  "Pantry",
+  "Frozen",
+  "Other"
+];
+
+const GROUP_FUNNEL_MAP = {
+  produce: "Produce",
+  veggies: "Produce",
+  vegetable: "Produce",
+  vegetables: "Produce",
+  fruit: "Produce",
+  fruits: "Produce",
+
+  protein: "Meats",
+  meat: "Meats",
+  meats: "Meats",
+  poultry: "Meats",
+  chicken: "Meats",
+  beef: "Meats",
+  pork: "Meats",
+  turkey: "Meats",
+  seafood: "Meats",
+  fish: "Meats",
+
+  dairy: "Dairy",
+  cheese: "Dairy",
+  milk: "Dairy",
+  yogurt: "Dairy",
+  butter: "Dairy",
+
+  grain: "Grains",
+  grains: "Grains",
+  rice: "Grains",
+  pasta: "Grains",
+  bread: "Grains",
+  oats: "Grains",
+  quinoa: "Grains",
+
+  pantry: "Pantry",
+  oil: "Pantry",
+  oils: "Pantry",
+  condiment: "Pantry",
+  condiments: "Pantry",
+  sauce: "Pantry",
+  sauces: "Pantry",
+
+  spice: "Spices",
+  spices: "Spices",
+  herb: "Spices",
+  herbs: "Spices",
+  seasoning: "Spices",
+  seasonings: "Spices",
+
+  frozen: "Frozen",
+  other: "Other"
+};
+
+function funnelGroup(rawGroup, itemName) {
+  if (rawGroup) {
+    const key = rawGroup.trim().toLowerCase();
+    if (GROUP_FUNNEL_MAP[key]) return GROUP_FUNNEL_MAP[key];
+  }
+
+  const inferred = categorizeIngredient(itemName);
+  const inferredKey = inferred.toLowerCase();
+
+  if (GROUP_FUNNEL_MAP[inferredKey]) {
+    return GROUP_FUNNEL_MAP[inferredKey];
+  }
+
+  return "Other";
+}
+
 
   // ─── Group & Render ─────────────────────────────────────────────────────────
  const categoryGroups = {};
@@ -69,12 +148,8 @@ recipes.forEach(r => {
     const qty = convertFraction(p.quantity) || 0;
 
     // FIXED: use categorizeIngredient() instead of missing assignFallbackGroup()
-    let cat = p.group?.trim() || categorizeIngredient(p.item);
+    const cat = funnelGroup(p.group, p.item);
 
-    // FIXED: normalize single "Grain" → "Grains"
-    if (cat && cat.toLowerCase() === "grain") cat = "Grains";
-    // Normalize Protein → Meats
-if (cat && cat.toLowerCase() === "protein") cat = "Meats";
 
 
     categoryGroups[cat] = categoryGroups[cat] || {};
@@ -88,7 +163,8 @@ if (cat && cat.toLowerCase() === "protein") cat = "Meats";
 });
 
 
-  const order = ["Produce","Spices","Meats","Dairy","Grains","Pantry","Frozen","Other"];
+  const order = CANONICAL_GROUPS;
+
   let html = "";
   order.forEach(cat => {
     if (!categoryGroups[cat]) return;
