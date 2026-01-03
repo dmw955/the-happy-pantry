@@ -9,11 +9,15 @@
   <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 
   <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
     .gym-signup-card {
       border-radius: 12px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.08);
       padding: 2.5rem;
-      background: #fff;
+      background: #ffffff;
     }
 
     .gym-badge {
@@ -47,9 +51,9 @@
           </p>
         </div>
 
-        <form id="gym-signup-form" novalidate>
+        <form id="gym-signup-form">
 
-          <!-- Gym context (used later, safe now) -->
+          <!-- Gym context -->
           <input type="hidden" id="gym_slug" value="{{ gym_slug }}">
 
           <div class="mb-3">
@@ -93,6 +97,7 @@
   </div>
 </div>
 
+<!-- Gym signup JS -->
 <script src="{{ url_for('static', filename='js/gym_signup.js') }}"></script>
 
 </body>

@@ -293,20 +293,8 @@ def thankyou():
 
 @app.route("/gym-signup/<gym_slug>")
 def gym_signup(gym_slug):
-    """
-    Gym-specific signup entry point.
-    Auth handled client-side via Supabase.
-    Gym slug is passed through safely.
-    """
-    return render_template(
-        "gym_signup.html",
-        gym_slug=gym_slug
-    )
+    return render_template("gym_signup.html", gym_slug=gym_slug)
 
-
-# -------------------------
-# App Runner
-# -------------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
