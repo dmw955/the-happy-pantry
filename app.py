@@ -265,6 +265,9 @@ def planselection():
         PAYPAL_MODE=PAYPAL_MODE
     )
 
+@app.route("/pantry-post/cooking-temps")
+def blog_temps():
+    return render_template("blog_temps.html")
 
 
 @app.route("/pantrypost")

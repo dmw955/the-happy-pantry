@@ -144,7 +144,32 @@
       <div id="bookViewport" class="overflow-hidden rounded-2xl shadow ring-1 ring-gray-100 bg-white">
         <div id="bookTrack" class="d-flex no-scrollbar">
 
-<!-- PAGE 1 -->
+          <!-- PAGE 1 -->
+
+<article class="w-100 flex-shrink-0 p-3 p-md-4">
+  <div class="hero-wrap mb-3">
+    <img src="{{ url_for('static', filename='assets/blog_temps.jpg') }}"
+         alt="How to Nail Your Cooking Temps Without Guesswork">
+  </div>
+
+  <h2 class="fw-extrabold"
+      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
+    How to Nail Your Cooking Temps (Without Guesswork)
+  </h2>
+
+  <p class="text-secondary small mb-2">January 04, 2025</p>
+
+  <p class="lh-170 text-dark">
+    A practical guide to cooking temperatures, steak doneness, and the hand test
+    so you can cook with confidence and consistency.
+  </p>
+
+  <a class="text-warning text-decoration-none" href="{{ url_for('blog_temps') }}">
+    <span class="ms-1">Read more →</span>
+  </a>
+</article>
+
+<!-- PAGE 2 -->
 
 <article class="w-100 flex-shrink-0 p-3 p-md-4">
   <div class="hero-wrap mb-3">
@@ -169,7 +194,7 @@
   </a>
 </article>
 
-          <!-- PAGE 2 -->
+          <!-- PAGE 3 -->
 
 <article class="w-100 flex-shrink-0 p-3 p-md-4">
   <div class="hero-wrap mb-3">
@@ -194,7 +219,7 @@
   </a>
 </article>
 
-<!-- PAGE 3 -->
+<!-- PAGE 4 -->
 <article class="w-100 flex-shrink-0 p-3 p-md-4">
   <div class="hero-wrap mb-3">
     <img src="{{ url_for('static', filename='assets/macromanipulation.png') }}" alt="Macro Manipulation">
