@@ -6,14 +6,21 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const gymSlug = document.getElementById("gym_slug").value;
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value;
+const confirmPassword = document.getElementById("confirm_password").value;
+const gymSlug = document.getElementById("gym_slug").value;
 
-    if (!email || !password) {
-      alert("Please enter an email and password.");
-      return;
-    }
+if (!email || !password || !confirmPassword) {
+  alert("Please complete all fields.");
+  return;
+}
+
+if (password !== confirmPassword) {
+  alert("Passwords do not match.");
+  return;
+}
+
 
     // Create user via Supabase Auth
     const { data, error } = await supabase.auth.signUp({
