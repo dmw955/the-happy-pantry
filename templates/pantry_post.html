@@ -85,6 +85,20 @@
         display: block;
       }
     }
+
+    #prevSide,
+#nextSide {
+  z-index: 50;
+  pointer-events: auto;
+}
+
+#prevSide::before,
+#nextSide::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
   </style>
 </head>
 
@@ -137,9 +151,10 @@
     <div class="position-relative">
       <!-- Side controls (md+) -->
       <button id="prevSide"
-              class="d-none d-md-flex align-items-center justify-content-center position-absolute translate-middle-y btn btn-teal rounded-circle focus-ring fade-disabled"
-              style="left:8px; top:50%; width:48px; height:48px;"
-              aria-label="Previous article">←</button>
+        class="d-none d-md-flex align-items-center justify-content-center position-absolute translate-middle-y btn btn-teal rounded-circle focus-ring fade-disabled"
+        style="left:-24px; top:50%; width:48px; height:48px; z-index:50;"
+        aria-label="Previous article">←</button>
+
 
       <div id="bookViewport" class="overflow-hidden rounded-2xl shadow ring-1 ring-gray-100 bg-white">
         <div id="bookTrack" class="d-flex no-scrollbar">
