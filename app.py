@@ -291,7 +291,7 @@ def blog_diets():
 def thankyou():
     return render_template("thankyou.html")
 
-@app.route("/gym-signup/<gym_slug>")
+@app.route("/gym_signup/<gym_slug>")
 def gym_signup(gym_slug):
     return render_template(
         "gym_signup.html",
