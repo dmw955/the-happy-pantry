@@ -22,16 +22,18 @@ if (password !== confirmPassword) {
 }
 
 
-    // Create user via Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          pending_gym_slug: gymSlug // stored temporarily in auth metadata
-        }
-      }
-    });
+const supabaseClient = window.supabaseClient;
+
+const { data, error } = await supabaseClient.auth.signUp({
+  email,
+  password,
+  options: {
+    data: {
+      pending_gym_slug: gymSlug
+    }
+  }
+});
+
 
     if (error) {
       alert(error.message);
