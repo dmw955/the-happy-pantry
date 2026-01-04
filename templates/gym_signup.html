@@ -109,6 +109,11 @@
   </div>
 </div>
 
+<script>
+  window.SUPABASE_URL = "{{ SUPABASE_URL }}";
+  window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+</script>
+
 <!-- Supabase client init (already used elsewhere) -->
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 

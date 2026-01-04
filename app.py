@@ -291,13 +291,14 @@ def blog_diets():
 def thankyou():
     return render_template("thankyou.html")
 
-@app.route("/gym_signup/<gym_slug>")
+@app.route("/gym-signup/<gym_slug>")
 def gym_signup(gym_slug):
-    return render_template("gym_signup.html", gym_slug=gym_slug)
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    return render_template(
+        "gym_signup.html",
+        gym_slug=gym_slug,
+        SUPABASE_URL=os.environ.get("SUPABASE_URL"),
+        SUPABASE_ANON_KEY=os.environ.get("SUPABASE_ANON_KEY"),
+    )
 
 @app.route("/whyitworks")
 def whyitworks():
