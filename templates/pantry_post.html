@@ -159,7 +159,33 @@
       <div id="bookViewport" class="overflow-hidden rounded-2xl shadow ring-1 ring-gray-100 bg-white">
         <div id="bookTrack" class="d-flex no-scrollbar">
 
-          <!-- PAGE 1 -->
+<!-- PAGE 1 -->
+
+<article class="w-100 flex-shrink-0 p-3 p-md-4">
+  <div class="hero-wrap mb-3">
+    <img src="{{ url_for('static', filename='assets/blog_steady.jpg') }}"
+         alt="Why Steady Progress Wins Every Time">
+  </div>
+
+  <h2 class="fw-extrabold"
+      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
+    Why Steady Progress Wins Every Time
+  </h2>
+
+  <p class="text-secondary small mb-2">January 05, 2025</p>
+
+  <p class="lh-170 text-dark">
+    Why sustainable weight loss isn’t about extremes — and how a steady,
+    flexible approach leads to results that actually last.
+  </p>
+
+  <a class="text-warning text-decoration-none" href="{{ url_for('blog_steady') }}">
+    <span class="ms-1">Read more →</span>
+  </a>
+</article>
+
+
+          <!-- PAGE 2 -->
 
 <article class="w-100 flex-shrink-0 p-3 p-md-4">
   <div class="hero-wrap mb-3">
@@ -184,7 +210,7 @@
   </a>
 </article>
 
-<!-- PAGE 2 -->
+<!-- PAGE 3 -->
 
 <article class="w-100 flex-shrink-0 p-3 p-md-4">
   <div class="hero-wrap mb-3">
@@ -209,7 +235,7 @@
   </a>
 </article>
 
-          <!-- PAGE 3 -->
+          <!-- PAGE 4 -->
 
 <article class="w-100 flex-shrink-0 p-3 p-md-4">
   <div class="hero-wrap mb-3">
@@ -234,7 +260,7 @@
   </a>
 </article>
 
-<!-- PAGE 4 -->
+<!-- PAGE 5 -->
 <article class="w-100 flex-shrink-0 p-3 p-md-4">
   <div class="hero-wrap mb-3">
     <img src="{{ url_for('static', filename='assets/macromanipulation.png') }}" alt="Macro Manipulation">
