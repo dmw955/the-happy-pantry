@@ -132,6 +132,7 @@ def dashboard():
     """
 
     user = session.get("supabase_user")  # Supabase user synced via /session
+    seat_status = None  # ✅ Always define (important for Jinja)
 
     if user:
         try:
@@ -139,18 +140,25 @@ def dashboard():
             gym_slug = (user.get("user_metadata") or {}).get("pending_gym_slug")
             if gym_slug:
                 supabase_admin = get_supabase_admin()
-                seat_status = get_gym_seat_status_from_auth(supabase_admin, gym_slug)
-                app.logger.info(f"[READ-ONLY] Seat status for gym '{gym_slug}': {seat_status}")
+                seat_status = get_gym_seat_status_from_auth(
+                    supabase_admin,
+                    gym_slug
+                )
+                app.logger.info(
+                    f"[READ-ONLY] Seat status for gym '{gym_slug}': {seat_status}"
+                )
 
         except Exception as e:
-            # Never block dashboard rendering
+            # ❗ Never block dashboard rendering
             app.logger.error(f"Dashboard gym read-only error: {e}")
 
     return render_template(
         "dashboard.html",
         SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
+        SUPABASE_ANON_KEY=SUPABASE_ANON_KEY,
+        seat_status=seat_status  # ✅ THIS is what makes the UI work
     )
+
 
 @app.route("/set_password")
 def set_password():
