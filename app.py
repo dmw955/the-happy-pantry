@@ -122,7 +122,13 @@ def signup():
 
 @app.route("/dashboard")
 def dashboard():
-    user = getattr(g, "supabase_user", None)
+    """
+    Dashboard render.
+    Gym finalization runs ONLY if a Supabase user is present
+    in the Flask session (non-breaking for regular users).
+    """
+
+    user = session.get("supabase_user")  # or None if not logged in
 
     if user:
         try:
