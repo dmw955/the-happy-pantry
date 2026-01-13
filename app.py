@@ -122,11 +122,20 @@ def signup():
 
 @app.route("/dashboard")
 def dashboard():
+    user = getattr(g, "supabase_user", None)
+
+    if user:
+        try:
+            finalize_gym_signup(supabase_admin, user)
+        except Exception as e:
+            app.logger.error(f"Gym finalization error: {e}")
+
     return render_template(
         "dashboard.html",
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
+
 @app.route("/set_password")
 def set_password():
     return render_template("set_password.html", SUPABASE_URL=SUPABASE_URL, SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
@@ -294,6 +303,42 @@ def blog_steady():
 @app.route("/thankyou")
 def thankyou():
     return render_template("thankyou.html")
+
+def finalize_gym_signup(supabase_admin, user):
+    metadata = user.get("user_metadata", {})
+    pending_gym_slug = metadata.get("pending_gym_slug")
+
+    # Ensure profile exists (safe for all users)
+    supabase_admin.table("profiles").upsert({
+        "id": user["id"],
+        "email": user["email"]
+    }).execute()
+
+    if not pending_gym_slug:
+        return
+
+    gym = supabase_admin.table("gyms") \
+        .select("id") \
+        .eq("slug", pending_gym_slug) \
+        .single() \
+        .execute()
+
+    if not gym.data:
+        return
+
+    supabase_admin.table("profiles") \
+        .update({
+            "gym_id": gym.data["id"],
+            "role": "gym_member"
+        }) \
+        .eq("id", user["id"]) \
+        .execute()
+
+    # Clear one-time metadata
+    supabase_admin.auth.admin.update_user_by_id(
+        user["id"],
+        {"user_metadata": {}}
+    )
 
 @app.route("/gym_signup/<gym_slug>")
 def gym_signup(gym_slug):
