@@ -101,6 +101,15 @@
         <p>Plan, shop, and cook effortlessly with The Happy Pantry.</p>
     </div>
 
+    {% if session.get("supabase_user") %}
+<div class="container mb-4">
+  <div class="alert alert-info text-center">
+    <strong>Gym Program Status</strong><br>
+    Seats used: {{ seat_status.used }} / {{ seat_status.limit }}
+  </div>
+</div>
+{% endif %}
+
     <!-- My Recipes Section -->
     <div class="recipes-container">
       <div class="card recipes-card text-center">
