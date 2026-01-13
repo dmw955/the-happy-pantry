@@ -123,18 +123,28 @@ def signup():
 @app.route("/dashboard")
 def dashboard():
     """
-    Dashboard render.
-    Gym finalization runs ONLY if a Supabase user is present
-    in the Flask session (non-breaking for regular users).
+    Dashboard render (SAFE / PHASE 1).
+
+    - No DB tables required (no gyms, no profiles)
+    - Read-only seat counting using auth metadata only
+    - Does NOT break regular users
+    - Does NOT enforce anything yet
     """
 
-    user = session.get("supabase_user")  # or None if not logged in
+    user = session.get("supabase_user")  # Supabase user synced via /session
 
     if user:
         try:
-            finalize_gym_signup(supabase_admin, user)
+            # 🔎 Read-only seat counting (auth metadata)
+            gym_slug = (user.get("user_metadata") or {}).get("pending_gym_slug")
+            if gym_slug:
+                supabase_admin = get_supabase_admin()
+                seat_status = get_gym_seat_status_from_auth(supabase_admin, gym_slug)
+                app.logger.info(f"[READ-ONLY] Seat status for gym '{gym_slug}': {seat_status}")
+
         except Exception as e:
-            app.logger.error(f"Gym finalization error: {e}")
+            # Never block dashboard rendering
+            app.logger.error(f"Dashboard gym read-only error: {e}")
 
     return render_template(
         "dashboard.html",
@@ -154,6 +164,45 @@ def auth_redirect():
         SUPABASE_URL=SUPABASE_URL,
         SUPABASE_ANON_KEY=SUPABASE_ANON_KEY
     )
+
+# NOTE: Seat counting via DB tables (profiles/gyms) will be added later.
+# For now, we are intentionally using auth metadata only.
+
+def get_gym_seat_status_from_auth(supabase_admin, gym_slug):
+    """
+    READ-ONLY seat counting using Supabase auth metadata.
+
+    This is Phase 1: no DB schema.
+    Later we will swap internals to DB-backed counting
+    without changing callers.
+    """
+
+    resp = supabase_admin.auth.admin.list_users()
+
+    # supabase-py may return either:
+    # - a dict-like object
+    # - an object with `.users`
+    users = None
+    if isinstance(resp, dict):
+        users = resp.get("users", [])
+    else:
+        users = getattr(resp, "users", None) or getattr(resp, "data", None) or []
+
+    used = 0
+    for u in users:
+        # u may be dict-like or an object
+        meta = (u.get("user_metadata", {}) if isinstance(u, dict) else getattr(u, "user_metadata", {}) or {})
+        if meta.get("pending_gym_slug") == gym_slug:
+            used += 1
+
+    # TEMP seat limit (hardcoded for now)
+    seat_limit = 25
+
+    return {
+        "used": used,
+        "limit": seat_limit,
+        "remaining": max(seat_limit - used, 0)
+    }
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -310,41 +359,21 @@ def blog_steady():
 def thankyou():
     return render_template("thankyou.html")
 
-def finalize_gym_signup(supabase_admin, user):
-    metadata = user.get("user_metadata", {})
-    pending_gym_slug = metadata.get("pending_gym_slug")
+def finalize_gym_signup(*args, **kwargs):
+    """
+    Phase 1 placeholder.
 
-    # Ensure profile exists (safe for all users)
-    supabase_admin.table("profiles").upsert({
-        "id": user["id"],
-        "email": user["email"]
-    }).execute()
+    We are intentionally NOT writing gym membership to DB yet
+    because there is no gyms/profiles schema.
 
-    if not pending_gym_slug:
-        return
+    Later, this will:
+    - ensure profile exists
+    - assign gym_id
+    - set role
+    - clear pending_gym_slug
+    """
+    return
 
-    gym = supabase_admin.table("gyms") \
-        .select("id") \
-        .eq("slug", pending_gym_slug) \
-        .single() \
-        .execute()
-
-    if not gym.data:
-        return
-
-    supabase_admin.table("profiles") \
-        .update({
-            "gym_id": gym.data["id"],
-            "role": "gym_member"
-        }) \
-        .eq("id", user["id"]) \
-        .execute()
-
-    # Clear one-time metadata
-    supabase_admin.auth.admin.update_user_by_id(
-        user["id"],
-        {"user_metadata": {}}
-    )
 
 @app.route("/gym_signup/<gym_slug>")
 def gym_signup(gym_slug):
