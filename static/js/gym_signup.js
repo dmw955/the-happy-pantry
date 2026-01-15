@@ -22,34 +22,50 @@ if (password !== confirmPassword) {
 }
 
 
-const supabaseClient = window.supabaseClient;
+const supabaseClient = supabase.createClient(
+  window.SUPABASE_URL,
+  window.SUPABASE_ANON_KEY
+);
+
 
 const { data, error } = await supabaseClient.auth.signUp({
   email,
-  password,
-  options: {
-    data: {
-      pending_gym_slug: gymSlug
-    }
-  }
+  password
 });
 
+if (error) {
+  alert(error.message);
+  return;
+}
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+const user = data.user;
 
-    /*
-      IMPORTANT:
-      - User is now created
-      - Gym slug is stored in user metadata
-      - We will process this AFTER login in a later step
-    */
+if (!user) {
+  alert("Account created, but user data missing. Please log in.");
+  window.location.href = "/login";
+  return;
+}
 
-    // Redirect behavior (choose ONE)
-    // Option A: straight to login
-    window.location.href = "/login";
+// 🔗 FINAL STEP: attach user to gym (DB-backed, permanent)
+const joinResp = await fetch("/api/gym-join", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    user_id: user.id,
+    email: user.email,
+    gym_slug: gymSlug
+  })
+});
+
+if (!joinResp.ok) {
+  alert("Account created, but gym enrollment failed. Please contact support.");
+  window.location.href = "/login";
+  return;
+}
+
+// ✅ Success
+window.location.href = "/login";
+
 
     // Option B (later): confirmation page
     // window.location.href = "/signup-success";
