@@ -20,12 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const supabaseClient = window.supabaseClient;
 
 
-  // ✅ Clear session if landing on /login
-  if (window.location.pathname === "/login") {
-    await supabaseClient.auth.signOut();
-    console.log("🔌 Supabase session cleared on login page.");
-  }
-
+ 
   // 🔐 Handle magic link or password reset links
   const hash = window.location.hash;
   if (hash.includes("access_token")) {
