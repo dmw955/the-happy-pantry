@@ -186,6 +186,31 @@ def get_gym_seat_status_from_db(supabase_admin, gym_id):
         "limit": seat_limit,
         "remaining": max(seat_limit - used, 0)
     }
+def gym_has_available_seat(sb, gym_id):
+    """
+    Returns True if gym has seats available, False if full
+    """
+    # Get seat limit
+    gym = sb.table("gyms") \
+        .select("seat_limit") \
+        .eq("id", gym_id) \
+        .single() \
+        .execute()
+
+    if not gym.data:
+        return False
+
+    seat_limit = gym.data["seat_limit"]
+
+    # Count members
+    members = sb.table("profiles") \
+        .select("id", count="exact") \
+        .eq("gym_id", gym_id) \
+        .execute()
+
+    used = members.count or 0
+
+    return used < seat_limit
 
 
 @app.route("/api/gym-join", methods=["POST"])
@@ -201,8 +226,9 @@ def gym_join():
     try:
         sb = get_supabase_admin()
 
+        # 🔎 Fetch gym + seat limit
         gym = sb.table("gyms") \
-            .select("id") \
+            .select("id, seat_limit") \
             .eq("slug", gym_slug) \
             .single() \
             .execute()
@@ -210,10 +236,29 @@ def gym_join():
         if not gym.data:
             return jsonify({"error": "Gym not found"}), 404
 
+        gym_id = gym.data["id"]
+        seat_limit = gym.data["seat_limit"]
+
+        # 🔢 Count current members
+        members = sb.table("profiles") \
+            .select("id", count="exact") \
+            .eq("gym_id", gym_id) \
+            .execute()
+
+        used = members.count or 0
+
+        # 🚫 ENFORCE SEAT LIMIT
+        if used >= seat_limit:
+            return jsonify({
+                "error": "Gym has reached its seat limit",
+                "code": "GYM_FULL"
+            }), 403
+
+        # ✅ Assign user to gym
         sb.table("profiles").upsert({
             "id": user_id,
             "email": email,
-            "gym_id": gym.data["id"],
+            "gym_id": gym_id,
             "role": "member"
         }).execute()
 
@@ -222,6 +267,7 @@ def gym_join():
     except Exception as e:
         app.logger.error(f"Gym join error: {e}")
         return jsonify({"error": "Server error"}), 500
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
