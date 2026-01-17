@@ -369,6 +369,11 @@ def cancel():
 def blog_diets():
     return render_template("blog_diets.html")
 
+@app.route("/blog/eating-out")
+def blog_eatingout():
+    return render_template("blog_eatingout.html")
+
+
 @app.route("/blog/steady")
 def blog_steady():
     return render_template("blog_steady.html")
