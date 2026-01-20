@@ -242,18 +242,21 @@ if (sort === "random") {
             }
 
             const nutrition = recipeData.nutrition || {};
-            const { Fat, Carbs, Protein } = nutrition;
 
-            const macros = {
-              calories: Math.round(
-                (parseInt(Protein?.replace(" g", "")) || 0) * 4 +
-                (parseInt(Carbs?.replace(" g", "")) || 0) * 4 +
-                (parseInt(Fat?.replace(" g", "")) || 0) * 9
-              ),
-              fat: parseInt(Fat?.replace(" g", "")) || null,
-              carbs: parseInt(Carbs?.replace(" g", "")) || null,
-              protein: parseInt(Protein?.replace(" g", "")) || null
-            };
+const protein = nutrition.protein_g ?? null;
+const carbs = nutrition.carbs_g ?? null;
+const fat = nutrition.fat_g ?? null;
+
+const calories =
+  nutrition.calories ??
+  Math.round(
+    (protein || 0) * 4 +
+    (carbs || 0) * 4 +
+    (fat || 0) * 9
+  );
+
+const macros = { calories, protein, carbs, fat };
+
 
             const { error: insertError } = await supabaseClient
               .from("favorite_recipes")
