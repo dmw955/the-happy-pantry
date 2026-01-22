@@ -346,7 +346,23 @@ y += 8;
         { align: "center" }
       );
 
-      pdf.save("shopping_list.pdf");
+      const pdfBlob = pdf.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.download = "shopping_list.pdf";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      window.open(pdfUrl, "_blank", "noopener");
+
+      setTimeout(() => {
+        URL.revokeObjectURL(pdfUrl);
+      }, 1000);
     };
     logo.onerror = () => alert("❌ Failed to load logo image.");
   });
