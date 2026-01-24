@@ -346,7 +346,19 @@ y += 8;
         { align: "center" }
       );
 
-      pdf.save("shopping_list.pdf");
+            const pdfBase64 = pdf.output("datauristring").split(",")[1];
+
+      // iOS WKWebView path
+      if (window.webkit?.messageHandlers?.exportPDF) {
+        window.webkit.messageHandlers.exportPDF.postMessage({
+          filename: "shopping_list.pdf",
+          data: pdfBase64
+        });
+      } else {
+        // Normal browser fallback
+        pdf.save("shopping_list.pdf");
+      }
+
     };
     logo.onerror = () => alert("❌ Failed to load logo image.");
   });
