@@ -241,6 +241,7 @@ def export_shopping_list_pdf():
         mimetype="application/pdf",
         as_attachment=True,
         download_name="shopping_list.pdf"
+        
     )
 
 @app.route("/api/gym-join", methods=["POST"])
