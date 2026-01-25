@@ -212,6 +212,31 @@ def gym_has_available_seat(sb, gym_id):
 
     return used < seat_limit
 
+@app.route("/api/export/shopping_list.pdf")
+def export_shopping_list_pdf():
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=LETTER)
+    text = p.beginText(40, 750)
+
+    text.textLine("The Happy Pantry")
+    text.textLine("")
+    text.textLine("Shopping List")
+    text.textLine("-------------------------")
+    text.textLine("")
+    text.textLine("This PDF is served for Android WebView support.")
+
+    p.drawText(text)
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name="shopping_list.pdf"
+    )
 
 @app.route("/api/gym-join", methods=["POST"])
 def gym_join():
