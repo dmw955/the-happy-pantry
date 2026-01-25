@@ -1,9 +1,11 @@
-# app.py
 from flask import (
     Flask, render_template, render_template_string,
     request, redirect, url_for,
-    session, flash, jsonify, send_from_directory
+    session, flash, jsonify,
+    send_from_directory,
+    send_file   # ✅ REQUIRED
 )
+
 from supabase import create_client
 import os
 import io 
