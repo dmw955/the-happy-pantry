@@ -219,7 +219,7 @@ def gym_has_available_seat(sb, gym_id):
 
 @app.route("/api/export/shopping_list.pdf", methods=["POST"])
 def export_shopping_list_pdf():
-    data = request.get_json()
+    data = request.get_json(force=True) or {}
     items = data.get("items", [])
 
     buffer = io.BytesIO()
@@ -232,19 +232,25 @@ def export_shopping_list_pdf():
     text.textLine("-------------------------")
     text.textLine("")
 
-    for item in items:
-        text.textLine(f"- {item}")
+    if not items:
+        text.textLine("No items found.")
+    else:
+        for item in items:
+            text.textLine(f"- {item}")
 
     p.drawText(text)
     p.showPage()
     p.save()
+
     buffer.seek(0)
 
     return send_file(
         buffer,
         mimetype="application/pdf",
+        as_attachment=True,
         download_name="shopping_list.pdf"
     )
+
 
 
 @app.route("/api/gym-join", methods=["POST"])

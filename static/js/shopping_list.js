@@ -263,6 +263,8 @@ recipes.forEach(r => {
 // ─── PDF Export ─────────────────────────────────────────────────────────────
 document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
 
+  console.log("Shopping list being sent:", shoppingList);
+
 // 🔒 ANDROID WEBVIEW FIX (send data to server for PDF)
 if (window.__IS_ANDROID_WEBVIEW__) {
   fetch("/api/export/shopping_list.pdf", {
