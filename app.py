@@ -421,7 +421,12 @@ def reset_password():
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/shopping_list")
 def shopping_list():
-    return render_template("shopping_list.html")
+    return render_template(
+        "shopping_list.html",
+        SUPABASE_URL=os.getenv("SUPABASE_URL"),
+        SUPABASE_ANON_KEY=os.getenv("SUPABASE_ANON_KEY")
+    )
+
 
 @app.route("/planselection")
 def planselection():
