@@ -263,11 +263,25 @@ recipes.forEach(r => {
 // ─── PDF Export ─────────────────────────────────────────────────────────────
 document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
 
-  // 🔒 ANDROID WEBVIEW FIX
-  if (window.__IS_ANDROID_WEBVIEW__) {
-    window.location.href = "/api/export/shopping_list.pdf";
-    return;
-  }
+// 🔒 ANDROID WEBVIEW FIX (send data to server for PDF)
+if (window.__IS_ANDROID_WEBVIEW__) {
+  fetch("/api/export/shopping_list.pdf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      items: shoppingList   // ← must be the array you already build
+    })
+  })
+    .then(res => res.blob())
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      window.location.href = url;
+    })
+    .catch(err => console.error("Android PDF error:", err));
+
+  return;
+}
+
 
   const c = document.getElementById("listContainer");
   if (!c) return;
