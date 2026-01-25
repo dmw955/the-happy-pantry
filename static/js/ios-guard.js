@@ -1,11 +1,22 @@
-// iOS WebView global guard
+// App WebView global guard (iOS + Android)
 (function () {
-  const isIOSWebView =
-    /iPhone|iPad|iPod/.test(navigator.userAgent) &&
-    !window.navigator.standalone &&
-    !/Safari/.test(navigator.userAgent);
+  const ua = navigator.userAgent || "";
 
-  if (!isIOSWebView) return;
+  const isIOSWebView =
+    /iPhone|iPad|iPod/.test(ua) &&
+    !window.navigator.standalone &&
+    !/Safari/.test(ua);
+
+  const isAndroidWebView =
+    /Android.*wv|HappyPantryAndroid/i.test(ua);
+
+  const isAppWebView = isIOSWebView || isAndroidWebView;
+
+  // Expose for other scripts (PDF handling, etc.)
+  window.__IS_APP_WEBVIEW__ = isAppWebView;
+  window.__IS_ANDROID_WEBVIEW__ = isAndroidWebView;
+
+  if (!isAppWebView) return;
 
   document.addEventListener("DOMContentLoaded", () => {
     // Hide signup / subscribe links everywhere
