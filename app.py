@@ -6,7 +6,9 @@ from flask import (
 )
 from supabase import create_client
 import os
-import io              # ✅ ADD THIS LINE
+import io 
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import LETTER             # ✅ ADD THIS LINE
 import json
 import requests
 import traceback
