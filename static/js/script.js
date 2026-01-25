@@ -1,16 +1,19 @@
-// --- iOS WebView global guard ---
-const isIOSWebView =
-  /iPhone|iPad|iPod/.test(navigator.userAgent) &&
-  !window.navigator.standalone &&
-  !/Safari/.test(navigator.userAgent);
+// --- iOS WebView global guard (SAFE) ---
+window.isIOSWebView =
+  window.isIOSWebView ??
+  (/iPhone|iPad|iPod/.test(navigator.userAgent) &&
+    !window.navigator.standalone &&
+    !/Safari/.test(navigator.userAgent));
 
-if (isIOSWebView) {
+if (window.isIOSWebView) {
   document.addEventListener("DOMContentLoaded", () => {
-    // Hide signup / subscribe links everywhere
     document
       .querySelectorAll('a[href*="signup"], a[href*="subscribe"]')
       .forEach(el => (el.style.display = "none"));
   });
+}
+
+
 
   // Hard block direct navigation
   if (
@@ -29,7 +32,7 @@ if (isIOSWebView) {
       </div>
     `;
   }
-}
+
 
 document.addEventListener("DOMContentLoaded", async () => {
   // ✅ Initialize Supabase client safely
