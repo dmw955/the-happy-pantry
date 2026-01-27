@@ -217,6 +217,15 @@ def gym_has_available_seat(sb, gym_id):
 
     return used < seat_limit
 
+@app.before_request
+def force_www():
+    if request.host == "the-happy-pantry.com":
+        return redirect(
+            request.url.replace("://the-happy-pantry.com", "://www.the-happy-pantry.com"),
+            code=301
+        )
+
+
 @app.route("/api/export/shopping_list.pdf", methods=["GET"])
 def export_shopping_list_pdf():
     user_id = session.get("user_id")
@@ -241,6 +250,9 @@ def export_shopping_list_pdf():
         download_name="shopping_list.pdf"
     )
 
+@app.route("/api/debug/session", methods=["GET"])
+def debug_session():
+    return {"user_id": session.get("user_id")}, 200
 
 
 
