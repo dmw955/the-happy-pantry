@@ -228,12 +228,10 @@ def force_www():
 
 @app.route("/api/export/shopping_list.pdf", methods=["GET"])
 def export_shopping_list_pdf():
-    user_id = session.get("user_id")
-    if not user_id:
-        return "Not authenticated", 401
-
     # TEMPORARY AND INTENTIONAL:
-    # Shopping list lives in localStorage, not server-side
+    # Android WebView cannot reliably attach session cookies for binary fetches
+    # This endpoint does not expose user data
+
     items = [
         {
             "name": "Open this shopping list in the browser to download the full PDF.",
@@ -249,6 +247,7 @@ def export_shopping_list_pdf():
         as_attachment=True,
         download_name="shopping_list.pdf"
     )
+
 
 @app.route("/api/debug/session", methods=["GET"])
 def debug_session():
