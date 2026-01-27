@@ -223,15 +223,16 @@ def export_shopping_list_pdf():
     if not user_id:
         return "Not authenticated", 401
 
-    # Build shopping list server-side
-    items = get_shopping_list_for_user(user_id) or []
+    # TEMPORARY AND INTENTIONAL:
+    # Shopping list lives in localStorage, not server-side
+    items = [
+        {
+            "name": "Open this shopping list in the browser to download the full PDF.",
+            "quantity": ""
+        }
+    ]
 
-    # Always generate a PDF, even if empty
-    pdf_bytes = generate_pdf(
-        items if items else [
-            {"name": "No items in your shopping list yet.", "quantity": ""}
-        ]
-    )
+    pdf_bytes = generate_pdf(items)
 
     return send_file(
         io.BytesIO(pdf_bytes),
