@@ -25,10 +25,12 @@
     window.SUPABASE_URL = "{{ SUPABASE_URL }}";
     window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
   </script>
-  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
-  <!-- Custom JS -->
-  <script src="{{ url_for('static', filename='js/shopping_list.js') }}"></script>
+<!-- PDF Libraries (MUST load before shopping_list.js) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 
   <!-- Optional Styles -->
   <style>
@@ -146,6 +148,11 @@
 
 
   <!-- ✅ Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ✅ Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Shopping List Logic (loads AFTER all deps) -->
+<script src="{{ url_for('static', filename='js/shopping_list.js') }}"></script>
 </body>
+
 </html>
