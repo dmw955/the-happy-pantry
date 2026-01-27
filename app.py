@@ -217,7 +217,7 @@ def gym_has_available_seat(sb, gym_id):
 
     return used < seat_limit
 
-@app.route("/api/export/shopping_list.pdf", methods=["POST"])
+@app.route("/api/export/shopping_list.pdf", methods=["GET"])
 def export_shopping_list_pdf():
     data = request.get_json(force=True) or {}
     items = data.get("items", [])
