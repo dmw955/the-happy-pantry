@@ -219,37 +219,27 @@ def gym_has_available_seat(sb, gym_id):
 
 @app.route("/api/export/shopping_list.pdf", methods=["GET"])
 def export_shopping_list_pdf():
-    data = request.get_json(force=True) or {}
-    items = data.get("items", [])
+    user_id = session.get("user_id")
+    if not user_id:
+        return "Not authenticated", 401
 
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=LETTER)
-    text = p.beginText(40, 750)
+    # Build shopping list server-side
+    items = get_shopping_list_for_user(user_id) or []
 
-    text.textLine("The Happy Pantry")
-    text.textLine("")
-    text.textLine("Shopping List")
-    text.textLine("-------------------------")
-    text.textLine("")
-
-    if not items:
-        text.textLine("No items found.")
-    else:
-        for item in items:
-            text.textLine(f"- {item}")
-
-    p.drawText(text)
-    p.showPage()
-    p.save()
-
-    buffer.seek(0)
+    # Always generate a PDF, even if empty
+    pdf_bytes = generate_pdf(
+        items if items else [
+            {"name": "No items in your shopping list yet.", "quantity": ""}
+        ]
+    )
 
     return send_file(
-        buffer,
+        io.BytesIO(pdf_bytes),
         mimetype="application/pdf",
         as_attachment=True,
         download_name="shopping_list.pdf"
     )
+
 
 
 
