@@ -273,28 +273,28 @@ recipes.forEach(r => {
 // ─── PDF Export ─────────────────────────────────────────────────────────────
 document.getElementById("downloadPdfBtn")?.addEventListener("click", () => {
 
-  // ANDROID APP → fetch PDF with credentials (WebView-safe)
-  if (window.__IS_ANDROID_WEBVIEW__) {
-    fetch("/api/export/shopping_list.pdf", {
-      credentials: "include"
+if (window.__IS_ANDROID_WEBVIEW__) {
+  fetch("https://www.the-happy-pantry.com/api/export/shopping_list.pdf", {
+    credentials: "include"
+  })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("PDF export failed");
+      }
+      return res.blob();
     })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error("PDF export failed");
-        }
-        return res.blob();
-      })
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        window.location.href = url;
-      })
-      .catch(err => {
-        console.error("Android PDF export error:", err);
-        alert("Unable to export PDF. Please try again.");
-      });
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      window.location.href = url;
+    })
+    .catch(err => {
+      console.error("Android PDF export error:", err);
+      alert("Unable to export PDF. Please try again.");
+    });
 
-    return;
-  }
+  return;
+}
+
 
   // WEBSITE + iOS → client-side PDF
   const c = document.getElementById("listContainer");
