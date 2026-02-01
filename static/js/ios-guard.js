@@ -33,29 +33,29 @@
         .forEach(el => (el.style.display = "none"));
     }
 
-    // 🔒 Prevent HOME / LOGO navigation flash on iOS
-    if (isIOSWebView) {
-      document.addEventListener("click", e => {
-        const link = e.target.closest("a");
-        if (!link) return;
+// 🔒 Prevent HOME / LOGO navigation flash on iOS
+if (isIOSWebView) {
+  document.addEventListener("click", e => {
+    const link = e.target.closest("a");
+    if (!link) return;
 
-        const href = link.getAttribute("href");
-        if (!href || href !== "/") return;
+    const href = link.getAttribute("href");
+    if (!href || href !== "/") return;
 
-        e.preventDefault();
+    const path = window.location.pathname;
 
-        const path = window.location.pathname;
-
-        // On login page → stay on login
-        if (path === "/login") {
-          window.location.replace("/login");
-          return;
-        }
-
-        // Everywhere else → dashboard
-        window.location.replace("/dashboard");
-      });
+    // 🚫 On login page: disable Home entirely
+    if (path === "/login") {
+      e.preventDefault();
+      return;
     }
+
+    // Everywhere else → dashboard
+    e.preventDefault();
+    window.location.replace("/dashboard");
+  });
+}
+
   });
 
   const path = window.location.pathname;
