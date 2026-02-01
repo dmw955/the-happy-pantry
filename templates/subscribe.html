@@ -184,19 +184,38 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<!-- Stripe Logic -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("stripe-btn");
   if (!btn) return;
 
   btn.onclick = async () => {
-    const res = await fetch("/api/stripe/create-checkout-session", { method: "POST" });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    try {
+      const user = await window.supabase?.auth?.getUser();
+      const email = user?.data?.user?.email || null;
+
+      const res = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      if (!res.ok) {
+        console.error("Stripe checkout failed:", await res.text());
+        return;
+      }
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      console.error("Stripe click error:", err);
+    }
   };
 });
 </script>
+
 
 <!-- Supabase Init -->
 <script>
