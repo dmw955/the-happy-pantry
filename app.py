@@ -17,6 +17,8 @@ import traceback
 from datetime import datetime
 from dotenv import load_dotenv
 from openai import OpenAI  # ✅ correct for new SDK
+import stripe
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 
 
@@ -219,11 +221,16 @@ def gym_has_available_seat(sb, gym_id):
 
 @app.before_request
 def force_www():
+    # Do NOT redirect API or webhook calls
+    if request.path.startswith("/api"):
+        return None
+
     if request.host == "the-happy-pantry.com":
         return redirect(
             request.url.replace("://the-happy-pantry.com", "://www.the-happy-pantry.com"),
             code=301
         )
+
 
 
 @app.route("/api/export/shopping_list.pdf", methods=["GET"])
@@ -444,6 +451,45 @@ def planselection():
 @app.route("/pantry-post/cooking-temps")
 def blog_temps():
     return render_template("blog_temps.html")
+
+@app.route("/api/stripe/create-checkout-session", methods=["POST"])
+def create_stripe_checkout():
+    if "user_id" not in session or "email" not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    checkout = stripe.checkout.Session.create(
+        mode="subscription",
+        line_items=[{
+            "price": os.getenv("STRIPE_PRICE_ID"),
+            "quantity": 1
+        }],
+        customer_email=session["email"],
+        success_url="https://www.the-happy-pantry.com/success?provider=stripe",
+        cancel_url="https://www.the-happy-pantry.com/cancel",
+    )
+
+    return jsonify({"url": checkout.url})
+
+@app.route("/api/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    payload = request.data
+    sig = request.headers.get("Stripe-Signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload,
+            sig,
+            os.getenv("STRIPE_WEBHOOK_SECRET")
+        )
+    except Exception:
+        return "", 400
+
+    if event["type"] == "checkout.session.completed":
+        session_obj = event["data"]["object"]
+        print("Stripe checkout complete:", session_obj.get("customer_email"))
+
+    return "", 200
+
 
 
 @app.route("/pantrypost")
