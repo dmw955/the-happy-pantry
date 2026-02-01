@@ -465,15 +465,31 @@ def create_stripe_checkout():
     email = session.get("email") or data.get("email")
 
     checkout = stripe.checkout.Session.create(
-        mode="subscription",
-        line_items=[{
-            "price": os.getenv("STRIPE_PRICE_ID"),
-            "quantity": 1
-        }],
-        customer_email=email if email else None,
-        success_url="https://www.the-happy-pantry.com/success?provider=stripe",
-        cancel_url="https://www.the-happy-pantry.com/cancel",
-    )
+    mode="subscription",
+
+    line_items=[{
+        "price": os.getenv("STRIPE_PRICE_ID"),
+        "quantity": 1
+    }],
+
+    customer_email=email if email else None,
+
+    # 👇 this enforces the free trial (even if the price already has one)
+    subscription_data={
+        "trial_period_days": 30
+    },
+
+    # 👇 this is what makes it visible to customers
+    custom_text={
+        "submit": {
+            "message": "Your first month is free. You won’t be charged today."
+        }
+    },
+
+    success_url="https://www.the-happy-pantry.com/success?provider=stripe",
+    cancel_url="https://www.the-happy-pantry.com/cancel",
+)
+
 
     return jsonify({"url": checkout.url})
 
