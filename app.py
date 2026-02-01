@@ -497,19 +497,27 @@ def stripe_webhook():
     if event["type"] == "checkout.session.completed":
         session_obj = event["data"]["object"]
 
-        subscriber_email = session_obj.get("customer_email")
+        # ✅ Robust email extraction
+        subscriber_email = (
+            session_obj.get("customer_email")
+            or session_obj.get("customer_details", {}).get("email")
+        )
+
+        if not subscriber_email:
+            print(
+                "⚠️ Stripe session missing email entirely:",
+                json.dumps(session_obj, indent=2)
+            )
+            return "", 200
+
         subscription_id = session_obj.get("subscription")
         status = "ACTIVE"
         start_date = datetime.utcnow().isoformat()
 
-        if not subscriber_email:
-            print("⚠️ Stripe session missing email")
-            return "", 200
-
         print(f"✅ Stripe subscription for {subscriber_email}")
 
         # -------------------------
-        # Supabase setup (same as PayPal)
+        # Supabase setup
         # -------------------------
         SUPABASE_URL = os.getenv("SUPABASE_URL")
         SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
