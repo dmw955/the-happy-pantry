@@ -79,9 +79,11 @@
     !!localStorage.getItem("access_token") ||
     !!localStorage.getItem("sb-access-token");
 
-  const allowedBeforeAuth = [
-    "/login",
-  ];
+const allowedBeforeAuth = [
+  "/login",
+  "/dashboard" // temporary landing during auth sync
+];
+
 
   // 🚪 BLOCKED MARKETING ROUTES (your full list)
   const blockedRoutes = [
