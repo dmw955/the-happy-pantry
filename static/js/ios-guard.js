@@ -26,6 +26,13 @@
       .querySelectorAll('a[href*="signup"], a[href*="subscribe"]')
       .forEach(el => (el.style.display = "none"));
 
+    // Hide logout links on iOS
+    if (isIOSWebView) {
+      document
+        .querySelectorAll('a[href*="logout"]')
+        .forEach(el => (el.style.display = "none"));
+    }
+
     // 🔒 Prevent HOME / LOGO navigation flash on iOS
     if (isIOSWebView) {
       document.addEventListener("click", e => {
@@ -33,14 +40,19 @@
         if (!link) return;
 
         const href = link.getAttribute("href");
-        if (!href) return;
-
-        // ONLY intercept true homepage link
-        if (href !== "/") return;
+        if (!href || href !== "/") return;
 
         e.preventDefault();
 
-        // Do NOT infer auth here — let server decide
+        const path = window.location.pathname;
+
+        // On login page → stay on login
+        if (path === "/login") {
+          window.location.replace("/login");
+          return;
+        }
+
+        // Everywhere else → dashboard
         window.location.replace("/dashboard");
       });
     }
@@ -61,6 +73,12 @@
         </p>
       </div>
     `;
+    return;
+  }
+
+  // ---------------- HARD BLOCK LOGOUT ----------------
+  if (path.includes("logout")) {
+    window.location.replace("/login");
     return;
   }
 
