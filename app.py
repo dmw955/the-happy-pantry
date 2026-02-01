@@ -457,21 +457,19 @@ def create_stripe_checkout():
     data = request.get_json(silent=True) or {}
     email = session.get("email") or data.get("email")
 
-    if not email:
-        return jsonify({"error": "Not authenticated"}), 401
-
     checkout = stripe.checkout.Session.create(
         mode="subscription",
         line_items=[{
             "price": os.getenv("STRIPE_PRICE_ID"),
             "quantity": 1
         }],
-        customer_email=email,
+        customer_email=email if email else None,
         success_url="https://www.the-happy-pantry.com/success?provider=stripe",
         cancel_url="https://www.the-happy-pantry.com/cancel",
     )
 
     return jsonify({"url": checkout.url})
+
 
 
 @app.route("/api/stripe/webhook", methods=["POST"])
