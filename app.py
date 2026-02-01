@@ -454,7 +454,10 @@ def blog_temps():
 
 @app.route("/api/stripe/create-checkout-session", methods=["POST"])
 def create_stripe_checkout():
-    if "user_id" not in session or "email" not in session:
+    data = request.get_json(silent=True) or {}
+    email = session.get("email") or data.get("email")
+
+    if not email:
         return jsonify({"error": "Not authenticated"}), 401
 
     checkout = stripe.checkout.Session.create(
@@ -463,12 +466,13 @@ def create_stripe_checkout():
             "price": os.getenv("STRIPE_PRICE_ID"),
             "quantity": 1
         }],
-        customer_email=session["email"],
+        customer_email=email,
         success_url="https://www.the-happy-pantry.com/success?provider=stripe",
         cancel_url="https://www.the-happy-pantry.com/cancel",
     )
 
     return jsonify({"url": checkout.url})
+
 
 @app.route("/api/stripe/webhook", methods=["POST"])
 def stripe_webhook():
