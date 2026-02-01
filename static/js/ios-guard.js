@@ -40,13 +40,8 @@
 
         e.preventDefault();
 
-        const isLoggedIn =
-          !!localStorage.getItem("access_token") ||
-          !!localStorage.getItem("sb-access-token");
-
-        window.location.replace(
-          isLoggedIn ? "/dashboard" : "/login"
-        );
+        // Do NOT infer auth here — let server decide
+        window.location.replace("/dashboard");
       });
     }
   });
@@ -54,10 +49,7 @@
   const path = window.location.pathname;
 
   // ---------------- HARD BLOCK SIGNUP / SUBSCRIBE ----------------
-  if (
-    path.includes("signup") ||
-    path.includes("subscribe")
-  ) {
+  if (path.includes("signup") || path.includes("subscribe")) {
     document.body.innerHTML = `
       <div style="padding:2rem; text-align:center; font-family:system-ui;">
         <h2>Sign up on the website</h2>
@@ -75,17 +67,7 @@
   // ---------------- iOS LOGIN-FORWARD ENFORCEMENT ----------------
   if (!isIOSWebView) return;
 
-  const isLoggedIn =
-    !!localStorage.getItem("access_token") ||
-    !!localStorage.getItem("sb-access-token");
-
-const allowedBeforeAuth = [
-  "/login",
-  "/dashboard" // temporary landing during auth sync
-];
-
-
-  // 🚪 BLOCKED MARKETING ROUTES (your full list)
+  // 🚫 Blocked marketing routes inside the app
   const blockedRoutes = [
     "/",                 // index.html
     "/about",            // about.html
@@ -95,21 +77,8 @@ const allowedBeforeAuth = [
     "/whyitworks"        // whyitworks.html
   ];
 
-  // BEFORE login → only /login allowed (unless login in progress)
-  if (
-    !isLoggedIn &&
-    !window.__LOGIN_IN_PROGRESS__ &&
-    !allowedBeforeAuth.includes(path)
-  ) {
-    window.location.replace("/login");
-    return;
-  }
-
-  // AFTER login → block all marketing routes
-  if (
-    isLoggedIn &&
-    blockedRoutes.includes(path)
-  ) {
+  // If user somehow hits a marketing page, send to dashboard
+  if (blockedRoutes.includes(path)) {
     window.location.replace("/dashboard");
     return;
   }
