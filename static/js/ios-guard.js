@@ -18,18 +18,46 @@
 
   if (!isAppWebView) return;
 
+  // ---- DOM READY ----
   document.addEventListener("DOMContentLoaded", () => {
+
     // Hide signup / subscribe links everywhere (iOS + Android)
     document
       .querySelectorAll('a[href*="signup"], a[href*="subscribe"]')
       .forEach(el => (el.style.display = "none"));
+
+    // 🔒 Prevent HOME / LOGO navigation flash on iOS
+    if (isIOSWebView) {
+      document.addEventListener("click", e => {
+        const link = e.target.closest("a");
+        if (!link) return;
+
+        const href = link.getAttribute("href");
+        if (!href) return;
+
+        const isHome =
+          href === "/" ||
+          href === "" ||
+          href.toLowerCase().includes("home");
+
+        if (isHome) {
+          e.preventDefault();
+          const isLoggedIn =
+            !!localStorage.getItem("access_token") ||
+            !!localStorage.getItem("sb-access-token");
+
+          window.location.replace(
+            isLoggedIn ? "/dashboard" : "/login"
+          );
+        }
+      });
+    }
   });
 
+  const path = window.location.pathname;
+
   // --- HARD BLOCK signup & subscribe routes ---
-  if (
-    window.location.pathname.includes("signup") ||
-    window.location.pathname.includes("subscribe")
-  ) {
+  if (path.includes("signup") || path.includes("subscribe")) {
     document.body.innerHTML = `
       <div style="padding:2rem; text-align:center; font-family:system-ui;">
         <h2>Sign up on the website</h2>
@@ -47,13 +75,18 @@
   // --- iOS LOGIN-FORWARD ENFORCEMENT ---
   if (!isIOSWebView) return;
 
-  const path = window.location.pathname;
+  const isLoggedIn =
+    !!localStorage.getItem("access_token") ||
+    !!localStorage.getItem("sb-access-token");
 
-  // Adjust this if your auth token name differs
-  const isLoggedIn = !!localStorage.getItem("access_token");
+  const allowedBeforeAuth = ["/login", "/dashboard"];
 
-  // BEFORE login → force /login only
-  if (!isLoggedIn && path !== "/login") {
+  // BEFORE login → force /login only (unless login is in progress)
+  if (
+    !isLoggedIn &&
+    !window.__LOGIN_IN_PROGRESS__ &&
+    !allowedBeforeAuth.includes(path)
+  ) {
     window.location.replace("/login");
     return;
   }
@@ -67,9 +100,8 @@
     "/contact"
   ];
 
-  if (!isLoggedIn && !window.__LOGIN_IN_PROGRESS__ && !allowedBeforeAuth.includes(path)) {
-  window.location.replace("/login");
-  return;
-}
-
+  if (isLoggedIn && blockedAfterLogin.includes(path)) {
+    window.location.replace("/dashboard");
+    return;
+  }
 })();
