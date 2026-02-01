@@ -35,24 +35,21 @@
         const href = link.getAttribute("href");
         if (!href) return;
 
-        const isHome =
-          href === "/" ||
-          href === "" ||
-          href.toLowerCase().includes("home");
+        // ONLY intercept true homepage links
+        if (href !== "/") return;
 
-        if (isHome) {
-          e.preventDefault();
-          const isLoggedIn =
-            !!localStorage.getItem("access_token") ||
-            !!localStorage.getItem("sb-access-token");
+        e.preventDefault();
 
-          window.location.replace(
-            isLoggedIn ? "/dashboard" : "/login"
-          );
-        }
+        const isLoggedIn =
+          !!localStorage.getItem("access_token") ||
+          !!localStorage.getItem("sb-access-token");
+
+        window.location.replace(
+          isLoggedIn ? "/dashboard" : "/login"
+        );
       });
     }
-  });
+  }); // ✅ <-- THIS WAS MISSING
 
   const path = window.location.pathname;
 
