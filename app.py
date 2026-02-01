@@ -490,14 +490,93 @@ def stripe_webhook():
             sig,
             os.getenv("STRIPE_WEBHOOK_SECRET")
         )
-    except Exception:
+    except Exception as e:
+        print("❌ Stripe webhook verification failed:", str(e))
         return "", 400
 
     if event["type"] == "checkout.session.completed":
         session_obj = event["data"]["object"]
-        print("Stripe checkout complete:", session_obj.get("customer_email"))
+
+        subscriber_email = session_obj.get("customer_email")
+        subscription_id = session_obj.get("subscription")
+        status = "ACTIVE"
+        start_date = datetime.utcnow().isoformat()
+
+        if not subscriber_email:
+            print("⚠️ Stripe session missing email")
+            return "", 200
+
+        print(f"✅ Stripe subscription for {subscriber_email}")
+
+        # -------------------------
+        # Supabase setup (same as PayPal)
+        # -------------------------
+        SUPABASE_URL = os.getenv("SUPABASE_URL")
+        SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+
+        headers = {
+            "apikey": SUPABASE_SERVICE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+            "Content-Type": "application/json",
+        }
+
+        # -------------------------
+        # Create Supabase user
+        # -------------------------
+        create_user_resp = requests.post(
+            f"{SUPABASE_URL}/auth/v1/admin/users",
+            headers=headers,
+            json={"email": subscriber_email}
+        )
+
+        if create_user_resp.status_code not in (200, 201):
+            print("⚠️ Stripe user creation failed:", create_user_resp.text)
+        else:
+            print("✅ Stripe user created")
+
+        # -------------------------
+        # Send invite email
+        # -------------------------
+        invite_resp = requests.post(
+            f"{SUPABASE_URL}/auth/v1/invite",
+            headers=headers,
+            json={
+                "email": subscriber_email,
+                "options": {
+                    "redirectTo": "https://www.the-happy-pantry.com/set_password"
+                }
+            }
+        )
+
+        if invite_resp.status_code not in (200, 201):
+            print("⚠️ Stripe invite failed:", invite_resp.text)
+        else:
+            print("✅ Stripe invite sent")
+
+        # -------------------------
+        # Insert subscription record
+        # -------------------------
+        subscription_payload = {
+            "email": subscriber_email,
+            "stripe_subscription_id": subscription_id,
+            "status": status,
+            "start_date": start_date,
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+
+        record_resp = requests.post(
+            f"{SUPABASE_URL}/rest/v1/subscriptions",
+            headers={**headers, "Prefer": "return=minimal"},
+            json=[subscription_payload],
+        )
+
+        if record_resp.status_code not in (200, 201, 204):
+            print("⚠️ Stripe subscription insert failed:", record_resp.text)
+        else:
+            print("✅ Stripe subscription recorded")
 
     return "", 200
+
 
 
 
