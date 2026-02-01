@@ -1,4 +1,4 @@
-// App WebView global guard (iOS only for navigation enforcement)
+// App WebView global guard (iOS-only navigation enforcement)
 (function () {
   const ua = navigator.userAgent || "";
 
@@ -18,7 +18,7 @@
 
   if (!isAppWebView) return;
 
-  // ---- DOM READY ----
+  // ---------------- DOM READY ----------------
   document.addEventListener("DOMContentLoaded", () => {
 
     // Hide signup / subscribe links everywhere (iOS + Android)
@@ -35,7 +35,7 @@
         const href = link.getAttribute("href");
         if (!href) return;
 
-        // ONLY intercept true homepage links
+        // ONLY intercept true homepage link
         if (href !== "/") return;
 
         e.preventDefault();
@@ -49,12 +49,15 @@
         );
       });
     }
-  }); // ✅ <-- THIS WAS MISSING
+  });
 
   const path = window.location.pathname;
 
-  // --- HARD BLOCK signup & subscribe routes ---
-  if (path.includes("signup") || path.includes("subscribe")) {
+  // ---------------- HARD BLOCK SIGNUP / SUBSCRIBE ----------------
+  if (
+    path.includes("signup") ||
+    path.includes("subscribe")
+  ) {
     document.body.innerHTML = `
       <div style="padding:2rem; text-align:center; font-family:system-ui;">
         <h2>Sign up on the website</h2>
@@ -69,16 +72,28 @@
     return;
   }
 
-  // --- iOS LOGIN-FORWARD ENFORCEMENT ---
+  // ---------------- iOS LOGIN-FORWARD ENFORCEMENT ----------------
   if (!isIOSWebView) return;
 
   const isLoggedIn =
     !!localStorage.getItem("access_token") ||
     !!localStorage.getItem("sb-access-token");
 
-  const allowedBeforeAuth = ["/login", "/dashboard"];
+  const allowedBeforeAuth = [
+    "/login",
+  ];
 
-  // BEFORE login → force /login only (unless login is in progress)
+  // 🚪 BLOCKED MARKETING ROUTES (your full list)
+  const blockedRoutes = [
+    "/",                 // index.html
+    "/about",            // about.html
+    "/contact",          // contact.html
+    "/pantry_post",      // pantry_post.html
+    "/pantry_project",   // pantry_project.html
+    "/whyitworks"        // whyitworks.html
+  ];
+
+  // BEFORE login → only /login allowed (unless login in progress)
   if (
     !isLoggedIn &&
     !window.__LOGIN_IN_PROGRESS__ &&
@@ -88,16 +103,11 @@
     return;
   }
 
-  // AFTER login → block marketing pages
-  const blockedAfterLogin = [
-    "/",
-    "/about",
-    "/whyitworks",
-    "/pantry_project",
-    "/contact"
-  ];
-
-  if (isLoggedIn && blockedAfterLogin.includes(path)) {
+  // AFTER login → block all marketing routes
+  if (
+    isLoggedIn &&
+    blockedRoutes.includes(path)
+  ) {
     window.location.replace("/dashboard");
     return;
   }
