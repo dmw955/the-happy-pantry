@@ -642,9 +642,14 @@ def subscribe():
         SUPABASE_KEY=supabase_key,
         PAYPAL_MODE=PAYPAL_MODE
     )
-
 @app.route("/success")
 def success():
+    provider = request.args.get("provider", "unknown")
+    return render_template("success.html", provider=provider)
+
+
+@app.route("/succes/paypal")
+def success_paypal():
     """Handle PayPal subscription success: create Supabase user, send invite, and log subscription."""
     try:
         # -------------------------
