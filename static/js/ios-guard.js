@@ -31,31 +31,35 @@
       document
         .querySelectorAll('a[href*="logout"]')
         .forEach(el => (el.style.display = "none"));
+
+      // Hide profile links on iOS
+      document
+        .querySelectorAll('a[href*="profile"]')
+        .forEach(el => (el.style.display = "none"));
     }
 
-// 🔒 Prevent HOME / LOGO navigation flash on iOS
-if (isIOSWebView) {
-  document.addEventListener("click", e => {
-    const link = e.target.closest("a");
-    if (!link) return;
+    // 🔒 Prevent HOME / LOGO navigation flash on iOS
+    if (isIOSWebView) {
+      document.addEventListener("click", e => {
+        const link = e.target.closest("a");
+        if (!link) return;
 
-    const href = link.getAttribute("href");
-    if (!href || href !== "/") return;
+        const href = link.getAttribute("href");
+        if (!href || href !== "/") return;
 
-    const path = window.location.pathname;
+        const path = window.location.pathname;
 
-    // 🚫 On login page: disable Home entirely
-    if (path === "/login") {
-      e.preventDefault();
-      return;
+        // 🚫 On login page: disable Home entirely
+        if (path === "/login") {
+          e.preventDefault();
+          return;
+        }
+
+        // Everywhere else → dashboard
+        e.preventDefault();
+        window.location.replace("/dashboard");
+      });
     }
-
-    // Everywhere else → dashboard
-    e.preventDefault();
-    window.location.replace("/dashboard");
-  });
-}
-
   });
 
   const path = window.location.pathname;
@@ -87,15 +91,14 @@ if (isIOSWebView) {
 
   // 🚫 Blocked marketing routes inside the app
   const blockedRoutes = [
-    "/",                 // index.html
-    "/about",            // about.html
-    "/contact",          // contact.html
-    "/pantry_post",      // pantry_post.html
-    "/pantry_project",   // pantry_project.html
-    "/whyitworks"        // whyitworks.html
+    "/",
+    "/about",
+    "/contact",
+    "/pantry_post",
+    "/pantry_project",
+    "/whyitworks"
   ];
 
-  // If user somehow hits a marketing page, send to dashboard
   if (blockedRoutes.includes(path)) {
     window.location.replace("/dashboard");
     return;
