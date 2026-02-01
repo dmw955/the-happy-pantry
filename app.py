@@ -478,7 +478,6 @@ def create_stripe_checkout():
     return jsonify({"url": checkout.url})
 
 
-
 @app.route("/api/stripe/webhook", methods=["POST"])
 def stripe_webhook():
     payload = request.data
@@ -578,12 +577,20 @@ def stripe_webhook():
             json=[subscription_payload],
         )
 
-        if record_resp.status_code not in (200, 201, 204):
-            print("⚠️ Stripe subscription insert failed:", record_resp.text)
-        else:
+        if record_resp.status_code == 204:
+            print("✅ Stripe subscription recorded (204 No Content)")
+        elif record_resp.status_code in (200, 201):
             print("✅ Stripe subscription recorded")
+        else:
+            print(
+                "❌ Stripe subscription insert failed:",
+                record_resp.status_code,
+                record_resp.text
+            )
 
+    # ✅ ALWAYS return inside the function
     return "", 200
+
 
 
 
