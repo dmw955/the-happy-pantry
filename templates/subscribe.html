@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", () => {
     createSubscription: (data, actions) => actions.subscription.create({
       plan_id: "{{ PAYPAL_PLAN_ID }}"
     }),
-    onApprove: data => window.location.href = "/success?subscription_id=" + data.subscriptionID,
+    onApprove: data => window.location.href = "/success/paypal?subscription_id=" + data.subscriptionID,
     onCancel: () => window.location.href = "/cancel"
   }).render("#paypal-button-container");
 
