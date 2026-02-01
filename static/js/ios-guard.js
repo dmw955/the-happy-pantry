@@ -67,8 +67,9 @@
     "/contact"
   ];
 
-  if (isLoggedIn && blockedAfterLogin.includes(path)) {
-    window.location.replace("/dashboard");
-    return;
-  }
+  if (!isLoggedIn && !window.__LOGIN_IN_PROGRESS__ && !allowedBeforeAuth.includes(path)) {
+  window.location.replace("/login");
+  return;
+}
+
 })();
