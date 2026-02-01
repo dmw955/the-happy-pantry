@@ -3,22 +3,29 @@ from flask import (
     request, redirect, url_for,
     session, flash, jsonify,
     send_from_directory,
-    send_file   # ✅ REQUIRED
+    send_file
 )
 
 from supabase import create_client
 import os
-import io 
+import io
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import LETTER             # ✅ ADD THIS LINE
+from reportlab.lib.pagesizes import LETTER
 import json
 import requests
 import traceback
 from datetime import datetime
 from dotenv import load_dotenv
-from openai import OpenAI  # ✅ correct for new SDK
+
+load_dotenv()  # ✅ LOAD ENV FIRST
+
+from openai import OpenAI
 import stripe
+
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+if not stripe.api_key:
+    raise RuntimeError("STRIPE_SECRET_KEY not set")
+
 
 
 
