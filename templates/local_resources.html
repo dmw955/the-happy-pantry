@@ -51,6 +51,8 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="{{ url_for('static', filename='js/ios-guard.js') }}"></script>
+
   <script>
     // Initialize Supabase client
     window.supabase = supabase.createClient(

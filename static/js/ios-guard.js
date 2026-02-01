@@ -1,4 +1,4 @@
-// App WebView global guard (iOS + Android)
+// App WebView global guard (iOS only for navigation enforcement)
 (function () {
   const ua = navigator.userAgent || "";
 
@@ -12,20 +12,20 @@
 
   const isAppWebView = isIOSWebView || isAndroidWebView;
 
-  // Expose for other scripts (PDF handling, etc.)
+  // Expose flags
   window.__IS_APP_WEBVIEW__ = isAppWebView;
   window.__IS_ANDROID_WEBVIEW__ = isAndroidWebView;
 
   if (!isAppWebView) return;
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Hide signup / subscribe links everywhere
+    // Hide signup / subscribe links everywhere (iOS + Android)
     document
       .querySelectorAll('a[href*="signup"], a[href*="subscribe"]')
       .forEach(el => (el.style.display = "none"));
   });
 
-  // Hard block direct navigation
+  // --- HARD BLOCK signup & subscribe routes ---
   if (
     window.location.pathname.includes("signup") ||
     window.location.pathname.includes("subscribe")
@@ -41,5 +41,34 @@
         </p>
       </div>
     `;
+    return;
+  }
+
+  // --- iOS LOGIN-FORWARD ENFORCEMENT ---
+  if (!isIOSWebView) return;
+
+  const path = window.location.pathname;
+
+  // Adjust this if your auth token name differs
+  const isLoggedIn = !!localStorage.getItem("access_token");
+
+  // BEFORE login → force /login only
+  if (!isLoggedIn && path !== "/login") {
+    window.location.replace("/login");
+    return;
+  }
+
+  // AFTER login → block marketing pages
+  const blockedAfterLogin = [
+    "/",
+    "/about",
+    "/whyitworks",
+    "/pantry_project",
+    "/contact"
+  ];
+
+  if (isLoggedIn && blockedAfterLogin.includes(path)) {
+    window.location.replace("/dashboard");
+    return;
   }
 })();
