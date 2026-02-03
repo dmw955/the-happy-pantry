@@ -113,6 +113,30 @@ def favicon():
 # ─────────────────────────────────────────────────────────────────────────────
 # Core Pages & User Account Routes
 # ─────────────────────────────────────────────────────────────────────────────
+
+def generate_pdf(items):
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=LETTER)
+    width, height = LETTER
+
+    y = height - 50
+    p.setFont("Helvetica", 12)
+
+    for item in items:
+        line = f"- {item['name']} {item.get('quantity', '')}"
+        p.drawString(50, y, line)
+        y -= 20
+
+        if y < 50:
+            p.showPage()
+            p.setFont("Helvetica", 12)
+            y = height - 50
+
+    p.save()
+    buffer.seek(0)
+    return buffer.read()
+
+
 @app.route("/")
 def home():
     return render_template("index.html")
