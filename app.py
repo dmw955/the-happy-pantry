@@ -242,6 +242,8 @@ def force_www():
 
 @app.route("/api/export/shopping_list.pdf", methods=["GET"])
 def export_shopping_list_pdf():
+    print("🧪 PDF EXPORT ROUTE HIT — NO AUTH CHECK")
+
     # TEMPORARY AND INTENTIONAL:
     # Android WebView cannot reliably attach session cookies for binary fetches
     # This endpoint does not expose user data
@@ -261,6 +263,7 @@ def export_shopping_list_pdf():
         as_attachment=True,
         download_name="shopping_list.pdf"
     )
+
 
 
 @app.route("/api/debug/session", methods=["GET"])
