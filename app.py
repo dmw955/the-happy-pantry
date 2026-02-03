@@ -268,21 +268,24 @@ def force_www():
 def export_shopping_list_pdf():
     print("🧪 PDF EXPORT ROUTE HIT — NO AUTH CHECK")
 
-    # TEMPORARY AND INTENTIONAL:
-    # Android WebView cannot reliably attach session cookies for binary fetches
-    # This endpoint does not expose user data
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=LETTER)
+    width, height = LETTER
 
-    items = [
-        {
-            "name": "Open this shopping list in the browser to download the full PDF.",
-            "quantity": ""
-        }
-    ]
+    y = height - 50
+    p.setFont("Helvetica", 12)
 
-    pdf_bytes = generate_pdf(items)
+    p.drawString(
+        50,
+        y,
+        "Open this shopping list in the browser to download the full PDF."
+    )
+
+    p.save()
+    buffer.seek(0)
 
     return send_file(
-        io.BytesIO(pdf_bytes),
+        buffer,
         mimetype="application/pdf",
         as_attachment=True,
         download_name="shopping_list.pdf"
