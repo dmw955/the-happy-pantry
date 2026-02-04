@@ -15,6 +15,7 @@ const supabaseClient = supabase.createClient(
   window.SUPABASE_ANON_KEY
 );
 
+console.log("ANDROID WEBVIEW?", window.__IS_ANDROID_WEBVIEW__);
 
   // ─── Fetch & Render Shopping List ───────────────────────────────────────────
   const listContainer = document.getElementById("listContainer");
