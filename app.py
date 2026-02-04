@@ -638,19 +638,20 @@ def free_week_signup():
 
     # 2️⃣ Add contact to Brevo
     brevo_resp = requests.post(
-        "https://api.brevo.com/v3/contacts",
-        headers={
-            "accept": "application/json",
-            "api-key": os.getenv("BREVO_API_KEY"),
-            "content-type": "application/json",
-        },
-        json={
-            "email": email,
-            "listIds": [int(os.getenv("BREVO_FREE_WEEK_LIST_ID"))],
-            "updateEnabled": False
-        },
-        timeout=10
-    )
+    "https://api.brevo.com/v3/contacts",
+    headers={
+        "accept": "application/json",
+        "api-key": os.getenv("BREVO_API_KEY"),
+        "content-type": "application/json",
+    },
+    json={
+        "email": email,
+        "listIds": [int(os.getenv("BREVO_FREE_WEEK_LIST_ID"))],
+        "updateEnabled": True
+    },
+    timeout=10
+)
+
 
     # 🔍 TEMP DEBUG (remove after)
     print("BREVO DEBUG:", brevo_resp.status_code, brevo_resp.text)
