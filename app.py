@@ -657,6 +657,17 @@ def free_week_signup():
 
     return jsonify({"success": True}), 200
 
+@app.route("/free-week")
+def free_week():
+    return render_template("free_week.html")
+
+@app.route("/free-week-success")
+def free_week_success():
+    return render_template("free_week_success.html")
+
+@app.route("/free-week-error")
+def free_week_error():
+    return render_template("free_week_error.html")
 
 
 @app.route("/pantrypost")
