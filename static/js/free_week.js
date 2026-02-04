@@ -17,37 +17,33 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const response = await fetch("/api/free-week-signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
 
-      // Already signed up
+      // Duplicate
       if (response.status === 409) {
-        window.location.href = "/free_week_error.html";
+        window.location.href = "/free-week-error";
         return;
       }
 
       // Success
       if (response.ok) {
-        // GA4 conversion event
         if (typeof gtag === "function") {
           gtag("event", "free_week_signup", {
             event_category: "engagement"
           });
         }
 
-        window.location.href = "/free_week_success.html";
+        window.location.href = "/free-week-success";
         return;
       }
 
-      // Any other error
       throw new Error("Signup failed");
 
     } catch (err) {
       console.error("Free week signup error:", err);
-      window.location.href = "/free_week_error.html";
+      window.location.href = "/free-week-error";
     }
   });
 });
