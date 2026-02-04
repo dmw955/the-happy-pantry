@@ -242,20 +242,53 @@ def force_www():
 
 
 
-@app.route("/api/export/shopping_list.pdf", methods=["GET"])
+@app.route("/api/export/shopping_list.pdf", methods=["POST"])
 def export_shopping_list_pdf():
-    print("🧪 PDF EXPORT ROUTE HIT — NO AUTH CHECK")
+    print("🟢 Android PDF export (POST)")
+
+    data = request.get_json(silent=True)
+    if not data or "items" not in data:
+        return "Invalid payload", 400
+
+    items = data["items"]
 
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=LETTER)
     width, height = LETTER
+    y = height - 40
 
-    p.setFont("Helvetica", 12)
-    p.drawString(
-        50,
-        height - 50,
-        "Open this shopping list in the browser to download the full PDF."
-    )
+    # Header
+    p.setFont("Helvetica-Bold", 16)
+    p.drawCentredString(width / 2, y, "The Happy Pantry – Shopping List")
+    y -= 30
+
+    p.setFont("Helvetica", 11)
+
+    for category, lines in items.items():
+        if not lines:
+            continue
+
+        if y < 80:
+            p.showPage()
+            p.setFont("Helvetica", 11)
+            y = height - 40
+
+        # Category title
+        p.setFont("Helvetica-Bold", 13)
+        p.drawString(40, y, category)
+        y -= 18
+
+        p.setFont("Helvetica", 11)
+        for line in lines:
+            if y < 60:
+                p.showPage()
+                p.setFont("Helvetica", 11)
+                y = height - 40
+
+            p.drawString(55, y, f"• {line}")
+            y -= 14
+
+        y -= 10
 
     p.save()
     buffer.seek(0)
