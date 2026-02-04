@@ -615,6 +615,47 @@ def stripe_webhook():
     return "", 200
 
 
+@app.route("/api/free-week-signup", methods=["POST"])
+def free_week_signup():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email")
+
+    if not email:
+        return jsonify({"error": "Email required"}), 400
+
+    sb = get_supabase_admin()
+
+    # 1️⃣ Insert into Supabase
+    try:
+        sb.table("free_week_signups").insert({
+            "email": email,
+            "source": "free_week"
+        }).execute()
+    except Exception as e:
+        if "duplicate key value" in str(e):
+            return jsonify({"error": "Duplicate"}), 409
+        return jsonify({"error": "Database error"}), 500
+
+    # 2️⃣ Add contact to Brevo
+    brevo_resp = requests.post(
+        "https://api.brevo.com/v3/contacts",
+        headers={
+            "accept": "application/json",
+            "api-key": os.getenv("BREVO_API_KEY"),
+            "content-type": "application/json",
+        },
+        json={
+            "email": email,
+            "listIds": [int(os.getenv("BREVO_FREE_WEEK_LIST_ID"))],
+            "updateEnabled": False
+        },
+        timeout=10
+    )
+
+    if brevo_resp.status_code not in (200, 201, 204):
+        return jsonify({"error": "Brevo error"}), 502
+
+    return jsonify({"success": True}), 200
 
 
 
