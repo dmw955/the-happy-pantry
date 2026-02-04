@@ -615,7 +615,7 @@ def stripe_webhook():
     return "", 200
 
 
-@app.route("/api/free-week-signup", methods=["POST"])
+@@app.route("/api/free-week-signup", methods=["POST"])
 def free_week_signup():
     data = request.get_json(silent=True) or {}
     email = data.get("email")
@@ -652,10 +652,14 @@ def free_week_signup():
         timeout=10
     )
 
+    # 🔍 TEMP DEBUG (remove after)
+    print("BREVO DEBUG:", brevo_resp.status_code, brevo_resp.text)
+
     if brevo_resp.status_code not in (200, 201, 204):
         return jsonify({"error": "Brevo error"}), 502
 
     return jsonify({"success": True}), 200
+
 
 @app.route("/free-week")
 def free_week():
