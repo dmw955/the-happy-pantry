@@ -615,7 +615,7 @@ def stripe_webhook():
     return "", 200
 
 
-@@app.route("/api/free-week-signup", methods=["POST"])
+@app.route("/api/free-week-signup", methods=["POST"])
 def free_week_signup():
     data = request.get_json(silent=True) or {}
     email = data.get("email")
