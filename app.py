@@ -484,54 +484,49 @@ def shopping_list():
     )
 
 
-@app.route("/planselection")
-def planselection():
-    return render_template(
-        "subscribe.html",
-        PAYPAL_CLIENT_ID=PAYPAL_CLIENT_ID,
-        PAYPAL_PLAN_ID=PAYPAL_PLAN_ID,
-        SUPABASE_URL=SUPABASE_URL,
-        SUPABASE_KEY=SUPABASE_ANON_KEY,
-        PAYPAL_MODE=PAYPAL_MODE
-    )
 
 @app.route("/pantry-post/cooking-temps")
 def blog_temps():
     return render_template("blog_temps.html")
 
-@app.route("/api/stripe/create-checkout-session", methods=["POST"])
-def create_stripe_checkout():
+@app.route("/api/stripe/create-donation-session", methods=["POST"])
+def create_stripe_donation_session():
     data = request.get_json(silent=True) or {}
-    email = session.get("email") or data.get("email")
 
-    checkout = stripe.checkout.Session.create(
-    mode="subscription",
+    try:
+        amount = int(float(data.get("amount", 0)) * 100)
+        frequency = data.get("frequency")
 
-    line_items=[{
-        "price": os.getenv("STRIPE_PRICE_ID"),
-        "quantity": 1
-    }],
+        if amount < 500:
+            return jsonify({"error": "Minimum donation is $5"}), 400
 
-    customer_email=email if email else None,
+        if frequency not in ["one_time", "monthly"]:
+            return jsonify({"error": "Invalid frequency"}), 400
 
-    # 👇 this enforces the free trial (even if the price already has one)
-    subscription_data={
-        "trial_period_days": 30
-    },
+        mode = "payment" if frequency == "one_time" else "subscription"
 
-    # 👇 this is what makes it visible to customers
-    custom_text={
-        "submit": {
-            "message": "Your first month is free. You won’t be charged today."
-        }
-    },
+        session_obj = stripe.checkout.Session.create(
+            mode=mode,
+            line_items=[{
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": "Pantry Project Support"
+                    },
+                    "unit_amount": amount,
+                    **({"recurring": {"interval": "month"}} if frequency == "monthly" else {})
+                },
+                "quantity": 1
+            }],
+            success_url="https://www.the-happy-pantry.com/donate/success",
+            cancel_url="https://www.the-happy-pantry.com/donate"
+        )
 
-    success_url="https://www.the-happy-pantry.com/success?provider=stripe",
-    cancel_url="https://www.the-happy-pantry.com/cancel",
-)
+        return jsonify({"url": session_obj.url})
 
-
-    return jsonify({"url": checkout.url})
+    except Exception as e:
+        print("Stripe donation error:", e)
+        return jsonify({"error": "Server error"}), 500
 
 
 @app.route("/api/stripe/webhook", methods=["POST"])
@@ -546,107 +541,78 @@ def stripe_webhook():
             os.getenv("STRIPE_WEBHOOK_SECRET")
         )
     except Exception as e:
-        print("❌ Stripe webhook verification failed:", str(e))
+        print("Stripe webhook verification failed:", e)
         return "", 400
 
-    if event["type"] == "checkout.session.completed":
+    if event["type"] in ["checkout.session.completed", "invoice.paid"]:
         session_obj = event["data"]["object"]
 
-        # ✅ Robust email extraction
-        subscriber_email = (
+        email = (
             session_obj.get("customer_email")
             or session_obj.get("customer_details", {}).get("email")
         )
 
-        if not subscriber_email:
-            print(
-                "⚠️ Stripe session missing email entirely:",
-                json.dumps(session_obj, indent=2)
-            )
-            return "", 200
+        amount = session_obj.get("amount_total") or 0
 
-        subscription_id = session_obj.get("subscription")
-        status = "ACTIVE"
-        start_date = datetime.utcnow().isoformat()
+        try:
+            sb = get_supabase_admin()
+            sb.table("donations").insert({
+                "provider": "stripe",
+                "email": email,
+                "amount": amount / 100,
+                "frequency": "monthly" if event["type"] == "invoice.paid" else "one_time",
+                "status": "completed"
+            }).execute()
+        except Exception as e:
+            print("Donation insert error:", e)
 
-        print(f"✅ Stripe subscription for {subscriber_email}")
+    return "", 200
 
-        # -------------------------
-        # Supabase setup
-        # -------------------------
-        SUPABASE_URL = os.getenv("SUPABASE_URL")
-        SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+@app.route("/api/paypal/create-order", methods=["POST"])
+def create_paypal_order():
+    data = request.get_json(silent=True) or {}
 
-        headers = {
-            "apikey": SUPABASE_SERVICE_KEY,
-            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-            "Content-Type": "application/json",
-        }
+    try:
+        amount = float(data.get("amount", 0))
+        frequency = data.get("frequency")
 
-        # -------------------------
-        # Create Supabase user
-        # -------------------------
-        create_user_resp = requests.post(
-            f"{SUPABASE_URL}/auth/v1/admin/users",
-            headers=headers,
-            json={"email": subscriber_email}
+        if amount < 5:
+            return jsonify({"error": "Minimum donation is $5"}), 400
+
+        auth_response = requests.post(
+            f"{PAYPAL_BASE_URL}/v1/oauth2/token",
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
+            data={"grant_type": "client_credentials"},
         )
 
-        if create_user_resp.status_code not in (200, 201):
-            print("⚠️ Stripe user creation failed:", create_user_resp.text)
-        else:
-            print("✅ Stripe user created")
+        access_token = auth_response.json().get("access_token")
 
-        # -------------------------
-        # Send invite email
-        # -------------------------
-        invite_resp = requests.post(
-            f"{SUPABASE_URL}/auth/v1/invite",
-            headers=headers,
+        order = requests.post(
+            f"{PAYPAL_BASE_URL}/v2/checkout/orders",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            },
             json={
-                "email": subscriber_email,
-                "options": {
-                    "redirectTo": "https://www.the-happy-pantry.com/set_password"
+                "intent": "CAPTURE",
+                "purchase_units": [{
+                    "amount": {
+                        "currency_code": "USD",
+                        "value": f"{amount:.2f}"
+                    }
+                }],
+                "application_context": {
+                    "return_url": "https://www.the-happy-pantry.com/donate/success",
+                    "cancel_url": "https://www.the-happy-pantry.com/donate"
                 }
             }
         )
 
-        if invite_resp.status_code not in (200, 201):
-            print("⚠️ Stripe invite failed:", invite_resp.text)
-        else:
-            print("✅ Stripe invite sent")
+        return jsonify(order.json())
 
-        # -------------------------
-        # Insert subscription record
-        # -------------------------
-        subscription_payload = {
-            "email": subscriber_email,
-            "stripe_subscription_id": subscription_id,
-            "status": status,
-            "start_date": start_date,
-            "updated_at": datetime.utcnow().isoformat(),
-        }
-
-        record_resp = requests.post(
-            f"{SUPABASE_URL}/rest/v1/subscriptions",
-            headers={**headers, "Prefer": "return=minimal"},
-            json=[subscription_payload],
-        )
-
-        if record_resp.status_code == 204:
-            print("✅ Stripe subscription recorded (204 No Content)")
-        elif record_resp.status_code in (200, 201):
-            print("✅ Stripe subscription recorded")
-        else:
-            print(
-                "❌ Stripe subscription insert failed:",
-                record_resp.status_code,
-                record_resp.text
-            )
-
-    # ✅ ALWAYS return inside the function
-    return "", 200
-
+    except Exception as e:
+        print("PayPal donation error:", e)
+        return jsonify({"error": "Server error"}), 500
 
 @app.route("/api/free-week-signup", methods=["POST"])
 def free_week_signup():
@@ -833,251 +799,16 @@ print(f"→ Plan ID: {PAYPAL_PLAN_ID}")
 # ─────────────────────────────────────────────────────────────────────────────
 # PayPal Subscribe & Success
 # ─────────────────────────────────────────────────────────────────────────────
-@app.route("/subscribe")
-def subscribe():
-    supabase_url = SUPABASE_URL
-    supabase_key = SUPABASE_ANON_KEY
+@app.route("/donate")
+def donate():
+    return render_template("donate.html")
+@app.route("/donate/success")
+def donate_success():
+    return render_template("donate_success.html")
 
-    if not PAYPAL_CLIENT_ID or not PAYPAL_PLAN_ID:
-        return "Missing PayPal credentials.", 500
-
-    return render_template(
-        "subscribe.html",
-        PAYPAL_CLIENT_ID=PAYPAL_CLIENT_ID,
-        PAYPAL_PLAN_ID=PAYPAL_PLAN_ID,
-        SUPABASE_URL=supabase_url,
-        SUPABASE_KEY=supabase_key,
-        PAYPAL_MODE=PAYPAL_MODE
-    )
-@app.route("/success")
-def success():
-    provider = request.args.get("provider", "unknown")
-    return render_template("success.html", provider=provider)
-
-
-@app.route("/succes/paypal")
-def success_paypal():
-    """Handle PayPal subscription success: create Supabase user, send invite, and log subscription."""
-    try:
-        # -------------------------
-        # 1️⃣ Get subscription ID from query param
-        # -------------------------
-        subscription_id = request.args.get("subscription_id")
-        if not subscription_id:
-            return "Missing subscription ID.", 400
-        
-        # 🔓 DEV-ONLY BYPASS (REMOVE AFTER TESTING)
-        if subscription_id == "test":
-            print("🧪 DEV MODE: Bypassing PayPal verification")
-            return render_template(
-        "success.html",
-        email="test@the-happy-pantry.com",
-        status="ACTIVE"
-    )
-
-        print(f"🔄 Handling success for PayPal subscription: {subscription_id}")
-
-        # -------------------------
-        # 2️⃣ Use pre-loaded PayPal credentials
-        # -------------------------
-        global PAYPAL_BASE_URL, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
-
-        paypal_auth_url = f"{PAYPAL_BASE_URL}/v1/oauth2/token"
-        paypal_sub_url = f"{PAYPAL_BASE_URL}/v1/billing/subscriptions/{subscription_id}"
-
-        # -------------------------
-        # 3️⃣ Get PayPal Access Token
-        # -------------------------
-        auth_response = requests.post(
-            paypal_auth_url,
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET),
-            headers={"Accept": "application/json", "Accept-Language": "en_US"},
-            data={"grant_type": "client_credentials"},
-        )
-
-        if auth_response.status_code != 200:
-            print("⚠️ PayPal authentication failed:", auth_response.text)
-            return "PayPal authentication failed.", 500
-
-        access_token = auth_response.json().get("access_token")
-
-        # -------------------------
-        # 4️⃣ Get Subscription Details from PayPal
-        # -------------------------
-        sub_response = requests.get(
-            paypal_sub_url,
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-
-        if sub_response.status_code != 200:
-            print("⚠️ Subscription lookup failed:", sub_response.text)
-            return "Unable to verify subscription.", 500
-
-        sub_data = sub_response.json()
-        print("✅ PayPal subscription data:", json.dumps(sub_data, indent=2))
-
-        subscriber_email = sub_data.get("subscriber", {}).get("email_address")
-        start_date = sub_data.get("start_time")
-        status = sub_data.get("status")
-
-        if not subscriber_email:
-            print("⚠️ No email found in subscription data.")
-            return "Missing email.", 400
-
-        print(f"📧 Subscriber email: {subscriber_email}")
-
-        # -------------------------
-        # 5️⃣ Supabase Setup
-        # -------------------------
-        SUPABASE_URL = os.getenv("SUPABASE_URL")
-        SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
-
-        headers = {
-            "apikey": SUPABASE_SERVICE_KEY,
-            "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-            "Content-Type": "application/json",
-        }
-
-        # -------------------------
-        # 6️⃣ Create Supabase User
-        # -------------------------
-        print("👤 Creating Supabase user...")
-        create_user_resp = requests.post(
-            f"{SUPABASE_URL}/auth/v1/admin/users",
-            headers=headers,
-            json={"email": subscriber_email}
-        )
-
-        if create_user_resp.status_code not in (200, 201):
-            print("⚠️ User creation failed:", create_user_resp.text)
-        else:
-            print("✅ User created.")
-
-        # -------------------------
-            # 7️⃣ Send Invite Email
-        print("📨 Sending invite email with redirect...")
-        invite_resp = requests.post(
-        f"{SUPABASE_URL}/auth/v1/invite",
-        headers=headers,
-        json={
-        "email": subscriber_email,
-        "options": {
-            "redirectTo": "https://www.the-happy-pantry.com/set_password"
-        }
-    }
-)
-
-
-        if invite_resp.status_code not in (200, 201):
-            print("⚠️ Invite email failed:", invite_resp.text)
-        else:
-            print("✅ Invite email sent.")
-
-        # -------------------------
-        # 8️⃣ Insert Subscription Record
-        # -------------------------
-        print("📝 Inserting subscription record into Supabase...")
-        subscription_payload = {
-            "email": subscriber_email,
-            "paypal_subscription_id": subscription_id,
-            "status": status,
-            "start_date": start_date,
-            "updated_at": datetime.utcnow().isoformat(),
-        }
-
-        record_resp = requests.post(
-            f"{SUPABASE_URL}/rest/v1/subscriptions",
-            headers={**headers, "Prefer": "return=minimal"},
-            json=[subscription_payload],
-        )
-
-        if record_resp.status_code not in (200, 201, 204):
-            print("⚠️ Failed to insert subscription:", record_resp.text)
-        else:
-            print("✅ Subscription record inserted.")
-
-        # -------------------------
-        # 9️⃣ Show Success Page
-        # -------------------------
-        return render_template("success.html", email=subscriber_email, status=status)
-
-    except Exception as e:
-        print("❌ Uncaught exception in /success route:")
-        print(traceback.format_exc())
-        return "Internal server error.", 500
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PantryPal AI Endpoint
-# ─────────────────────────────────────────────────────────────────────────────
-from openai import OpenAI
-from openai import RateLimitError
-import re
-
-@app.route("/api/pantrypal", methods=["POST"])
-def pantrypal_api():
-    try:
-        payload = request.get_json(force=True)
-        user_msg = (payload.get("message") or "").strip()
-        context = payload.get("context", {})
-
-        print("🟢 Incoming message:", user_msg)
-        print("🟢 Context:", context)
-
-        if not user_msg:
-            return jsonify({"error": "Missing message"}), 400
-
-        # ✅ System message (correct placement & indentation)
-        system_msg = (
-            "You are PantryPal, a helpful kitchen assistant. "
-            "Respond ONLY in raw JSON — no markdown, no backticks, no explanation. "
-            f"Here is some page context: {json.dumps(context)}"
-        )
-
-        # ✅ OpenAI call
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_msg}
-                ],
-                max_tokens=350,
-                temperature=0.3,
-            )
-        except RateLimitError as rate_err:
-            print("🚫 OpenAI Rate Limit Exceeded:", rate_err)
-            return jsonify({
-                "error": "Rate limit exceeded. Please try again later.",
-                "code": "rate_limit"
-            }), 429
-
-        print("🟢 Raw OpenAI response:", response)
-
-        # ✅ Extract + clean + parse AI JSON safely
-        try:
-            content = response.choices[0].message.content
-            print("🟢 Response content:", content)
-
-            # Remove markdown code fences if present
-            clean = re.sub(r"^```(?:json)?\s*|```$", "", content.strip(), flags=re.MULTILINE)
-
-            data = json.loads(clean)
-
-        except (KeyError, IndexError, json.JSONDecodeError) as e:
-            print("❌ Failed to parse OpenAI response:", str(e))
-            print("❌ Raw cleaned content:", clean)
-            return jsonify({"error": "Invalid AI response format"}), 502
-
-        return jsonify(data), 200
-
-    except Exception as e:
-        print("❌ Server error:", traceback.format_exc())
-        return jsonify({
-            "error": "Server error",
-            "details": str(e)
-        }), 500
-
-
+@app.route("/planselection")
+def planselection():
+    return redirect(url_for("donate"))
 # ─────────────────────────────────────────────────────────────────────────────
 # Blog & Recipes
 # ─────────────────────────────────────────────────────────────────────────────
