@@ -809,6 +809,10 @@ def donate_success():
 @app.route("/planselection")
 def planselection():
     return redirect(url_for("donate"))
+
+@app.route("/subscribe")
+def legacy_subscribe_redirect():
+    return redirect(url_for("donate"), code=301)
 # ─────────────────────────────────────────────────────────────────────────────
 # Blog & Recipes
 # ─────────────────────────────────────────────────────────────────────────────
