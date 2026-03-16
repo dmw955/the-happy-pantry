@@ -13,414 +13,700 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
-  <!-- ✅ Supabase SDK (deferred) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js" defer></script>
-
-  <!-- ✅ Supabase config (global vars) -->
+  <!-- PantryPal page context -->
   <script>
-    window.SUPABASE_URL = "{{ SUPABASE_URL }}";
-    window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+    window.currentRecipe = {{ {
+      "id": recipe.id,
+      "title": (recipe.title | default("Untitled")),
+      "ingredients": (recipe.ingredients | default([])),
+      "dressing": (recipe.dressing | default([]))
+    } | tojson | safe }};
   </script>
 
-  <!-- ✅ Supabase init must wait for SDK (auth.js will handle that) -->
-  <script src="{{ url_for('static', filename='js/auth.js') }}" defer></script>
-
-  <!-- ✅ Inject currentRecipe context -->
-<script>
-  window.currentRecipe = {{ {
-    "id": recipe.id,
-    "title": (recipe.title | default("Untitled")),
-    "ingredients": (recipe.ingredients | default([])),
-    "dressing": (recipe.dressing | default([]))
-  } | tojson | safe }};
-</script>
-
-
-
-
-  <!-- ✅ PantryPal chatbot logic -->
+  <!-- PantryPal logic -->
   <script src="{{ url_for('static', filename='js/pantrypal.js') }}" defer></script>
-</head>
 
+  <style>
+    :root {
+      --primary-color: #008080;
+      --accent-color: #FFC72C;
+      --text-dark: #1f2937;
+      --text-muted: #5f6b7a;
+      --text-light: #ffffff;
+      --background-light: #ffffff;
+      --background-soft: #f8fbfb;
+      --border-soft: rgba(0, 128, 128, 0.12);
+      --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 18px 38px rgba(0, 0, 0, 0.12);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
 
-<style>
-  :root {
-    --primary-color: #008080;
-    --accent-color: #FFC72C;
-    --text-dark: #2E2E2E;
-    --text-light: #FFFFFF;
-    --background-light: #FFFFFF;
-  }
+      --pp-teal: #008080;
+      --pp-gold: #FFC72C;
+      --pp-bg: #ffffff;
+      --pp-text: #0f172a;
+      --pp-muted: #6b7280;
+      --pp-border: #e5e7eb;
+      --pp-shadow-1: 0 2px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
+      --pp-shadow-2: 0 8px 24px rgba(0,0,0,.14), 0 16px 48px rgba(0,0,0,.12);
+    }
 
-  .navbar {
-    background-color: var(--background-light);
-    border-bottom: 2px solid var(--accent-color);
-    padding: 10px 0;
-  }
+    html {
+      scroll-behavior: smooth;
+    }
 
-  .navbar-brand img {
-    height: 50px;
-    width: auto;
-  }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      color: var(--text-dark);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
+      margin: 0;
+      padding: 0;
+    }
 
-  .navbar-nav .nav-link {
-    color: var(--text-dark);
-    font-weight: bold;
-    transition: color 0.3s;
-  }
+    .navbar {
+      background-color: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 199, 44, 0.35);
+      padding: 12px 0;
+    }
 
-  .navbar-nav .nav-link:hover {
-    color: var(--accent-color);
-    text-decoration: underline;
-  }
+    .navbar-brand img {
+      height: 52px;
+      width: auto;
+    }
 
-  .footer-bg {
-    background-color: var(--primary-color);
-    color: var(--text-light);
-    padding: 20px 0;
-    text-align: center;
-    font-size: 0.9rem;
-  }
+    .navbar-nav .nav-link {
+      color: var(--text-dark);
+      font-weight: 600;
+      margin-left: 0.25rem;
+      margin-right: 0.25rem;
+      transition: color 0.25s ease;
+    }
 
-  .footer-bg a:hover img {
-    transform: scale(1.1);
-  }
-  .pp-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 998;
-}
+    .navbar-nav .nav-link:hover {
+      color: var(--primary-color);
+    }
 
-.pp-backdrop.open {
-  display: block;
-}
+    .btn-brand {
+      background-color: var(--accent-color);
+      color: #1f2937;
+      font-weight: 700;
+      border: none;
+      border-radius: 999px;
+      padding: 0.8rem 1.35rem;
+      box-shadow: 0 10px 22px rgba(255, 199, 44, 0.28);
+      transition: all 0.25s ease;
+    }
 
-.pp-sheet {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #fff;
-  z-index: 999;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-  padding: 16px;
-  max-height: 75vh;
-  overflow-y: auto;
-  transition: transform 0.3s ease;
-}
+    .btn-brand:hover {
+      background-color: #f4bb11;
+      color: #1f2937;
+      transform: translateY(-1px);
+    }
 
-.pp-sheet.open {
-  display: block;
-}
-/* ▶ PantryPal FAB Button – Gold Theme */
-.pp-fab {
-  position: fixed;
-  bottom: 16px;
-  right: 16px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background-color: var(--accent-color); /* Gold */
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  border: none;
-  z-index: 1000;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
+    .btn-outline-teal {
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+      background: transparent;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.8rem 1.35rem;
+      transition: all 0.25s ease;
+    }
 
-.pp-fab:hover {
-  transform: scale(1.05);
-}
+    .btn-outline-teal:hover {
+      background: var(--primary-color);
+      color: #fff;
+    }
 
-/* Emoji/SVG inside the FAB */
-.pp-fab svg {
-  width: 28px;
-  height: 28px;
-  background: #fff;
-  border-radius: 50%;
-  padding: 4px;
-}
+    .hero-shell {
+      background:
+        linear-gradient(115deg, rgba(0, 128, 128, 0.92) 0%, rgba(0, 96, 96, 0.86) 42%, rgba(12, 26, 32, 0.72) 100%),
+        url("{{ url_for('static', filename='assets/pantry.jpg') }}") center center / cover no-repeat;
+      padding: 72px 0 84px;
+      position: relative;
+      overflow: hidden;
+    }
 
-.btn-accent {
-  background-color: var(--accent-color);
-  color: black;
-  border: none;
-}
+    .hero-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(255, 199, 44, 0.18), transparent 30%);
+      pointer-events: none;
+    }
 
-.btn-accent:hover {
-  background-color: #e6b800; /* Slightly darker gold */
-  color: black;
-}
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
 
-/* Recipe Hero Image */
-.recipe-hero-img {
-  width: 100%;
-  max-width: 650px;       /* prevents enormous widescreen scaling */
-  max-height: 400px;      /* keeps image from being tall */
-  object-fit: cover;      /* clean proportional cropping */
-  object-position: center;
-  border-radius: 12px;
-  display: block;
-  margin: 0 auto 24px;    /* centers image and adds spacing */
-  background: #f3f4f6;    /* subtle placeholder background */
-}
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 1rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.92);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
 
-</style>
+    .recipe-title {
+      color: #fff;
+      font-size: clamp(2.1rem, 4vw, 3.8rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.9rem;
+      max-width: 840px;
+    }
 
+    .recipe-subtitle {
+      color: rgba(255,255,255,0.92);
+      font-size: 1.08rem;
+      line-height: 1.9;
+      max-width: 760px;
+      margin-bottom: 1.4rem;
+    }
+
+    .meta-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .content-wrap {
+      margin-top: -48px;
+      position: relative;
+      z-index: 3;
+      padding-bottom: 80px;
+    }
+
+    .content-card {
+      background: #fff;
+      border: 1px solid var(--border-soft);
+      border-radius: 28px;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .recipe-image-wrap {
+      padding: 2rem 2rem 0;
+    }
+
+    .recipe-hero-img {
+      width: 100%;
+      max-width: 760px;
+      max-height: 430px;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 22px;
+      display: block;
+      margin: 0 auto;
+      background: #f3f4f6;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    }
+
+    .recipe-body {
+      padding: 2rem;
+    }
+
+    .section-heading {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+    }
+
+    .section-heading.teal {
+      color: var(--primary-color);
+    }
+
+    .section-heading.gold {
+      color: #b88700;
+    }
+
+    .ingredients-card,
+    .instructions-card,
+    .nutrition-card,
+    .portion-card {
+      background: #fff;
+      border: 1px solid var(--border-soft);
+      border-radius: 22px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+      height: 100%;
+    }
+
+    .ingredients-list,
+    .instructions-list {
+      margin-bottom: 0;
+      padding-left: 1.25rem;
+    }
+
+    .ingredients-list li,
+    .instructions-list li {
+      margin-bottom: 0.85rem;
+      line-height: 1.75;
+      color: var(--text-dark);
+    }
+
+    .portion-card {
+      background: linear-gradient(135deg, rgba(255,199,44,0.12), rgba(0,128,128,0.08));
+      border: 1px solid rgba(0,128,128,0.10);
+    }
+
+    .nutrition-table {
+      margin-bottom: 0;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .nutrition-table th,
+    .nutrition-table td {
+      padding: 0.95rem 1rem;
+      vertical-align: middle;
+    }
+
+    .nutrition-table thead th {
+      background: #f8fbfb;
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+
+    .back-link {
+      color: var(--primary-color);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .footer-bg {
+      background-color: #008080;
+      color: #ffffff;
+      padding: 28px 0;
+      text-align: center;
+    }
+
+    .footer-note {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.9);
+      max-width: 420px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .footer-bg a:hover img {
+      transform: scale(1.08);
+      filter: brightness(1.12);
+    }
+
+    /* PantryPal */
+    .pp-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 998;
+    }
+
+    .pp-backdrop.open {
+      display: block;
+    }
+
+    .pp-sheet {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      z-index: 999;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.12);
+      padding: 16px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    .pp-sheet.open {
+      display: block;
+    }
+
+    .pp-fab {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background-color: var(--accent-color);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      border: none;
+      z-index: 1000;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .pp-fab:hover {
+      transform: scale(1.05);
+    }
+
+    .pp-grabber {
+      width: 48px;
+      height: 5px;
+      background: #d1d5db;
+      border-radius: 999px;
+      margin: 0 auto 12px;
+    }
+
+    .pp-inputbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pp-input {
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 15px;
+      outline: none;
+      width: 100%;
+    }
+
+    .pp-send {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #ppMessages {
+      max-height: 40vh;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 767px) {
+      .hero-shell {
+        padding: 56px 0 70px;
+      }
+
+      .content-wrap {
+        margin-top: -28px;
+      }
+
+      .recipe-image-wrap,
+      .recipe-body {
+        padding: 1.25rem;
+      }
+
+      .action-bar {
+        flex-direction: column;
+      }
+
+      .action-bar .btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
- <!-- ✅ Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container px-5">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                <li class="nav-item">
-                    <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('donate') }}">Support the Project</a>
-                </li>
-                    </ul>
-                    </li>
-                </ul>                              
-            </div>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container px-4 px-lg-5">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto align-items-lg-center mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
+          <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+            <a class="btn btn-brand" href="{{ url_for('donate') }}">Support the Project</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-shell">
+    <div class="container px-4 px-lg-5 hero-content">
+      <span class="eyebrow">Recipe details</span>
+      <h1 class="recipe-title">{{ recipe.title | default('Recipe') }}</h1>
+
+      {% if recipe.description %}
+      <p class="recipe-subtitle">{{ recipe.description }}</p>
+      {% endif %}
+
+      <div class="meta-pills">
+        <span class="meta-pill">
+          <i class="bi bi-people"></i>
+          Servings: {{ recipe.servings | default('4') }}
+        </span>
+
+        {% if recipe.total_time %}
+        <span class="meta-pill">
+          <i class="bi bi-hourglass-split"></i>
+          Total: {{ recipe.total_time }}
+        </span>
+        {% endif %}
+
+        {% if recipe.category %}
+        <span class="meta-pill">
+          <i class="bi bi-journal-text"></i>
+          {{ recipe.category }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <main class="content-wrap">
+    <div class="container px-4 px-lg-5">
+      <div class="content-card">
+
+        {% set _img = recipe.image or recipe.image_url %}
+        {% if _img %}
+        <div class="recipe-image-wrap">
+          <img
+            src="{{ url_for('static', filename='assets/' + _img) }}"
+            alt="{{ recipe.title | default('Recipe image') }}"
+            class="recipe-hero-img"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
-    </nav>
+        {% endif %}
 
-  <!-- Main -->
-  <main class="py-4">
-    <div class="container" style="max-width:960px;">
+        <div class="recipe-body">
+          <div class="row g-4">
+            <div class="col-lg-5">
+              {% if recipe.ingredients %}
+              <div class="ingredients-card mb-4">
+                <h2 class="section-heading gold">Ingredients</h2>
+                <ul class="ingredients-list">
+                  {% for ing in recipe.ingredients %}
+                    <li
+                      data-item="{{ ing.item }}"
+                      data-unit="{{ ing.unit or '' }}"
+                      data-quantity="{{ ing.quantity or '' }}"
+                    >
+                      {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
+                      {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
 
-      <!-- Title & description -->
-      <h1 class="h2 fw-bold brand-teal mb-1">{{ recipe.title | default('Recipe') }}</h1>
-      <p class="text-secondary fst-italic mb-3">{{ recipe.description | default('') }}</p>
+              {% if recipe.dressing %}
+              <div class="ingredients-card mb-4">
+                <h3 class="section-heading gold">Dressing</h3>
+                <ul class="ingredients-list">
+                  {% for ing in recipe.dressing %}
+                    <li
+                      data-item="{{ ing.item }}"
+                      data-unit="{{ ing.unit or '' }}"
+                      data-quantity="{{ ing.quantity or '' }}"
+                    >
+                      {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
+                      {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
 
-      <!-- Meta badges -->
-      <div class="d-flex flex-wrap gap-2 mb-4">
-        <span class="badge text-bg-light border"><i class="bi bi-people me-1"></i>Servings: {{ recipe.servings | default('4') }}</span>
-        <span class="badge text-bg-light border"><i class="bi bi-hourglass-split me-1"></i>Total: {{ recipe.total_time | default('—') }}</span>
-      </div>
+              {% if recipe.portion_note %}
+              <div class="portion-card">
+                <h3 class="section-heading teal mb-2">Portion size</h3>
+                <p class="mb-0">{{ recipe.portion_note }}</p>
+              </div>
+              {% endif %}
+            </div>
 
-<!-- Image (use image first; fallback to image_url). Do not modify filenames. -->
-{% set _img = recipe.image or recipe.image_url %}
-{% if _img %}
-<div class="text-center mb-4">
-  <img
-    src="{{ url_for('static', filename='assets/' + _img) }}"
-    alt="{{ recipe.title | default('Recipe image') }}"
-    class="recipe-hero-img"
-    loading="lazy"
-    decoding="async"
-  />
-</div>
-{% endif %}
+            <div class="col-lg-7">
+              {% if recipe.instructions %}
+              <div class="instructions-card mb-4">
+                <h2 class="section-heading teal">Instructions</h2>
+                <ol class="instructions-list">
+                  {% for step in recipe.instructions %}
+                    <li>{{ step }}</li>
+                  {% endfor %}
+                </ol>
+              </div>
+              {% endif %}
 
+              {% if recipe.nutrition %}
+              <div class="nutrition-card">
+                <h2 class="section-heading gold">Nutrition Breakdown (Per Serving)</h2>
+                <div class="table-responsive">
+                  <table class="table nutrition-table table-bordered align-middle">
+                    <thead>
+                      <tr>
+                        <th scope="col">Nutrient</th>
+                        <th scope="col">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>Calories</td><td>{{ recipe.nutrition.Calories | default('') }}</td></tr>
+                      <tr><td>Protein</td><td>{{ recipe.nutrition.Protein | default('') }}</td></tr>
+                      <tr><td>Carbs</td><td>{{ recipe.nutrition.Carbs | default('') }}</td></tr>
+                      <tr><td>Fat</td><td>{{ recipe.nutrition.Fat | default('') }}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
 
-      <!-- Ingredients -->
-      {% if recipe.ingredients %}
-      <h2 class="h4 fw-semibold brand-gold mb-2">Ingredients</h2>
-      <ul class="ps-4 mb-4">
-        {% for ing in recipe.ingredients %}
-          <li
-            data-item="{{ ing.item }}"
-            data-unit="{{ ing.unit or '' }}"
-            data-quantity="{{ ing.quantity or '' }}"
-          >
-            {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
-            {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-
-
-
-      <!-- Dressing (optional) -->
-      {% if recipe.dressing %}
-      <h3 class="h5 fw-semibold brand-gold mb-2">Dressing</h3>
-      <ul class="ps-4 mb-4">
-        {% for ing in recipe.dressing %}
-          <li
-            data-item="{{ ing.item }}"
-            data-unit="{{ ing.unit or '' }}"
-            data-quantity="{{ ing.quantity or '' }}"
-          >
-            {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
-            {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
-          </li>
-        {% endfor %}
-      </ul>
-      {% endif %}
-
-      <!-- Instructions -->
-      {% if recipe.instructions %}
-      <h2 class="h4 fw-semibold brand-teal mb-2">Instructions</h2>
-      <ol class="ps-4 mb-4">
-        {% for step in recipe.instructions %}
-          <li>{{ step }}</li>
-        {% endfor %}
-      </ol>
-      {% endif %}
-
-      <!-- Portion guidance -->
-      {% if recipe.portion_note %}
-      <div class="alert alert-secondary py-2">
-        <strong>Portion size:</strong> {{ recipe.portion_note }}
-      </div>
-      {% endif %}
-
-      <!-- Nutrition (per serving) -->
-      {% if recipe.nutrition %}
-      <h2 class="h4 fw-semibold brand-gold mb-2">Nutrition Breakdown (Per Serving)</h2>
-      <div class="table-responsive mb-4">
-        <table class="table table-bordered align-middle">
-          <thead class="table-light">
-            <tr>
-              <th scope="col">Nutrient</th>
-              <th scope="col">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Calories</td><td>{{ recipe.nutrition.Calories | default('') }}</td></tr>
-            <tr><td>Protein</td><td>{{ recipe.nutrition.Protein | default('') }}</td></tr>
-            <tr><td>Carbs</td><td>{{ recipe.nutrition.Carbs | default('') }}</td></tr>
-            <tr><td>Fat</td><td>{{ recipe.nutrition.Fat | default('') }}</td></tr>
-          </tbody>
-        </table>
-      </div>
-      {% endif %}
-
-<!-- ✅ Add to Shopping List Button -->
-<div class="text-center my-4">
-  <button id="addToShoppingList" class="btn btn-lg px-4 py-2" style="background-color: var(--accent-color); color: #000; font-weight: bold;">
-    🛒 Add to List
-</div>
-
-
-
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const btn = document.getElementById("addToShoppingList");
-    if (!btn) return;
-
-    btn.addEventListener("click", () => {
-      const ingredients = window.currentRecipe.ingredients || [];
-      const dressing = window.currentRecipe.dressing || [];
-      const allItems = [...ingredients, ...dressing];
-
-      if (!allItems.length) {
-        alert("No ingredients found.");
-        return;
-      }
-
-      // ✅ Save ingredients
-      localStorage.setItem("selectedIngredients", JSON.stringify(allItems));
-
-      // ✅ Save recipe ID for checkbox tracking
-      const selectedRecipes = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
-      const recipeId = String(window.currentRecipe.id);
-      if (!selectedRecipes.includes(recipeId)) {
-        selectedRecipes.push(recipeId);
-        localStorage.setItem("selectedRecipes", JSON.stringify(selectedRecipes));
-      }
-
-      alert("✔ Ingredients added! Redirecting to your shopping list...");
-      window.location.href = "/shopping_list";
-    });
-  });
-</script>
-
-
-
-
-      <div class="text-center">
-        <a href="{{ url_for('recipes') }}" class="text-decoration-none" style="color:var(--primary);">
-          &larr; Back to Recipes
-        </a>
+          <div class="action-bar">
+            <button id="addToShoppingList" class="btn btn-brand btn-lg px-4">
+              Add to List
+            </button>
+            <a href="{{ url_for('recipes') }}" class="btn btn-outline-teal btn-lg px-4">
+              Back to Recipes
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </main>
 
+  <!-- Add to Shopping List -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("addToShoppingList");
+      if (!btn) return;
 
-     <!-- ▶ PantryPal FAB Button -->
+      btn.addEventListener("click", () => {
+        const ingredients = window.currentRecipe.ingredients || [];
+        const dressing = window.currentRecipe.dressing || [];
+        const allItems = [...ingredients, ...dressing];
+
+        if (!allItems.length) {
+          alert("No ingredients found.");
+          return;
+        }
+
+        localStorage.setItem("selectedIngredients", JSON.stringify(allItems));
+
+        const selectedRecipes = JSON.parse(localStorage.getItem("selectedRecipes") || "[]");
+        const recipeId = String(window.currentRecipe.id);
+
+        if (!selectedRecipes.includes(recipeId)) {
+          selectedRecipes.push(recipeId);
+          localStorage.setItem("selectedRecipes", JSON.stringify(selectedRecipes));
+        }
+
+        alert("✔ Ingredients added! Redirecting to your shopping list...");
+        window.location.href = "/shopping_list";
+      });
+    });
+  </script>
+
+  <!-- PantryPal FAB -->
   <button class="pp-fab" id="ppFab" aria-haspopup="dialog" aria-controls="ppSheet" aria-expanded="false" aria-label="Open PantryPal">
-    <!-- PantryPal: Chef Hat Smiley -->
     <img src="{{ url_for('static', filename='assets/chef-hat-smiley.png') }}" alt="PantryPal" style="width: 36px; height: 36px;" />
-      <!-- Hat puff -->
-      <rect x="14" y="4" width="36" height="16" rx="8" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-      <!-- Hat band -->
-      <rect x="18" y="18" width="28" height="8" rx="4" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-      <!-- Gold ring around face -->
-      <circle cx="32" cy="40" r="18" fill="var(--pp-bg)" stroke="var(--pp-gold)" stroke-width="2"/>
-      <!-- Face outline -->
-      <circle cx="32" cy="40" r="16" fill="#fff" stroke="var(--pp-teal)" stroke-width="2"/>
-      <!-- Eyes -->
-      <circle cx="26.5" cy="37" r="2" fill="#0f172a"/>
-      <circle cx="37.5" cy="37" r="2" fill="#0f172a"/>
-      <!-- Smile -->
-      <path d="M24 43c3.5 4 12.5 4 16 0" fill="none" stroke="#0f172a" stroke-width="2" stroke-linecap="round"/>
-    </svg>
   </button>
 
-  <!-- ▶ PantryPal Backdrop -->
+  <!-- PantryPal Backdrop -->
   <div class="pp-backdrop" id="ppBackdrop"></div>
 
-<!-- ▶ PantryPal Bottom Sheet (Dialog) -->
-<section class="pp-sheet" id="ppSheet" role="dialog" aria-modal="true" aria-labelledby="ppTitle" aria-describedby="ppDesc">
-  <div class="pp-grabber" aria-hidden="true"></div>
-  <header class="pp-header">
-    <!-- avatar + title omitted for brevity -->
-  </header>
+  <!-- PantryPal Sheet -->
+  <section class="pp-sheet" id="ppSheet" role="dialog" aria-modal="true" aria-labelledby="ppTitle" aria-describedby="ppDesc">
+    <div class="pp-grabber" aria-hidden="true"></div>
 
-  <main>
-    <!-- 👇 PantryPal message container -->
-    <div id="ppMessages" class="pp-body"></div>
+    <main>
+      <div id="ppMessages" class="pp-body"></div>
+      <div id="ppTyping" hidden>PantryPal is typing...</div>
+    </main>
 
-    <!-- 👇 Typing indicator -->
-    <div id="ppTyping" hidden>PantryPal is typing...</div>
-  </main>
+    <form id="ppForm">
+      <div class="pp-inputbar">
+        <input type="text" id="ppInput" class="pp-input" placeholder="Ask me something..." autocomplete="off" />
+        <button type="submit" class="pp-send">Send</button>
+      </div>
+    </form>
+  </section>
 
-  <!-- ✅ Input bar -->
-  <form id="ppForm">
-    <div class="pp-inputbar">
-      <input type="text" id="ppInput" class="pp-input" placeholder="Ask me something..." autocomplete="off" />
-      <button type="submit" class="pp-send">Send</button>
-    </div>
-  </form>
-</section>
+  <!-- Footer -->
+  <footer class="footer-bg">
+    <div class="container px-4 px-lg-5">
+      <div class="row align-items-center text-center text-md-start gy-3">
+        <div class="col-md-4">
+          <p class="m-0">&copy; 2026 The Happy Pantry</p>
+        </div>
 
-  <footer class="footer-bg mt-auto">
-    <div class="container text-center">
-      <p class="mb-1">&copy; 2026 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
-        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
-      </a>
+        <div class="col-md-4">
+          <p class="footer-note m-0">
+            The Pantry Project is a community initiative operated through The Happy Pantry LLC.
+            Contributions are voluntary and are not tax-deductible.
+          </p>
+        </div>
+
+        <div class="col-md-4 text-center text-md-end">
+          <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
+            <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook"
+                 style="width: 30px; height: 30px; transition: transform 0.3s ease;">
+          </a>
+        </div>
+      </div>
     </div>
   </footer>
 
-
-  <!-- Bootstrap Bundle -->
+  <!-- Bootstrap -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ url_for('static', filename='js/ios-guard.js') }}"></script>
-
 </body>
 </html>
