@@ -3,53 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Happy Pantry - Recipes</title>
+  <title>The Happy Pantry | Recipes</title>
 
- <!-- ✅ Load Supabase JS Library -->
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
-
-  
-    <script>
+  <script>
     window.SUPABASE_URL = "{{ SUPABASE_URL }}";
     window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
   </script>
-<script>
-  if (!window.supabaseClient && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
-    window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    console.log("✅ Supabase client initialized");
-  }
-</script>
-
+  <script>
+    if (!window.supabaseClient && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+      window.supabaseClient = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      console.log("✅ Supabase client initialized");
+    }
+  </script>
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
 
-  <!-- Bootstrap CSS -->
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
- 
-  <!-- ✅ Inject environment config -->
-
-
-  <!-- ✅ Load auth.js for session enforcement -->
-  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-
-  <!-- Your custom page logic (if used here) -->
-  <script src="{{ url_for('static', filename='js/macrogoals.js') }}" defer></script>
-
-  <!-- Base styles -->
   <style>
     :root {
-      --primary-color: #008080; /* Teal Green */
-      --accent-color: #FFC72C;  /* Bright Gold */
-      --text-dark: #2E2E2E;
-      --text-light: #FFFFFF;
-      --background-light: #FFFFFF;
+      --primary-color: #008080;
+      --accent-color: #FFC72C;
+      --text-dark: #1f2937;
+      --text-muted: #5f6b7a;
+      --text-light: #ffffff;
+      --background-light: #ffffff;
+      --background-soft: #f8fbfb;
+      --border-soft: rgba(0, 128, 128, 0.12);
+      --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 18px 38px rgba(0, 0, 0, 0.12);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
 
-      /* PantryPal variables */
       --pp-teal: #008080;
       --pp-gold: #FFC72C;
       --pp-bg: #ffffff;
@@ -59,271 +51,774 @@
       --pp-shadow-1: 0 2px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
       --pp-shadow-2: 0 8px 24px rgba(0,0,0,.14), 0 16px 48px rgba(0,0,0,.12);
     }
-  
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      color: var(--text-dark);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255, 199, 44, 0.35);
+      padding: 12px 0;
+    }
+
+    .navbar-brand img {
+      height: 52px;
+      width: auto;
+    }
+
+    .navbar-nav .nav-link {
+      color: var(--text-dark);
+      font-weight: 600;
+      margin-left: 0.25rem;
+      margin-right: 0.25rem;
+      transition: color 0.25s ease;
+    }
+
     .navbar-nav .nav-link:hover {
-    color: var(--accent-color);
-    text-decoration: underline; /* Add this */
-}
-.navbar {
-  background-color: var(--background-light);
-  border-bottom: 2px solid var(--accent-color);
-  padding: 10px 0;
-}
+      color: var(--primary-color);
+    }
 
+    .btn-brand {
+      background-color: var(--accent-color);
+      color: #1f2937;
+      font-weight: 700;
+      border: none;
+      border-radius: 999px;
+      padding: 0.8rem 1.35rem;
+      box-shadow: 0 10px 22px rgba(255, 199, 44, 0.28);
+      transition: all 0.25s ease;
+    }
 
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(15px);
-  margin: 0 !important;
-  padding: 0 !important;
-}
+    .btn-brand:hover {
+      background-color: #f4bb11;
+      color: #1f2937;
+      transform: translateY(-1px);
+    }
 
-.hero {
-  text-align: center;
-  background: var(--primary-color);
-  color: var(--text-light);
-  padding: 40px 20px;
-  border-radius: 10px;
-  margin-bottom: 40px;
-}
+    .btn-outline-teal {
+      border: 2px solid var(--primary-color);
+      color: var(--primary-color);
+      background: transparent;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.8rem 1.35rem;
+      transition: all 0.25s ease;
+    }
 
-  .btn-success:hover {
-    background-color: #008080!important;
-    transform: scale(1.03);
-    transition: all 0.2s ease-in-out;
-  }
-.recipe-hero-img {
-    width: 100%;
-    max-width: 650px;      /* prevents huge widescreen scaling */
-    max-height: 400px;     /* keeps image from becoming tall and dominant */
-    object-fit: cover;
-    object-position: center;
-    border-radius: 12px;
-    display: block;
-    margin: 0 auto 24px;   /* centers it beautifully */
-    background: #f3f4f6;
-}
+    .btn-outline-teal:hover {
+      background: var(--primary-color);
+      color: #fff;
+    }
 
-#recipeContainer .thumb {
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    border-radius: 12px;
-}
+    .hero-section {
+      position: relative;
+      min-height: 420px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      background:
+        linear-gradient(115deg, rgba(0, 128, 128, 0.92) 0%, rgba(0, 96, 96, 0.86) 42%, rgba(12, 26, 32, 0.72) 100%),
+        url("{{ url_for('static', filename='assets/pantry.jpg') }}") center center / cover no-repeat;
+    }
 
+    .hero-section::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(255, 199, 44, 0.18), transparent 30%);
+      pointer-events: none;
+    }
 
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 90px 0 70px;
+    }
 
- /* Navbar Styling */
-        .navbar { background-color: var(--background-light); border-bottom: 2px solid var(--accent-color); padding: 10px 0; }
-        .navbar-brand img { height: 50px; width: auto; }
-        .navbar-nav .nav-link { color: var(--text-dark); font-weight: bold; transition: color 0.3s; }
-        .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 1rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.92);
+      font-size: 0.92rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
 
-    /* ---------- Layout polish (centered search/filters, responsive grid) ---------- */
-    #searchInput { max-width: 720px; margin: 0 auto 16px; display: block; }
-    .filters-bar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; margin-bottom: 1.5rem; }
-    #recipeContainer { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 1.5rem; }
-    @media (min-width: 768px) { #recipeContainer { grid-template-columns: repeat(3, 1fr); } }
+    .hero-title {
+      color: #fff;
+      font-size: clamp(2.3rem, 4vw, 4rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      max-width: 760px;
+    }
 
-    /* Card & image scaling */
+    .hero-text {
+      color: rgba(255,255,255,0.92);
+      font-size: 1.08rem;
+      line-height: 1.9;
+      max-width: 720px;
+      margin-bottom: 1.8rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .content-section {
+      padding: 70px 0 90px;
+    }
+
+    .section-card {
+      background: #fff;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-soft);
+      padding: 2rem;
+      margin-top: -48px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-subtitle {
+      font-size: 1.02rem;
+      line-height: 1.8;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .quick-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    #searchInput {
+      max-width: 760px;
+      margin: 0 auto 18px;
+      display: block;
+      border-radius: 999px;
+      min-height: 54px;
+      border: 1px solid rgba(0, 128, 128, 0.14);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+
+    #searchInput:focus,
+    .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.25rem rgba(0, 128, 128, 0.14);
+    }
+
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .filters-bar .form-select,
+    .filters-bar .btn {
+      min-height: 48px;
+      border-radius: 999px;
+    }
+
+    .filters-bar .form-select {
+      max-width: 240px;
+      border: 1px solid rgba(0, 128, 128, 0.14);
+    }
+
+    #recipeContainer {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      #recipeContainer {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
     #recipeContainer article,
-    #recipeContainer .recipe-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.04); display: flex; flex-direction: column; height: 100%; }
-    #recipeContainer .thumb { width: 100%; border-radius: 10px; overflow: hidden; background: #f3f4f6; }
-    #recipeContainer img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; display: block; border-radius: 10px; background: #f3f4f6; }
-    #recipeContainer h3 { font-size: 1.05rem; margin: 10px 0 6px; }
-    #recipeContainer .meta { color: #6b7280; font-size: .9rem; margin-bottom: 6px; }
+    #recipeContainer .recipe-card {
+      border: 1px solid rgba(0, 128, 128, 0.10);
+      border-radius: 20px;
+      padding: 14px;
+      background: #fff;
+      box-shadow: 0 10px 26px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
 
-    .pagination-wrap { display: flex; justify-content: center; gap: 12px; align-items: center; }
+    #recipeContainer article:hover,
+    #recipeContainer .recipe-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 34px rgba(0,0,0,.10);
+    }
 
-    /* ---------- PantryPal FAB + bottom sheet styles ---------- */
-    .pp-fab { position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom, 0)); width: 64px; height: 64px; border-radius: 999px; border: 2px solid var(--pp-gold); background: var(--pp-bg); display: grid; place-items: center; box-shadow: var(--pp-shadow-1); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; z-index: 9999; transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease; }
-    .pp-fab:hover { transform: translateY(-2px); box-shadow: var(--pp-shadow-2); }
-    .pp-fab:active { transform: translateY(0); }
-    .pp-fab[aria-hidden="true"] { opacity: 0; pointer-events: none; }
-    .pp-fab.pulse::after { content: ""; position: absolute; inset: 0; border-radius: 999px; border: 2px solid var(--pp-gold); opacity: .6; animation: pp-pulse 1.6s ease-out infinite; }
-    @keyframes pp-pulse { from { transform: scale(1); opacity: .7 } to { transform: scale(1.25); opacity: 0 } }
+    #recipeContainer .thumb {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #f3f4f6;
+      aspect-ratio: 4 / 3;
+    }
 
-    .pp-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.35); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s ease; z-index: 9998; }
-    .pp-backdrop.open { opacity: 1; pointer-events: auto; }
+    #recipeContainer img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 16px;
+      background: #f3f4f6;
+    }
 
-    .pp-sheet { position: fixed; left: 0; right: 0; bottom: 0; transform: translateY(100%); background: var(--pp-bg); border-top-left-radius: 18px; border-top-right-radius: 18px; box-shadow: var(--pp-shadow-2); z-index: 10000; display: grid; grid-template-rows: auto 1fr auto; max-height: 92dvh; transition: transform .25s ease; }
-    .pp-sheet.open { transform: translateY(0); }
+    #recipeContainer h3 {
+      font-size: 1.08rem;
+      font-weight: 800;
+      margin: 12px 0 6px;
+      color: var(--text-dark);
+    }
 
-    .pp-grabber { width: 48px; height: 5px; background: var(--pp-border); border-radius: 999px; margin: 8px auto 6px; }
-    .pp-header { display: flex; align-items: center; gap: 10px; padding: 8px 16px 10px; border-bottom: 1px solid var(--pp-border); }
-    .pp-title { font-weight: 700; color: var(--pp-text); font-size: 16px; line-height: 1.2; }
-    .pp-sub { font-size: 12px; color: var(--pp-muted); }
-    .pp-avatar { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; border: 2px solid var(--pp-gold); background: #f8fafc; }
-    .pp-body { padding: 12px 12px 4px; overflow: auto; }
-    .pp-msg { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin: 8px 0; }
-    .pp-msg .bubble { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--pp-border); box-shadow: 0 1px 0 rgba(0,0,0,.03); font-size: 14px; line-height: 1.35; }
-    .pp-msg.user { grid-template-columns: 1fr auto; }
-    .pp-msg.user .bubble { background: #f1fff8; border-color: #bbf7d0; }
-    .pp-msg.bot .bubble { background: #f9fafb; }
-    .pp-suggestions { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 12px 10px; }
-    .pp-chip { font-size: 13px; border: 1px solid var(--pp-border); background: #ffffff; border-radius: 999px; padding: 6px 10px; cursor: pointer; }
-    .pp-chip:hover { background: #f9fafb; }
-    .pp-inputbar { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--pp-border); }
-    .pp-input { border: 1px solid var(--pp-border); border-radius: 12px; padding: 10px 12px; font-size: 15px; outline: none; width: 100%; }
-    .pp-input:focus { border-color: var(--pp-teal); box-shadow: 0 0 0 3px rgba(0,128,128,.15); }
-    .pp-send { background: var(--pp-teal); color: white; border: none; border-radius: 12px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
-    .pp-send:disabled { opacity: .5; cursor: not-allowed; }
+    #recipeContainer .meta {
+      color: var(--text-muted);
+      font-size: .92rem;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
 
-    @media (max-width: 640px) { .pp-fab.hide-on-input:has(input:focus) { opacity: 0; pointer-events: none; } }
+    .pagination-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pagination-wrap button {
+      border: none;
+      background: #e9f5f5;
+      color: var(--text-dark);
+      padding: 0.8rem 1.15rem;
+      border-radius: 999px;
+      font-weight: 700;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+      transition: all 0.2s ease;
+    }
+
+    .pagination-wrap button:hover {
+      background: #dff0f0;
+      transform: translateY(-1px);
+    }
+
+    #pageInfo {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .footer-bg {
+      background-color: #008080;
+      color: #ffffff;
+      padding: 28px 0;
+      text-align: center;
+    }
+
+    .footer-note {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.9);
+      max-width: 420px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .footer-bg a:hover img {
+      transform: scale(1.08);
+      filter: brightness(1.12);
+    }
+
+    /* PantryPal */
+    .pp-fab {
+      position: fixed;
+      right: 20px;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0));
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      border: 2px solid var(--pp-gold);
+      background: var(--pp-bg);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--pp-shadow-1);
+      cursor: pointer;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      z-index: 9999;
+      transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+    }
+
+    .pp-fab:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--pp-shadow-2);
+    }
+
+    .pp-fab:active {
+      transform: translateY(0);
+    }
+
+    .pp-fab[aria-hidden="true"] {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pp-fab.pulse::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      border: 2px solid var(--pp-gold);
+      opacity: .6;
+      animation: pp-pulse 1.6s ease-out infinite;
+    }
+
+    @keyframes pp-pulse {
+      from { transform: scale(1); opacity: .7 }
+      to { transform: scale(1.25); opacity: 0 }
+    }
+
+    .pp-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+      z-index: 9998;
+    }
+
+    .pp-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .pp-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transform: translateY(100%);
+      background: var(--pp-bg);
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      box-shadow: var(--pp-shadow-2);
+      z-index: 10000;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      max-height: 92dvh;
+      transition: transform .25s ease;
+    }
+
+    .pp-sheet.open {
+      transform: translateY(0);
+    }
+
+    .pp-grabber {
+      width: 48px;
+      height: 5px;
+      background: var(--pp-border);
+      border-radius: 999px;
+      margin: 8px auto 6px;
+    }
+
+    .pp-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px 10px;
+      border-bottom: 1px solid var(--pp-border);
+    }
+
+    .pp-title {
+      font-weight: 700;
+      color: var(--pp-text);
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .pp-sub {
+      font-size: 12px;
+      color: var(--pp-muted);
+    }
+
+    .pp-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--pp-gold);
+      background: #f8fafc;
+    }
+
+    .pp-body {
+      padding: 12px 12px 4px;
+      overflow: auto;
+    }
+
+    .pp-msg {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .pp-msg .bubble {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--pp-border);
+      box-shadow: 0 1px 0 rgba(0,0,0,.03);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .pp-msg.user {
+      grid-template-columns: 1fr auto;
+    }
+
+    .pp-msg.user .bubble {
+      background: #f1fff8;
+      border-color: #bbf7d0;
+    }
+
+    .pp-msg.bot .bubble {
+      background: #f9fafb;
+    }
+
+    .pp-suggestions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 4px 12px 10px;
+    }
+
+    .pp-chip {
+      font-size: 13px;
+      border: 1px solid var(--pp-border);
+      background: #ffffff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .pp-chip:hover {
+      background: #f9fafb;
+    }
+
+    .pp-inputbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--pp-border);
+    }
+
+    .pp-input {
+      border: 1px solid var(--pp-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 15px;
+      outline: none;
+      width: 100%;
+    }
+
+    .pp-input:focus {
+      border-color: var(--pp-teal);
+      box-shadow: 0 0 0 3px rgba(0,128,128,.15);
+    }
+
+    .pp-send {
+      background: var(--pp-teal);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .pp-send:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 767px) {
+      .hero-content {
+        padding: 70px 0 55px;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero-actions .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .section-card {
+        padding: 1.25rem;
+        margin-top: -30px;
+      }
+
+      .section-title {
+        font-size: 1.7rem;
+      }
+    }
   </style>
 </head>
 
-<body class="bg-gray-50 font-sans min-h-screen flex flex-col">
+<body>
 
- <!-- ✅ Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container px-5">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                <li class="nav-item">
-                    <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('donate') }}">Support the Project</a>
-                </li>
-                    </ul>
-                    </li>
-                </ul>                              
-            </div>
-        </div>
-    </nav>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container px-4 px-lg-5">
+      <a class="navbar-brand" href="{{ url_for('home') }}">
+        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
+      </a>
 
-<!-- ✅ Hero Section -->
-<div class="hero">
-  <h1>Welcome to Your Smart Kitchen</h1>
-  <p>Explore and manage all your saved recipes easily.</p>
-</div>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav ms-auto align-items-lg-center mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
+          <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+            <a class="btn btn-brand" href="{{ url_for('donate') }}">Support the Project</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-section">
+    <div class="container px-4 px-lg-5 hero-content">
+      <span class="eyebrow">Public recipe library</span>
+      <h1 class="hero-title">Browse recipes built to make meal planning easier.</h1>
+      <p class="hero-text">
+        Explore simple meals, clear nutrition information, and practical recipes you can actually use. Select meals, build your shopping list, and make planning the week feel more manageable.
+      </p>
+      <div class="hero-actions">
+        <a href="/shopping_list" class="btn btn-brand">Build Shopping List</a>
+        <a href="{{ url_for('donate') }}" class="btn btn-outline-teal" style="background: rgba(255,255,255,0.92);">Support the Pantry Project</a>
+      </div>
+    </div>
+  </section>
 
   <!-- Main Content -->
-<div class="flex-grow">
-  <div class="max-w-5xl mx-auto p-6">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <a href="/shopping_list"
-         class="fw-bold px-4 py-2 rounded-pill shadow-sm d-inline-flex align-items-center gap-2 text-white text-decoration-none"
-         style="font-size: 1rem; background-color: var(--accent-color); transition: background-color 0.2s ease;">
-        Generate Shopping List
-      </a>
-    </div>
-  </div>
-</div>
+  <section class="content-section">
+    <div class="container px-4 px-lg-5">
+      <div class="section-card">
+        <h2 class="section-title">Find what fits your week</h2>
+        <p class="section-subtitle">
+          Search by title, narrow by category or diet style, and browse recipes designed to feel practical, approachable, and easy to return to.
+        </p>
 
+        <div class="quick-tools">
+          <a href="/shopping_list" class="btn btn-brand">Go to Shopping List</a>
+        </div>
 
+        <!-- Search -->
+        <input id="searchInput" type="text" placeholder="Search recipes..." class="form-control" />
 
-      <!-- Search Bar -->
-      <input id="searchInput" type="text" placeholder="🔍 Search recipes..." class="form-control" />
+        <!-- Filters -->
+        <div class="filters-bar">
+          <select id="categoryFilter" class="form-select">
+            <option value="">All Categories</option>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Dinner">Dinner</option>
+            <option value="Dessert">Dessert</option>
+          </select>
 
-      <!-- Filters & Sorting (centered) -->
-      <div class="filters-bar">
-        <select id="categoryFilter" class="form-select" style="max-width: 220px;">
-          <option value="">All Categories</option>
-          <option value="Breakfast">Breakfast</option>
-          <option value="Lunch">Lunch</option>
-          <option value="Dinner">Dinner</option>
-          <option value="Dessert">Dessert</option>
-        </select>
+          <select id="dietFilter" class="form-select">
+            <option value="">All Diet Tags</option>
+            <option value="Asian-Inspired">Asian-Inspired</option>
+            <option value="Baked Goods">Baked Goods</option>
+            <option value="Balanced">Balanced</option>
+            <option value="Bistro Classic">Bistro Classic</option>
+            <option value="Classic">Classic</option>
+            <option value="Comfort Food">Comfort Food</option>
+            <option value="Easy">Easy</option>
+            <option value="Family Favorite">Family Favorite</option>
+            <option value="Family Friendly">Family Friendly</option>
+            <option value="Frozen Treat">Frozen Treat</option>
+            <option value="Gluten-Free">Gluten-Free</option>
+            <option value="Gluten-Free Option">Gluten-Free Option</option>
+            <option value="Healthy">Healthy</option>
+            <option value="Hearty">Hearty</option>
+            <option value="High Fiber">High Fiber</option>
+            <option value="High Protein">High Protein</option>
+            <option value="Italian">Italian</option>
+            <option value="Lighter Dessert">Lighter Dessert</option>
+            <option value="Low Carb">Low Carb</option>
+            <option value="Lunch Bowl">Lunch Bowl</option>
+            <option value="Meal Prep">Meal Prep</option>
+            <option value="Mediterranean">Mediterranean</option>
+            <option value="Mexican-Inspired">Mexican-Inspired</option>
+            <option value="No-Bake">No-Bake</option>
+            <option value="Portable">Portable</option>
+            <option value="Protein-Rich">Protein-Rich</option>
+            <option value="Quick">Quick</option>
+            <option value="Refined Sugar Free">Refined Sugar Free</option>
+            <option value="Seafood">Seafood</option>
+            <option value="Simple">Simple</option>
+            <option value="Snack">Snack</option>
+            <option value="Spicy">Spicy</option>
+            <option value="Summer">Summer</option>
+            <option value="Sweet">Sweet</option>
+            <option value="Sweet-Savory">Sweet-Savory</option>
+            <option value="Tex-Mex">Tex-Mex</option>
+            <option value="Vegan">Vegan</option>
+            <option value="Vegetable-Rich">Vegetable-Rich</option>
+            <option value="Vegetarian">Vegetarian</option>
+            <option value="Vegetarian Option">Vegetarian Option</option>
+            <option value="Vegetarian Optional">Vegetarian Optional</option>
+            <option value="Whole Food">Whole Food</option>
+          </select>
 
-<select id="dietFilter" class="form-select" style="max-width: 220px;">
-  <option value="">All Diet Tags</option>
-  <option value="Asian-Inspired">Asian-Inspired</option>
-  <option value="Baked Goods">Baked Goods</option>
-  <option value="Balanced">Balanced</option>
-  <option value="Bistro Classic">Bistro Classic</option>
-  <option value="Classic">Classic</option>
-  <option value="Comfort Food">Comfort Food</option>
-  <option value="Easy">Easy</option>
-  <option value="Family Favorite">Family Favorite</option>
-  <option value="Family Friendly">Family Friendly</option>
-  <option value="Frozen Treat">Frozen Treat</option>
-  <option value="Gluten-Free">Gluten-Free</option>
-  <option value="Gluten-Free Option">Gluten-Free Option</option>
-  <option value="Healthy">Healthy</option>
-  <option value="Hearty">Hearty</option>
-  <option value="High Fiber">High Fiber</option>
-  <option value="High Protein">High Protein</option>
-  <option value="Italian">Italian</option>
-  <option value="Lighter Dessert">Lighter Dessert</option>
-  <option value="Low Carb">Low Carb</option>
-  <option value="Lunch Bowl">Lunch Bowl</option>
-  <option value="Meal Prep">Meal Prep</option>
-  <option value="Mediterranean">Mediterranean</option>
-  <option value="Mexican-Inspired">Mexican-Inspired</option>
-  <option value="No-Bake">No-Bake</option>
-  <option value="Portable">Portable</option>
-  <option value="Protein-Rich">Protein-Rich</option>
-  <option value="Quick">Quick</option>
-  <option value="Refined Sugar Free">Refined Sugar Free</option>
-  <option value="Seafood">Seafood</option>
-  <option value="Simple">Simple</option>
-  <option value="Snack">Snack</option>
-  <option value="Spicy">Spicy</option>
-  <option value="Summer">Summer</option>
-  <option value="Sweet">Sweet</option>
-  <option value="Sweet-Savory">Sweet-Savory</option>
-  <option value="Tex-Mex">Tex-Mex</option>
-  <option value="Vegan">Vegan</option>
-  <option value="Vegetable-Rich">Vegetable-Rich</option>
-  <option value="Vegetarian">Vegetarian</option>
-  <option value="Vegetarian Option">Vegetarian Option</option>
-  <option value="Vegetarian Optional">Vegetarian Optional</option>
-  <option value="Whole Food">Whole Food</option>
-</select>
+          <button id="clearFilters" class="btn btn-outline-secondary px-4">Clear Filters</button>
+        </div>
 
+        <!-- Recipe List -->
+        <div id="recipeContainer"><!-- cards injected by JS --></div>
 
-        <button id="clearFilters" class="btn btn-outline-secondary">Clear Filters</button>
-      </div>
-
-      <label class="d-inline-flex align-items-center text-muted small mb-2">
-        <input type="checkbox" id="showFavoritesToggle" class="form-check-input me-2" />
-        Show favorited recipes
-      </label>
-
-      <!-- Recipe List -->
-      <div id="recipeContainer"><!-- cards injected by JS --></div>
-
-      <!-- Pagination Controls -->
-      <div class="pagination-wrap">
-        <button id="prevPage" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">← Previous</button>
-        <span id="pageInfo" class="text-gray-700"></span>
-        <button id="nextPage" class="bg-gray-200 px-4 py-2 rounded shadow hover:bg-gray-300">Next →</button>
+        <!-- Pagination -->
+        <div class="pagination-wrap">
+          <button id="prevPage">← Previous</button>
+          <span id="pageInfo"></span>
+          <button id="nextPage">Next →</button>
+        </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <!-- PantryPal Markup -->
+  <button id="ppFab" class="pp-fab pulse" aria-label="Open PantryPal" aria-expanded="false">
+    <i class="bi bi-stars" style="font-size: 1.4rem; color: var(--pp-teal);"></i>
+  </button>
+
+  <div id="ppBackdrop" class="pp-backdrop"></div>
+
+  <section id="ppSheet" class="pp-sheet" aria-label="PantryPal chat window">
+    <div class="pp-grabber"></div>
+    <div class="pp-header">
+      <div class="pp-avatar">
+        <i class="bi bi-stars" style="color: var(--pp-teal);"></i>
+      </div>
+      <div>
+        <div class="pp-title">PantryPal</div>
+        <div class="pp-sub">Quick help with recipes, filters, and ingredient ideas</div>
+      </div>
+      <button id="ppClose" class="btn btn-sm ms-auto" aria-label="Close PantryPal">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div id="ppBody" class="pp-body">
+      <div class="pp-msg bot">
+        <div class="bubble">
+          Hi — I’m PantryPal. Ask me to help you find recipes, narrow results, or suggest ingredient swaps.
+        </div>
+      </div>
+    </div>
+
+    <div id="ppSuggestions" class="pp-suggestions">
+      <button class="pp-chip" data-suggest="Show me high protein dinner ideas">High protein dinners</button>
+      <button class="pp-chip" data-suggest="What can I make that is quick and simple?">Quick and simple</button>
+      <button class="pp-chip" data-suggest="Show me healthy lunch recipes">Healthy lunches</button>
+      <button class="pp-chip" data-suggest="Suggest a swap for broccoli">Ingredient swap</button>
+    </div>
+
+    <div class="pp-inputbar">
+      <input id="ppInput" class="pp-input" type="text" placeholder="Ask PantryPal something..." />
+      <button id="ppSend" class="pp-send" disabled>Send</button>
+    </div>
+  </section>
 
   <!-- Footer -->
-  <footer class="bg-brand-teal text-white p-4 text-center text-sm mt-10">
-    <div>The Happy Pantry © 2025</div>
+  <footer class="footer-bg">
+    <div class="container px-4 px-lg-5">
+      <div class="row align-items-center text-center text-md-start gy-3">
+        <div class="col-md-4">
+          <p class="m-0">&copy; 2026 The Happy Pantry</p>
+        </div>
+
+        <div class="col-md-4">
+          <p class="footer-note m-0">
+            The Pantry Project is a community initiative operated through The Happy Pantry LLC.
+            Contributions are voluntary and are not tax-deductible.
+          </p>
+        </div>
+
+        <div class="col-md-4 text-center text-md-end">
+          <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
+            <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook"
+                 style="width: 30px; height: 30px; transition: transform 0.3s ease;">
+          </a>
+        </div>
+      </div>
+    </div>
   </footer>
 
- 
   <!-- Scripts -->
-  <!-- ✅ First: load the Supabase client setup -->
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
-  <!-- ✅ Inject server-authenticated user ID for frontend use -->
-  <script>window.USER_ID = "{{ USER_ID }}";</script>
-
-  <!-- ✅ Then: load the recipes logic that depends on the client -->
   <script src="{{ url_for('static', filename='js/recipes.js') }}"></script>
-
-  <!-- (Optional) Bootstrap or other scripts can stay after -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- ▶ PantryPal behavior (now wired to /api/pantrypal) -->
+  <!-- PantryPal behavior -->
   <script>
     (function(){
       const endpoint = '/api/pantrypal';
@@ -337,40 +832,67 @@ body {
       const body = document.getElementById('ppBody');
       const suggestions = document.getElementById('ppSuggestions');
 
-      function openSheet() { sheet.classList.add('open'); backdrop.classList.add('open'); fab.setAttribute('aria-expanded', 'true'); setTimeout(()=> input.focus(), 200); trapFocus(); }
-      function closeSheet() { sheet.classList.remove('open'); backdrop.classList.remove('open'); fab.setAttribute('aria-expanded', 'false'); releaseFocus(); fab.focus(); }
+      function openSheet() {
+        sheet.classList.add('open');
+        backdrop.classList.add('open');
+        fab.setAttribute('aria-expanded', 'true');
+        setTimeout(() => input.focus(), 200);
+        trapFocus();
+      }
+
+      function closeSheet() {
+        sheet.classList.remove('open');
+        backdrop.classList.remove('open');
+        fab.setAttribute('aria-expanded', 'false');
+        releaseFocus();
+        fab.focus();
+      }
 
       fab.addEventListener('click', openSheet);
       backdrop.addEventListener('click', closeSheet);
       closeBtn.addEventListener('click', closeSheet);
-      document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeSheet(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 
-      // Trap focus inside sheet
       let prevFocused = null;
-      function trapFocus(){ prevFocused = document.activeElement; sheet.addEventListener('keydown', handleTab); }
-      function releaseFocus(){ sheet.removeEventListener('keydown', handleTab); if (prevFocused) prevFocused.focus?.(); }
-      function handleTab(e){
-        if (e.key !== 'Tab') return;
-        const focusables = sheet.querySelectorAll('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
-        const list = Array.from(focusables).filter(el=>!el.hasAttribute('disabled'));
-        const first = list[0];
-        const last = list[list.length-1];
-        if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
-        else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+      function trapFocus() {
+        prevFocused = document.activeElement;
+        sheet.addEventListener('keydown', handleTab);
       }
 
-      // Hide FAB on scroll down
+      function releaseFocus() {
+        sheet.removeEventListener('keydown', handleTab);
+        if (prevFocused) prevFocused.focus?.();
+      }
+
+      function handleTab(e) {
+        if (e.key !== 'Tab') return;
+        const focusables = sheet.querySelectorAll('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])');
+        const list = Array.from(focusables).filter(el => !el.hasAttribute('disabled'));
+        const first = list[0];
+        const last = list[list.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          last.focus();
+          e.preventDefault();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          first.focus();
+          e.preventDefault();
+        }
+      }
+
       let lastY = window.scrollY;
       window.addEventListener('scroll', () => {
         const y = window.scrollY;
         const goingDown = y > lastY + 10;
         lastY = y;
-        if (goingDown) fab.setAttribute('aria-hidden','true');
-        else fab.setAttribute('aria-hidden','false');
+        if (goingDown) fab.setAttribute('aria-hidden', 'true');
+        else fab.setAttribute('aria-hidden', 'false');
       }, { passive: true });
 
-      input.addEventListener('input', () => { send.disabled = input.value.trim().length === 0; });
-      suggestions.addEventListener('click', (e)=>{
+      input.addEventListener('input', () => {
+        send.disabled = input.value.trim().length === 0;
+      });
+
+      suggestions.addEventListener('click', (e) => {
         const chip = e.target.closest('[data-suggest]');
         if (!chip) return;
         input.value = chip.getAttribute('data-suggest');
@@ -378,29 +900,34 @@ body {
         input.focus();
       });
 
-      function addUser(text){
+      function addUser(text) {
         const wrap = document.createElement('div');
         wrap.className = 'pp-msg user';
         wrap.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
         body.appendChild(wrap);
         body.scrollTop = body.scrollHeight;
       }
-      function addBot(text, actionsHtml=''){
+
+      function addBot(text, actionsHtml='') {
         const wrap = document.createElement('div');
         wrap.className = 'pp-msg bot';
         wrap.innerHTML = `<div class="bubble">${text}${actionsHtml}</div>`;
         body.appendChild(wrap);
         body.scrollTop = body.scrollHeight;
       }
-      function escapeHtml(str){ return str.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-      async function handleSend(){
+      function escapeHtml(str) {
+        return str.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      }
+
+      async function handleSend() {
         const q = input.value.trim();
         if (!q) return;
-        addUser(q);
-        input.value = ''; send.disabled = true;
 
-        // Build lightweight context from page
+        addUser(q);
+        input.value = '';
+        send.disabled = true;
+
         const context = {
           filters: window.currentRecipeFilters || {},
           pantry: window.userPantryItems || [],
@@ -409,18 +936,18 @@ body {
 
         try {
           const res = await fetch(endpoint, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: q, context })
           });
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          const data = await res.json();
 
-          // Validate minimal shape
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+
+          const data = await res.json();
           if (!data || typeof data.text !== 'string') throw new Error('Invalid AI response');
 
-          // Render response text
           let actionsHtml = '';
-          // Optional: render action chips from AI response
+
           if (data.actions && typeof data.actions === 'object') {
             const chips = [];
             if (data.actions.applyFilters) {
@@ -435,9 +962,8 @@ body {
             }
             if (chips.length) actionsHtml = `<div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">${chips.join('')}</div>`;
           }
-          addBot(data.text, actionsHtml);
 
-          // Immediately dispatch actions so the page can react without clicking chips
+          addBot(data.text, actionsHtml);
           dispatchActions(data.actions || {});
         } catch (err) {
           console.error('PantryPal error:', err);
@@ -446,13 +972,15 @@ body {
       }
 
       send.addEventListener('click', handleSend);
-      input.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') handleSend(); });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleSend();
+      });
 
-      // Chip click handlers → dispatch events
-      body.addEventListener('click', (e)=>{
+      body.addEventListener('click', (e) => {
         const chip = e.target.closest('.pp-chip');
         if (!chip) return;
         e.preventDefault();
+
         const action = chip.getAttribute('data-action');
         if (action === 'apply-filters') {
           dispatchActions({ applyFilters: JSON.parse(chip.getAttribute('data-filters')) });
@@ -460,7 +988,7 @@ body {
           closeSheet();
         }
         if (action === 'show-recipes') {
-          const limit = parseInt(chip.getAttribute('data-limit')||'6',10);
+          const limit = parseInt(chip.getAttribute('data-limit') || '6', 10);
           dispatchActions({ showRecipes: { limit } });
           addBot(`✅ Showing ${limit} highlighted matches.`);
           closeSheet();
@@ -470,31 +998,45 @@ body {
         }
       });
 
-      function dispatchActions(actions){
+      function dispatchActions(actions) {
         if (!actions || typeof actions !== 'object') return;
         if (actions.applyFilters) window.dispatchEvent(new CustomEvent('pantrypal:applyFilters', { detail: actions.applyFilters }));
         if (actions.showRecipes) window.dispatchEvent(new CustomEvent('pantrypal:showRecipes', { detail: actions.showRecipes }));
         if (actions.suggestSwap) window.dispatchEvent(new CustomEvent('pantrypal:suggestSwap', { detail: actions.suggestSwap }));
-        // Convenience: scroll to grid if we showed recipes
         if (actions.showRecipes) document.getElementById('recipeContainer')?.scrollIntoView({behavior:'smooth', block:'start'});
       }
 
-      // Swipe down to close (mobile)
       let startY = null, delta = 0;
-      sheet.addEventListener('touchstart', (e)=>{ startY = e.touches[0].clientY; delta = 0; }, {passive:true});
-      sheet.addEventListener('touchmove', (e)=>{ if(startY==null) return; delta = e.touches[0].clientY - startY; if (delta>0) { sheet.style.transform = `translateY(${Math.min(delta, window.innerHeight)}px)`; } }, {passive:true});
-      sheet.addEventListener('touchend', ()=>{ if (delta > 90) { sheet.style.transform = ''; closeSheet(); } else { sheet.style.transform = ''; } startY = null; delta = 0; });
+      sheet.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        delta = 0;
+      }, { passive: true });
 
-      // Hooks your recipes.js can implement
-      window.addEventListener('pantrypal:applyFilters', (e)=>{ /* window.applyRecipeFilters?.(e.detail); */ });
-      window.addEventListener('pantrypal:showRecipes', (e)=>{ document.getElementById('recipeContainer')?.scrollIntoView({behavior:'smooth', block:'start'}); });
-      window.addEventListener('pantrypal:suggestSwap', (e)=>{ /* show toast/modal with e.detail */ });
+      sheet.addEventListener('touchmove', (e) => {
+        if (startY == null) return;
+        delta = e.touches[0].clientY - startY;
+        if (delta > 0) {
+          sheet.style.transform = `translateY(${Math.min(delta, window.innerHeight)}px)`;
+        }
+      }, { passive: true });
+
+      sheet.addEventListener('touchend', () => {
+        if (delta > 90) {
+          sheet.style.transform = '';
+          closeSheet();
+        } else {
+          sheet.style.transform = '';
+        }
+        startY = null;
+        delta = 0;
+      });
+
+      window.addEventListener('pantrypal:applyFilters', (e) => { /* hook into recipes.js if desired */ });
+      window.addEventListener('pantrypal:showRecipes', () => {
+        document.getElementById('recipeContainer')?.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      window.addEventListener('pantrypal:suggestSwap', (e) => { /* optional hook */ });
     })();
   </script>
 </body>
-    <!-- Base Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
-    <script src="{{ url_for('static', filename='js/ios-guard.js') }}"></script>
-
 </html>
