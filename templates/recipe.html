@@ -190,12 +190,12 @@
     font-weight: 600;
   }
 
-  .content-wrap {
-    margin-top: -48px;
-    position: relative;
-    z-index: 3;
-    padding-bottom: 150px;
-  }
+.content-wrap {
+  margin-top: -48px;
+  position: relative;
+  z-index: 3;
+  padding-bottom: 180px;
+}
 
   .content-card {
     background: #fff;
@@ -290,13 +290,14 @@
   }
 
   .action-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: center;
-    margin-top: 2.5rem;
-    padding-top: 0.5rem;
-  }
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(0, 128, 128, 0.10);
+}
 
   .back-link {
     color: var(--primary-color);
@@ -538,86 +539,86 @@
 
         <div class="recipe-body">
           <div class="row g-4">
-            <div class="col-lg-5">
-              {% if recipe.ingredients %}
-              <div class="ingredients-card mb-4">
-                <h2 class="section-heading gold">Ingredients</h2>
-                <ul class="ingredients-list">
-                  {% for ing in recipe.ingredients %}
-                    <li
-                      data-item="{{ ing.item }}"
-                      data-unit="{{ ing.unit or '' }}"
-                      data-quantity="{{ ing.quantity or '' }}"
-                    >
-                      {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
-                      {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
-              </div>
-              {% endif %}
+  <div class="col-lg-5">
+    {% if recipe.ingredients %}
+    <div class="ingredients-card mb-4">
+      <h2 class="section-heading gold">Ingredients</h2>
+      <ul class="ingredients-list">
+        {% for ing in recipe.ingredients %}
+          <li
+            data-item="{{ ing.item }}"
+            data-unit="{{ ing.unit or '' }}"
+            data-quantity="{{ ing.quantity or '' }}"
+          >
+            {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
+            {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
 
-              {% if recipe.dressing %}
-              <div class="ingredients-card mb-4">
-                <h3 class="section-heading gold">Dressing</h3>
-                <ul class="ingredients-list">
-                  {% for ing in recipe.dressing %}
-                    <li
-                      data-item="{{ ing.item }}"
-                      data-unit="{{ ing.unit or '' }}"
-                      data-quantity="{{ ing.quantity or '' }}"
-                    >
-                      {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
-                      {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
-              </div>
-              {% endif %}
+    {% if recipe.dressing %}
+    <div class="ingredients-card mb-4">
+      <h3 class="section-heading gold">Dressing</h3>
+      <ul class="ingredients-list">
+        {% for ing in recipe.dressing %}
+          <li
+            data-item="{{ ing.item }}"
+            data-unit="{{ ing.unit or '' }}"
+            data-quantity="{{ ing.quantity or '' }}"
+          >
+            {{ ing.quantity or "" }} {{ ing.unit or "" }} {{ ing.item }}
+            {% if ing.notes %}<em> ({{ ing.notes }})</em>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
 
-              {% if recipe.portion_note %}
-              <div class="portion-card">
-                <h3 class="section-heading teal mb-2">Portion size</h3>
-                <p class="mb-0">{{ recipe.portion_note }}</p>
-              </div>
-              {% endif %}
-            </div>
+  <div class="col-lg-7">
+    {% if recipe.instructions %}
+    <div class="instructions-card mb-4">
+      <h2 class="section-heading teal">Instructions</h2>
+      <ol class="instructions-list">
+        {% for step in recipe.instructions %}
+          <li>{{ step }}</li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
 
-            <div class="col-lg-7">
-              {% if recipe.instructions %}
-              <div class="instructions-card mb-4">
-                <h2 class="section-heading teal">Instructions</h2>
-                <ol class="instructions-list">
-                  {% for step in recipe.instructions %}
-                    <li>{{ step }}</li>
-                  {% endfor %}
-                </ol>
-              </div>
-              {% endif %}
+    {% if recipe.portion_note %}
+    <div class="portion-card mb-4">
+      <h3 class="section-heading teal mb-2">Portion size</h3>
+      <p class="mb-0">{{ recipe.portion_note }}</p>
+    </div>
+    {% endif %}
 
-              {% if recipe.nutrition %}
-              <div class="nutrition-card">
-                <h2 class="section-heading gold">Nutrition Breakdown (Per Serving)</h2>
-                <div class="table-responsive">
-                  <table class="table nutrition-table table-bordered align-middle">
-                    <thead>
-                      <tr>
-                        <th scope="col">Nutrient</th>
-                        <th scope="col">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td>Calories</td><td>{{ recipe.nutrition.Calories | default('') }}</td></tr>
-                      <tr><td>Protein</td><td>{{ recipe.nutrition.Protein | default('') }}</td></tr>
-                      <tr><td>Carbs</td><td>{{ recipe.nutrition.Carbs | default('') }}</td></tr>
-                      <tr><td>Fat</td><td>{{ recipe.nutrition.Fat | default('') }}</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              {% endif %}
-            </div>
-          </div>
+    {% if recipe.nutrition %}
+    <div class="nutrition-card">
+      <h2 class="section-heading gold">Nutrition Breakdown (Per Serving)</h2>
+      <div class="table-responsive">
+        <table class="table nutrition-table table-bordered align-middle">
+          <thead>
+            <tr>
+              <th scope="col">Nutrient</th>
+              <th scope="col">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Calories</td><td>{{ recipe.nutrition.Calories | default('') }}</td></tr>
+            <tr><td>Protein</td><td>{{ recipe.nutrition.Protein | default('') }}</td></tr>
+            <tr><td>Carbs</td><td>{{ recipe.nutrition.Carbs | default('') }}</td></tr>
+            <tr><td>Fat</td><td>{{ recipe.nutrition.Fat | default('') }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
 
           <div class="action-bar">
             <button id="addToShoppingList" class="btn btn-brand btn-lg px-4">
