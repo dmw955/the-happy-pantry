@@ -362,7 +362,7 @@
             <div class="section-card mb-5 text-center">
                 <h2 class="section-title">Browse recent posts</h2>
                 <p class="section-subtitle">
-                    This page is set up to make future posting easier. To add a new article later, duplicate one of the post cards below, update the image, title, excerpt, date, and link, then move it to the top of the list.
+                    The Pantry Post is now set up in a simpler format so it is easier to maintain. To add a new article later, duplicate one of the cards below, update the image, title, excerpt, date, and link, then move it to the top of the list.
                 </p>
             </div>
 
@@ -370,7 +370,7 @@
             <div class="row g-4 align-items-stretch mb-5">
                 <div class="col-lg-6">
                     <div class="featured-post h-100">
-                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Featured post image">
+                        <img src="{{ url_for('static', filename='assets/eatingout.jpg') }}" alt="Eating Out by the Numbers: Calories and Costs Add Up Fast">
                     </div>
                 </div>
 
@@ -378,12 +378,12 @@
                     <div class="featured-post h-100">
                         <div class="featured-post-content">
                             <span class="post-kicker">Featured Post</span>
-                            <div class="post-date">Update this date</div>
-                            <h3 class="post-title">Replace this featured article title with your newest or most important post</h3>
+                            <div class="post-date">January 2026</div>
+                            <h3 class="post-title">Eating Out by the Numbers: Calories and Costs Add Up Fast</h3>
                             <p class="post-excerpt">
-                                This section is meant for your latest or strongest article. Replace this text with a short, clear summary that explains why the post matters and what readers will get from it.
+                                A data-backed breakdown of how restaurant meals compare to home cooking — from calorie load to cost per meal — and why even small planning changes can make a meaningful difference.
                             </p>
-                            <a href="/blog/example-post" class="btn btn-brand">Read Featured Post</a>
+                            <a href="{{ url_for('blog_eatingout') }}" class="btn btn-brand">Read Featured Post</a>
                         </div>
                     </div>
                 </div>
@@ -394,84 +394,84 @@
 
                 <div class="col-md-6 col-xl-4">
                     <div class="post-grid-card">
-                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <img src="{{ url_for('static', filename='assets/blog_steady.jpg') }}" alt="Why Steady Progress Wins Every Time">
                         <div class="post-grid-content">
-                            <div class="post-date">Update date</div>
-                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <div class="post-date">January 05, 2025</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Why Steady Progress Wins Every Time</h3>
                             <p class="post-excerpt">
-                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                                Why sustainable weight loss isn’t about extremes — and how a steady, flexible approach leads to results that actually last.
                             </p>
-                            <a href="/blog/example-post-1" class="btn btn-outline-teal">Read More</a>
+                            <a href="{{ url_for('blog_steady') }}" class="btn btn-outline-teal">Read More</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-xl-4">
                     <div class="post-grid-card">
-                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <img src="{{ url_for('static', filename='assets/blog_temps.jpg') }}" alt="How to Nail Your Cooking Temps (Without Guesswork)">
                         <div class="post-grid-content">
-                            <div class="post-date">Update date</div>
-                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <div class="post-date">January 04, 2025</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">How to Nail Your Cooking Temps (Without Guesswork)</h3>
                             <p class="post-excerpt">
-                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                                A practical guide to cooking temperatures, steak doneness, and the hand test so you can cook with confidence and consistency.
                             </p>
-                            <a href="/blog/example-post-2" class="btn btn-outline-teal">Read More</a>
+                            <a href="{{ url_for('blog_temps') }}" class="btn btn-outline-teal">Read More</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-xl-4">
                     <div class="post-grid-card">
-                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <img src="{{ url_for('static', filename='assets/blog_diet.jpg') }}" alt="Why a Calorie Deficit Still Beats Every Fad Diet">
                         <div class="post-grid-content">
-                            <div class="post-date">Update date</div>
-                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <div class="post-date">December 28, 2025</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Why a Calorie Deficit Still Beats Every Fad Diet</h3>
                             <p class="post-excerpt">
-                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                                A myth-busting, evidence-based look at why sustainable weight loss doesn’t require extreme diets — just consistency, balance, and a calorie deficit.
                             </p>
-                            <a href="/blog/example-post-3" class="btn btn-outline-teal">Read More</a>
+                            <a href="{{ url_for('blog_diets') }}" class="btn btn-outline-teal">Read More</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-xl-4">
                     <div class="post-grid-card">
-                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <img src="{{ url_for('static', filename='assets/oils-processing.png') }}" alt="Oils, Processing, and What Actually Matters for Your Health">
                         <div class="post-grid-content">
-                            <div class="post-date">Update date</div>
-                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <div class="post-date">December 21, 2025</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Oils, Processing, and What Actually Matters for Your Health</h3>
                             <p class="post-excerpt">
-                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                                A clear, evidence-based look at fats, oil processing, and why ultra-processed foods matter more than demonizing individual ingredients.
                             </p>
-                            <a href="/blog/example-post-4" class="btn btn-outline-teal">Read More</a>
+                            <a href="{{ url_for('blog_oil') }}" class="btn btn-outline-teal">Read More</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-xl-4">
                     <div class="post-grid-card">
-                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <img src="{{ url_for('static', filename='assets/macromanipulation.png') }}" alt="Macro Manipulation">
                         <div class="post-grid-content">
-                            <div class="post-date">Update date</div>
-                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <div class="post-date">November 1, 2025</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Macro Manipulation</h3>
                             <p class="post-excerpt">
-                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                                How to cut through the label games: serving sizes, protein counts, and the math companies don’t want you to notice.
                             </p>
-                            <a href="/blog/example-post-5" class="btn btn-outline-teal">Read More</a>
+                            <a href="{{ url_for('blog_macro') }}" class="btn btn-outline-teal">Read More</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-xl-4">
                     <div class="post-grid-card">
-                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <img src="{{ url_for('static', filename='assets/eatingout.jpg') }}" alt="Eating Out by the Numbers: Calories and Costs Add Up Fast">
                         <div class="post-grid-content">
-                            <div class="post-date">Update date</div>
-                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <div class="post-date">January 2026</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Eating Out by the Numbers: Calories and Costs Add Up Fast</h3>
                             <p class="post-excerpt">
-                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                                A data-backed breakdown of how restaurant meals compare to home cooking — from calorie load to cost per meal — and why even small planning changes can make a meaningful difference.
                             </p>
-                            <a href="/blog/example-post-6" class="btn btn-outline-teal">Read More</a>
+                            <a href="{{ url_for('blog_eatingout') }}" class="btn btn-outline-teal">Read More</a>
                         </div>
                     </div>
                 </div>
@@ -482,7 +482,7 @@
             <div class="topics-card text-center">
                 <h2 class="section-title mb-3">Topics we cover</h2>
                 <p class="section-subtitle mb-3">
-                    As The Pantry Post grows, this page can continue to include practical writing around topics like these.
+                    The Pantry Post is intended to keep growing with practical, fact-based articles around topics like these.
                 </p>
 
                 <div>
