@@ -3,162 +3,277 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Shopping List - The Happy Pantry</title>
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
 
-  <!-- Bootstrap & Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
-  <!-- Supabase -->
+  <!-- Supabase (safe to keep) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
 
-<script>
-  window.__IS_ANDROID_WEBVIEW__ = typeof Android !== "undefined";
-</script>
-
-
-  <!-- Supabase Config -->
   <script>
     window.SUPABASE_URL = "{{ SUPABASE_URL }}";
     window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
   </script>
-<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
-<!-- PDF Libraries (MUST load before shopping_list.js) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 
-  <!-- Optional Styles -->
-  <style>
-    :root {
-      --primary-color: #008080;
-      --accent-color: #FFC72C;
-      --text-dark: #2E2E2E;
-      --text-light: #FFFFFF;
-      --background-light: #FFFFFF;
-    }
+<style>
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: var(--background-light);
-    }
-
-    .navbar {
-      background-color: var(--background-light);
-      border-bottom: 2px solid var(--accent-color);
-      padding: 10px 0;
-    }
-
-    .navbar-brand img {
-      height: 50px;
-      width: auto;
-    }
-
-    .navbar-nav .nav-link {
-      color: var(--text-dark);
-      font-weight: bold;
-      transition: color 0.3s ease-in-out;
-    }
-
-    .navbar-nav .nav-link:hover {
-      color: var(--accent-color);
-      text-decoration: underline;
-    }
-
-    .btn-action {
-      padding: 10px 20px;
-      font-weight: bold;
-      border-radius: 8px;
-    }
-
-  .footer-bg {
-    background-color: var(--primary-color);
-    color: var(--text-light);
-    padding: 20px 0;
-    text-align: center;
-    font-size: 0.9rem;
-  }
-
-  .footer-bg a:hover img {
-    transform: scale(1.1);
-  }
-  .pp-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
-  z-index: 998;
+:root {
+  --primary-color: #008080;
+  --accent-color: #FFC72C;
+  --text-dark: #1f2937;
+  --background-soft: #f8fbfb;
+  --border-soft: rgba(0,128,128,.12);
+  --shadow-soft: 0 12px 30px rgba(0,0,0,.08);
 }
-  </style>
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(180deg,#fff 0%,#f8fbfb 100%);
+}
+
+
+/* NAVBAR */
+
+.navbar {
+  background: rgba(255,255,255,.96);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,199,44,.35);
+}
+
+.navbar-brand img {
+  height:52px;
+}
+
+
+/* PAGE */
+
+.page-shell {
+  padding: 60px 0;
+}
+
+.page-card {
+  background:#fff;
+  border-radius:24px;
+  border:1px solid var(--border-soft);
+  box-shadow:var(--shadow-soft);
+  padding:40px;
+}
+
+.page-title {
+  font-weight:800;
+  font-size:2rem;
+  margin-bottom:25px;
+}
+
+
+/* BUTTONS */
+
+.btn-brand {
+  background:var(--accent-color);
+  border:none;
+  font-weight:700;
+  border-radius:999px;
+  padding:.75rem 1.4rem;
+}
+
+.btn-outline-teal {
+  border:2px solid var(--primary-color);
+  color:var(--primary-color);
+  border-radius:999px;
+  font-weight:700;
+}
+
+
+/* FOOTER */
+
+.footer-bg {
+  background:#008080;
+  color:#fff;
+  padding:28px 0;
+}
+
+.footer-note {
+  font-size:.9rem;
+  max-width:420px;
+  margin:0 auto;
+}
+
+.footer-bg a:hover img {
+  transform:scale(1.08);
+}
+
+</style>
+
 </head>
 
 <body>
- <!-- ✅ Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container px-5">
-            <a class="navbar-brand" href="{{ url_for('home') }}">
-                <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                <li class="nav-item">
-                    <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('donate') }}">Support the Project</a>
-                </li>
-                    </ul>
-                    </li>
-                </ul>                              
-            </div>
-        </div>
-    </nav>
 
-  <!-- ✅ Main Content -->
-  <div class="container py-5">
-    <h1 class="text-3xl fw-bold text-teal-600 mb-4">🛒 Your Shopping List</h1>
 
-    <div id="listContainer" class="mb-4">
-      <p class="text-muted fst-italic">Loading your list...</p>
+
+<!-- NAVBAR -->
+
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container px-4 px-lg-5">
+
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}">
+    </a>
+
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="nav" class="collapse navbar-collapse">
+
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('about') }}">About</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
+        </li>
+
+        <li class="nav-item ms-lg-3">
+          <a class="btn btn-brand" href="{{ url_for('donate') }}">
+            Support the Project
+          </a>
+        </li>
+
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+
+<!-- PAGE -->
+
+<div class="page-shell">
+
+  <div class="container px-4 px-lg-5">
+
+    <div class="page-card">
+
+      <h1 class="page-title">
+        🛒 Your Shopping List
+      </h1>
+
+      <div id="listContainer" class="mb-4">
+        <p class="text-muted fst-italic">
+          Loading your list...
+        </p>
+      </div>
+
+      <div class="d-flex flex-wrap gap-3 mb-4">
+
+        <button id="clearListBtn"
+          class="btn btn-danger">
+
+          Clear List
+
+        </button>
+
+        <button id="downloadPdfBtn"
+          class="btn btn-brand">
+
+          Download PDF
+
+        </button>
+
+      </div>
+
+      <a href="{{ url_for('recipes') }}"
+         class="btn btn-outline-teal">
+
+        ← Back to Recipes
+
+      </a>
+
     </div>
 
-    <div class="d-flex flex-wrap gap-3 mb-4">
-      <button id="clearListBtn" class="btn btn-danger btn-action">🧹 Clear Shopping List</button>
-      <button id="downloadPdfBtn" class="btn btn-warning text-dark btn-action">📄 Download PDF</button>
-    </div>
-
-    <a href="{{ url_for('recipes') }}" class="text-teal-700 text-decoration-underline">← Back to Recipes</a>
   </div>
 
-  <!-- ✅ Footer -->
-  <footer class="footer-bg mt-auto">
-    <div class="container text-center">
-      <p class="mb-1">&copy; 2026 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
-        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
-      </a>
+</div>
+
+
+
+<!-- FOOTER -->
+
+<footer class="footer-bg">
+
+  <div class="container px-4 px-lg-5">
+
+    <div class="row align-items-center text-center text-md-start gy-3">
+
+      <div class="col-md-4">
+        © 2026 The Happy Pantry
+      </div>
+
+      <div class="col-md-4 footer-note">
+
+        The Pantry Project is a community initiative operated
+        through The Happy Pantry LLC.
+        Contributions are voluntary and are not tax-deductible.
+
+      </div>
+
+      <div class="col-md-4 text-md-end">
+
+        <a href="https://www.facebook.com/profile.php?id=61576743170575"
+           target="_blank">
+
+          <img
+            src="/static/assets/facebook-icon-gold.svg"
+            style="width:30px">
+
+        </a>
+
+      </div>
+
     </div>
-  </footer>
+
+  </div>
+
+</footer>
 
 
-  <!-- ✅ Scripts -->
-<!-- ✅ Scripts -->
+
+<!-- scripts -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Shopping List Logic (loads AFTER all deps) -->
 <script src="{{ url_for('static', filename='js/shopping_list.js') }}"></script>
+
 <script src="{{ url_for('static', filename='js/ios-guard.js') }}"></script>
 
 </body>
-
 </html>
