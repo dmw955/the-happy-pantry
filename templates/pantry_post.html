@@ -1,429 +1,528 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Pantry Post | The Happy Pantry</title>
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PG41EN917B"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PG41EN917B');
+    </script>
 
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The Pantry Post features articles from The Happy Pantry about food, nutrition, meal planning, and practical guidance for everyday life.">
+    <meta name="keywords" content="nutrition blog, meal planning blog, recipes, pantry project, food guidance, healthy eating">
+    <meta name="author" content="The Happy Pantry Team">
+    <title>The Pantry Post | The Happy Pantry</title>
 
-  <!-- Core theme CSS (includes Bootstrap per your setup) -->
-  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-  <style>
-    :root{
-      --primary-color:#008080;  /* Teal Green */
-      --accent-color:#FFC72C;   /* Bright Gold */
-      --text-dark:#2E2E2E;
-      --text-light:#FFFFFF;
-      --background-light:#FFFFFF;
+    <style>
+        :root {
+            --primary-color: #008080;
+            --accent-color: #FFC72C;
+            --text-dark: #1f2937;
+            --text-muted: #5f6b7a;
+            --background-soft: #f8fbfb;
+            --border-soft: rgba(0, 128, 128, 0.12);
+            --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 18px 38px rgba(0, 0, 0, 0.12);
+        }
 
-      /* aliases used below */
-      --hp-teal: var(--primary-color);
-      --hp-gold: var(--accent-color);
-    }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--text-dark);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
+            margin: 0;
+            padding: 0;
+        }
 
-    /* Site parity */
-    .navbar{ background-color:var(--background-light); border-bottom:2px solid var(--accent-color); padding:10px 0; }
-    .navbar-brand img{ height:50px; width:auto; }
-    .navbar-nav .nav-link{ color:var(--text-dark); font-weight:bold; transition:color .3s ease-in-out; }
-    .navbar-nav .nav-link:hover{ color:var(--accent-color); text-decoration:underline; }
-    .footer-bg{ background-color:var(--primary-color); color:var(--text-light); padding:30px 0; text-align:center; }
-    .footer-bg a:hover img{ transform:scale(1.1); filter:brightness(1.2); transition:transform .3s ease, filter .3s ease; }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255, 199, 44, 0.35);
+            padding: 12px 0;
+        }
 
-    /* Minimal helpers for this page */
-    .no-scrollbar::-webkit-scrollbar{ display:none; }
-    .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
-    .focus-ring:focus-visible{ outline:3px solid var(--accent-color); outline-offset:2px; }
+        .navbar-brand img {
+            height: 52px;
+            width: auto;
+        }
 
-    /* Book slider visuals */
-    #bookTrack{ transition: transform .45s ease; will-change: transform; }
-    .rounded-2xl{ border-radius:1rem; }
-    .rounded-xl{ border-radius:.75rem; }
-    .ring-1{ box-shadow: 0 0 0 1px rgba(0,0,0,.04) inset; }
-    .ring-gray-100{ box-shadow: 0 0 0 1px rgba(243,244,246,1) inset; }
+        .navbar-nav .nav-link {
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-left: 0.25rem;
+            margin-right: 0.25rem;
+            transition: color 0.25s ease;
+        }
 
-    /* Spacing + typography quick helpers */
-    .lh-170{ line-height:1.7; }
-    .fw-extrabold{ font-weight: 800; }
+        .navbar-nav .nav-link:hover {
+            color: var(--primary-color);
+        }
 
-    /* Buttons to match your teal */
-    .btn-teal{ background-color:#0f766e; color:#fff; }
-    .btn-teal:hover{ background-color:#0b615a; color:#fff; }
+        .btn-brand {
+            background-color: var(--accent-color);
+            color: #1f2937;
+            font-weight: 700;
+            border: none;
+            border-radius: 999px;
+            padding: 0.8rem 1.35rem;
+            box-shadow: 0 10px 22px rgba(255, 199, 44, 0.28);
+            transition: all 0.25s ease;
+        }
 
-    /* Disable state fade */
-    .fade-disabled[disabled]{ opacity:.5; }
+        .btn-brand:hover {
+            background-color: #f4bb11;
+            color: #1f2937;
+            transform: translateY(-1px);
+        }
 
-    /* === Desktop hero image fix === */
-    .hero-wrap {
-      border-radius: .75rem;
-      overflow: hidden;
-    }
-    /* Desktop: constrain width and use a clean 16:9 crop */
-    @media (min-width: 992px) {
-      .hero-wrap {
-        max-width: 900px;          /* tweak 760–960 if you want tighter/looser */
-        margin: 0 auto;
-        aspect-ratio: 16 / 9;
-      }
-      .hero-wrap > img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-    }
-    /* Mobile/tablet: preserve full image without distortion */
-    @media (max-width: 991.98px) {
-      .hero-wrap > img {
-        width: 100%;
-        height: auto;
-        display: block;
-      }
-    }
+        .btn-outline-teal {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0.8rem 1.35rem;
+            transition: all 0.25s ease;
+        }
 
-    #prevSide,
-#nextSide {
-  z-index: 50;
-  pointer-events: auto;
-}
+        .btn-outline-teal:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
 
-#prevSide::before,
-#nextSide::before {
-  content: '';
-  position: absolute;
-  inset: -10px;
-}
+        .hero-shell {
+            background:
+                linear-gradient(115deg, rgba(0, 128, 128, 0.92) 0%, rgba(0, 96, 96, 0.86) 42%, rgba(12, 26, 32, 0.72) 100%),
+                url("{{ url_for('static', filename='assets/pantry.jpg') }}") center center / cover no-repeat;
+            padding: 78px 0 88px;
+            position: relative;
+            overflow: hidden;
+        }
 
-  </style>
+        .hero-shell::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(255, 199, 44, 0.18), transparent 30%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            margin-bottom: 1rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: rgba(255,255,255,0.92);
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .hero-title {
+            color: #fff;
+            font-size: clamp(2.4rem, 4vw, 4.2rem);
+            font-weight: 800;
+            line-height: 1.08;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            max-width: 850px;
+        }
+
+        .hero-text {
+            color: rgba(255,255,255,0.92);
+            font-size: 1.08rem;
+            line-height: 1.9;
+            max-width: 760px;
+            margin-bottom: 0;
+        }
+
+        .content-wrap {
+            margin-top: -48px;
+            position: relative;
+            z-index: 3;
+            padding-bottom: 80px;
+        }
+
+        .section-card {
+            background: #fff;
+            border: 1px solid var(--border-soft);
+            border-radius: 28px;
+            box-shadow: var(--shadow-soft);
+            padding: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 0.8rem;
+        }
+
+        .section-subtitle {
+            color: var(--text-muted);
+            line-height: 1.85;
+            margin-bottom: 0;
+        }
+
+        .featured-post {
+            background: #fff;
+            border: 1px solid var(--border-soft);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            height: 100%;
+        }
+
+        .featured-post img {
+            width: 100%;
+            height: 100%;
+            min-height: 100%;
+            object-fit: cover;
+        }
+
+        .featured-post-content {
+            padding: 2rem;
+        }
+
+        .post-kicker {
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 0.92rem;
+            letter-spacing: 0.02em;
+        }
+
+        .post-date {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .post-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-bottom: 0.8rem;
+        }
+
+        .post-excerpt {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 1.25rem;
+        }
+
+        .post-grid-card {
+            background: #fff;
+            border: 1px solid var(--border-soft);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            height: 100%;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .post-grid-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .post-grid-card img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+
+        .post-grid-content {
+            padding: 1.5rem;
+        }
+
+        .topics-card {
+            background: linear-gradient(135deg, rgba(255,199,44,0.12), rgba(0,128,128,0.08));
+            border: 1px solid rgba(0,128,128,0.10);
+            border-radius: 24px;
+            padding: 1.6rem;
+        }
+
+        .topic-pill {
+            display: inline-block;
+            padding: 0.55rem 0.95rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,128,128,0.10);
+            margin: 0.3rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .footer-bg {
+            background-color: #008080;
+            color: #ffffff;
+            padding: 28px 0;
+            text-align: center;
+        }
+
+        .footer-note {
+            font-size: 0.92rem;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.9);
+            max-width: 420px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .footer-bg a:hover img {
+            transform: scale(1.08);
+            filter: brightness(1.12);
+        }
+
+        @media (max-width: 767px) {
+            .hero-shell {
+                padding: 60px 0 70px;
+            }
+
+            .content-wrap {
+                margin-top: -28px;
+            }
+
+            .section-card,
+            .featured-post-content,
+            .post-grid-content,
+            .topics-card {
+                padding: 1.25rem;
+            }
+
+            .post-grid-card img {
+                height: 200px;
+            }
+        }
+    </style>
 </head>
+<body>
 
-<body class="bg-white text-gray-800 font-sans">
-
- <!-- ✅ Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container px-5">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container px-4 px-lg-5">
             <a class="navbar-brand" href="{{ url_for('home') }}">
                 <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                <li class="nav-item">
-                    <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('donate') }}">Support the Project</a>
-                </li>
-                    </ul>
+                <ul class="navbar-nav ms-auto align-items-lg-center mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
+                    <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+                        <a class="btn btn-brand" href="{{ url_for('donate') }}">Support the Project</a>
                     </li>
-                </ul>                              
+                </ul>
             </div>
         </div>
     </nav>
 
-  <!-- Header -->
-  <header class="text-center py-5 px-3">
-    <h1 class="fw-bold" style="color:var(--hp-teal); font-size:clamp(1.8rem, 4vw, 2.25rem);">The Pantry Post</h1>
-    <p class="text-secondary mt-2">Weekly insights on nutrition, macros, and eating with purpose.</p>
-  </header>
-
-  <!-- Book Wrapper -->
-  <section class="position-relative px-3 px-sm-4" style="max-width: 1080px; margin: 0 auto;">
-    <!-- Controls (top on mobile) -->
-    <div class="d-flex align-items-center justify-content-between mb-3 d-md-none">
-      <button id="prevBtn" class="btn btn-teal rounded-circle focus-ring fade-disabled" style="width:42px;height:42px;" aria-label="Previous article">←</button>
-      <button id="nextBtn" class="btn btn-teal rounded-circle focus-ring fade-disabled" style="width:42px;height:42px;" aria-label="Next article">→</button>
-    </div>
-
-    <div class="position-relative">
-      <!-- Side controls (md+) -->
-      <button id="prevSide"
-        class="d-none d-md-flex align-items-center justify-content-center position-absolute translate-middle-y btn btn-teal rounded-circle focus-ring fade-disabled"
-        style="left:-24px; top:50%; width:48px; height:48px; z-index:50;"
-        aria-label="Previous article">←</button>
-
-
-      <div id="bookViewport" class="overflow-hidden rounded-2xl shadow ring-1 ring-gray-100 bg-white">
-        <div id="bookTrack" class="d-flex no-scrollbar">
-<!-- PAGE 1 -->
-
-<article class="w-100 flex-shrink-0 p-3 p-md-4">
-  <div class="hero-wrap mb-3">
-    <img src="{{ url_for('static', filename='assets/eatingout.jpg') }}"
-         alt="Eating Out Calories and Costs Compared to Cooking at Home">
-  </div>
-
-  <h2 class="fw-extrabold"
-      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
-    Eating Out by the Numbers: Calories and Costs Add Up Fast
-  </h2>
-
-  <p class="text-secondary small mb-2">January 2026</p>
-
-  <p class="lh-170 text-dark">
-    A data-backed breakdown of how restaurant meals compare to home cooking —
-    from calorie load to cost per meal — and why even small planning changes
-    can make a meaningful difference.
-  </p>
-
-  <a class="text-warning text-decoration-none" href="{{ url_for('blog_eatingout') }}">
-    <span class="ms-1">Read more →</span>
-  </a>
-</article>
-
-
-<!-- PAGE 2 -->
-
-<article class="w-100 flex-shrink-0 p-3 p-md-4">
-  <div class="hero-wrap mb-3">
-    <img src="{{ url_for('static', filename='assets/blog_steady.jpg') }}"
-         alt="Why Steady Progress Wins Every Time">
-  </div>
-
-  <h2 class="fw-extrabold"
-      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
-    Why Steady Progress Wins Every Time
-  </h2>
-
-  <p class="text-secondary small mb-2">January 05, 2025</p>
-
-  <p class="lh-170 text-dark">
-    Why sustainable weight loss isn’t about extremes — and how a steady,
-    flexible approach leads to results that actually last.
-  </p>
-
-  <a class="text-warning text-decoration-none" href="{{ url_for('blog_steady') }}">
-    <span class="ms-1">Read more →</span>
-  </a>
-</article>
-
-
-          <!-- PAGE 3 -->
-
-<article class="w-100 flex-shrink-0 p-3 p-md-4">
-  <div class="hero-wrap mb-3">
-    <img src="{{ url_for('static', filename='assets/blog_temps.jpg') }}"
-         alt="How to Nail Your Cooking Temps Without Guesswork">
-  </div>
-
-  <h2 class="fw-extrabold"
-      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
-    How to Nail Your Cooking Temps (Without Guesswork)
-  </h2>
-
-  <p class="text-secondary small mb-2">January 04, 2025</p>
-
-  <p class="lh-170 text-dark">
-    A practical guide to cooking temperatures, steak doneness, and the hand test
-    so you can cook with confidence and consistency.
-  </p>
-
-  <a class="text-warning text-decoration-none" href="{{ url_for('blog_temps') }}">
-    <span class="ms-1">Read more →</span>
-  </a>
-</article>
-
-<!-- PAGE 4 -->
-
-<article class="w-100 flex-shrink-0 p-3 p-md-4">
-  <div class="hero-wrap mb-3">
-    <img src="{{ url_for('static', filename='assets/blog_diet.jpg') }}"
-         alt="Why a Calorie Deficit Still Beats Every Fad Diet">
-  </div>
-
-  <h2 class="fw-extrabold"
-      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
-    Why a Calorie Deficit Still Beats Every Fad Diet
-  </h2>
-
-  <p class="text-secondary small mb-2">December 28, 2025</p>
-
-  <p class="lh-170 text-dark">
-    A myth-busting, evidence-based look at why sustainable weight loss doesn’t require
-    extreme diets — just consistency, balance, and a calorie deficit.
-  </p>
-
-  <a class="text-warning text-decoration-none" href="{{ url_for('blog_diets') }}">
-    <span class="ms-1">Read more →</span>
-  </a>
-</article>
-
-          <!-- PAGE 5 -->
-
-<article class="w-100 flex-shrink-0 p-3 p-md-4">
-  <div class="hero-wrap mb-3">
-    <img src="{{ url_for('static', filename='assets/oils-processing.png') }}"
-         alt="Oils, Processing, and What Actually Matters for Your Health">
-  </div>
-
-  <h2 class="fw-extrabold"
-      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
-    Oils, Processing, and What Actually Matters for Your Health
-  </h2>
-
-  <p class="text-secondary small mb-2">December 21, 2025</p>
-
-  <p class="lh-170 text-dark">
-    A clear, evidence-based look at fats, oil processing, and why ultra-processed foods
-    matter more than demonizing individual ingredients.
-  </p>
-
-  <a class="text-warning text-decoration-none" href="{{ url_for('blog_oil') }}">
-    <span class="ms-1">Read more →</span>
-  </a>
-</article>
-
-<!-- PAGE 6 -->
-<article class="w-100 flex-shrink-0 p-3 p-md-4">
-  <div class="hero-wrap mb-3">
-    <img src="{{ url_for('static', filename='assets/macromanipulation.png') }}" alt="Macro Manipulation">
-  </div>
-
-  <h2 class="fw-extrabold"
-      style="color:var(--hp-teal); font-size:clamp(1.3rem, 3vw, 1.8rem);">
-    Macro Manipulation
-  </h2>
-
-  <p class="text-secondary small mb-2">November 1, 2025</p>
-
-  <p class="lh-170 text-dark">
-    How to cut through the label games: serving sizes, protein counts, and the math companies don’t want you to notice.
-  </p>
-
-  <a class="text-warning text-decoration-none" href="{{ url_for('blog_macro') }}">
-    <span class="ms-1">Read more →</span>
-  </a>
-</article>
-
-          <!-- Add more <article> pages here -->
+    <!-- Hero -->
+    <section class="hero-shell">
+        <div class="container px-4 px-lg-5 hero-content">
+            <span class="eyebrow">The Pantry Post</span>
+            <h1 class="hero-title">Practical food, nutrition, and pantry-focused articles designed to be easy to read and easy to use.</h1>
+            <p class="hero-text">
+                The Pantry Post is where we share helpful articles about meal planning, nutrition, food access, and practical everyday guidance — all in the same simple, trustworthy style as the rest of The Happy Pantry.
+            </p>
         </div>
-      </div>
+    </section>
 
-      <button id="nextSide"
-              class="d-none d-md-flex align-items-center justify-content-center position-absolute translate-middle-y btn btn-teal rounded-circle focus-ring fade-disabled"
-              style="right:-10px; top:50%; width:44px; height:44px;"
-              aria-label="Next article">→</button>
-    </div>
+    <!-- Main Content -->
+    <main class="content-wrap">
+        <div class="container px-4 px-lg-5">
 
-    <!-- Pagination dots -->
-    <div id="dots" class="d-flex align-items-center justify-content-center gap-2 mt-3"></div>
-  </section>
+            <!-- Intro -->
+            <div class="section-card mb-5 text-center">
+                <h2 class="section-title">Browse recent posts</h2>
+                <p class="section-subtitle">
+                    This page is set up to make future posting easier. To add a new article later, duplicate one of the post cards below, update the image, title, excerpt, date, and link, then move it to the top of the list.
+                </p>
+            </div>
 
-  <!-- Footer -->
-  <footer class="footer-bg text-white text-xs mt-4">
-    <div class="container text-center py-3">
-      <p class="m-0">&copy; 2026 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575"
-         target="_blank" rel="noopener noreferrer" class="d-inline-block mt-2">
-        <img src="{{ url_for('static', filename='assets/facebook-icon-gold.svg') }}" alt="Facebook"
-             style="width:30px;height:30px;">
-      </a>
-    </div>
-  </footer>
+            <!-- Featured Post -->
+            <div class="row g-4 align-items-stretch mb-5">
+                <div class="col-lg-6">
+                    <div class="featured-post h-100">
+                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Featured post image">
+                    </div>
+                </div>
 
-  <!-- Slider Logic (no extra libraries) -->
-  <script>
-    (function(){
-      const track = document.getElementById('bookTrack');
-      const pages = Array.from(track.children);
-      const prevBtn  = document.getElementById('prevBtn');
-      const nextBtn  = document.getElementById('nextBtn');
-      const prevSide = document.getElementById('prevSide');
-      const nextSide = document.getElementById('nextSide');
-      const dotsWrap = document.getElementById('dots');
+                <div class="col-lg-6">
+                    <div class="featured-post h-100">
+                        <div class="featured-post-content">
+                            <span class="post-kicker">Featured Post</span>
+                            <div class="post-date">Update this date</div>
+                            <h3 class="post-title">Replace this featured article title with your newest or most important post</h3>
+                            <p class="post-excerpt">
+                                This section is meant for your latest or strongest article. Replace this text with a short, clear summary that explains why the post matters and what readers will get from it.
+                            </p>
+                            <a href="/blog/example-post" class="btn btn-brand">Read Featured Post</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-      let index = 0;
-      let widthCache = 0;
+            <!-- Recent Posts Grid -->
+            <div class="row g-4 mb-5">
 
-      function updateDimensions(){
-        widthCache = track.parentElement.getBoundingClientRect().width;
-        goTo(index, false);
-      }
+                <div class="col-md-6 col-xl-4">
+                    <div class="post-grid-card">
+                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <div class="post-grid-content">
+                            <div class="post-date">Update date</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <p class="post-excerpt">
+                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                            </p>
+                            <a href="/blog/example-post-1" class="btn btn-outline-teal">Read More</a>
+                        </div>
+                    </div>
+                </div>
 
-      function goTo(i, animate = true){
-        index = Math.max(0, Math.min(i, pages.length - 1));
-        if(!animate){ track.style.transition = 'none'; }
-        track.style.transform = 'translateX(-' + (index * widthCache) + 'px)';
-        if(!animate){
-          track.getBoundingClientRect(); // reflow
-          track.style.transition = '';
-        }
-        updateDots();
-        updateButtons();
-      }
+                <div class="col-md-6 col-xl-4">
+                    <div class="post-grid-card">
+                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <div class="post-grid-content">
+                            <div class="post-date">Update date</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <p class="post-excerpt">
+                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                            </p>
+                            <a href="/blog/example-post-2" class="btn btn-outline-teal">Read More</a>
+                        </div>
+                    </div>
+                </div>
 
-      function updateButtons(){
-        const atStart = index === 0;
-        const atEnd = index === pages.length - 1;
-        [prevBtn, prevSide].forEach(b => { if(b){ b.disabled = atStart; b.classList.toggle('fade-disabled', atStart); } });
-        [nextBtn, nextSide].forEach(b => { if(b){ b.disabled = atEnd;   b.classList.toggle('fade-disabled', atEnd);   } });
-      }
+                <div class="col-md-6 col-xl-4">
+                    <div class="post-grid-card">
+                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <div class="post-grid-content">
+                            <div class="post-date">Update date</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <p class="post-excerpt">
+                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                            </p>
+                            <a href="/blog/example-post-3" class="btn btn-outline-teal">Read More</a>
+                        </div>
+                    </div>
+                </div>
 
-      function buildDots(){
-        dotsWrap.innerHTML = '';
-        pages.forEach((_, i) => {
-          const dot = document.createElement('button');
-          dot.className = 'rounded-circle';
-          dot.style.width = '10px';
-          dot.style.height = '10px';
-          dot.style.border = 'none';
-          dot.style.backgroundColor = 'rgb(209,213,219)';
-          dot.setAttribute('aria-label', 'Go to article ' + (i+1));
-          dot.addEventListener('click', () => goTo(i));
-          dotsWrap.appendChild(dot);
-        });
-        updateDots();
-      }
+                <div class="col-md-6 col-xl-4">
+                    <div class="post-grid-card">
+                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <div class="post-grid-content">
+                            <div class="post-date">Update date</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <p class="post-excerpt">
+                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                            </p>
+                            <a href="/blog/example-post-4" class="btn btn-outline-teal">Read More</a>
+                        </div>
+                    </div>
+                </div>
 
-      function updateDots(){
-        Array.from(dotsWrap.children).forEach((d, i) => {
-          d.style.backgroundColor = (i === index) ? 'var(--hp-gold)' : 'rgb(209,213,219)';
-          d.style.width = (i === index) ? '12px' : '10px';
-          d.style.height = (i === index) ? '12px' : '10px';
-        });
-      }
+                <div class="col-md-6 col-xl-4">
+                    <div class="post-grid-card">
+                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <div class="post-grid-content">
+                            <div class="post-date">Update date</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <p class="post-excerpt">
+                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                            </p>
+                            <a href="/blog/example-post-5" class="btn btn-outline-teal">Read More</a>
+                        </div>
+                    </div>
+                </div>
 
-      // Touch swipe
-      let startX = 0, touching = false;
-      track.addEventListener('touchstart', (e) => { touching = true; startX = e.touches[0].clientX; }, {passive:true});
-      track.addEventListener('touchend', (e) => {
-        if(!touching) return;
-        const dx = e.changedTouches[0].clientX - startX;
-        if(Math.abs(dx) > 50){ if(dx < 0) goTo(index + 1); else goTo(index - 1); }
-        touching = false;
-      }, {passive:true});
+                <div class="col-md-6 col-xl-4">
+                    <div class="post-grid-card">
+                        <img src="{{ url_for('static', filename='assets/pantry.jpg') }}" alt="Post image">
+                        <div class="post-grid-content">
+                            <div class="post-date">Update date</div>
+                            <h3 class="post-title" style="font-size:1.2rem;">Replace with blog post title</h3>
+                            <p class="post-excerpt">
+                                Replace this with a short excerpt that previews the article and encourages the reader to click through.
+                            </p>
+                            <a href="/blog/example-post-6" class="btn btn-outline-teal">Read More</a>
+                        </div>
+                    </div>
+                </div>
 
-      // Keyboard arrows
-      document.addEventListener('keydown', (e) => {
-        if(e.key === 'ArrowRight') goTo(index + 1);
-        if(e.key === 'ArrowLeft')  goTo(index - 1);
-      });
+            </div>
 
-      // Buttons
-      [prevBtn, prevSide].forEach(b => b && b.addEventListener('click', () => goTo(index - 1)));
-      [nextBtn, nextSide].forEach(b => b && b.addEventListener('click', () => goTo(index + 1)));
+            <!-- Topics -->
+            <div class="topics-card text-center">
+                <h2 class="section-title mb-3">Topics we cover</h2>
+                <p class="section-subtitle mb-3">
+                    As The Pantry Post grows, this page can continue to include practical writing around topics like these.
+                </p>
 
-      window.addEventListener('resize', updateDimensions);
+                <div>
+                    <span class="topic-pill">Meal Planning</span>
+                    <span class="topic-pill">Food Access</span>
+                    <span class="topic-pill">Nutrition Basics</span>
+                    <span class="topic-pill">Healthy Grocery Choices</span>
+                    <span class="topic-pill">Simple Cooking</span>
+                    <span class="topic-pill">Pantry Project Updates</span>
+                </div>
+            </div>
 
-      // Init
-      buildDots();
-      updateDimensions();
-    })();
-  </script>
+        </div>
+    </main>
 
-  <!-- Bootstrap Bundle JS (kept for navbar/footer parity) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ url_for('static', filename='js/ios-guard.js') }}"></script>
+    <!-- Footer -->
+    <footer class="footer-bg">
+        <div class="container px-4 px-lg-5">
+            <div class="row align-items-center text-center text-md-start gy-3">
+                <div class="col-md-4">
+                    <p class="m-0">&copy; 2026 The Happy Pantry</p>
+                </div>
 
+                <div class="col-md-4">
+                    <p class="footer-note m-0">
+                        The Pantry Project is a community initiative operated through The Happy Pantry LLC.
+                        Contributions are voluntary and are not tax-deductible.
+                    </p>
+                </div>
+
+                <div class="col-md-4 text-center text-md-end">
+                    <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
+                        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook"
+                             style="width: 30px; height: 30px; transition: transform 0.3s ease;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
