@@ -1,279 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% set p = post|default({}) %}
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="{{ p.get('summary', 'The Pantry Post — Evidence-based nutrition insights') }}">
 
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  
-  <title>{{ p.get('title', 'Processed Oils, Seed Oils, and What the Evidence Actually Says') }} | The Pantry Post</title>
+<title>How to Nail Your Cooking Temps (Without Guesswork) | The Pantry Post</title>
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 
-  <!-- Core theme CSS (includes Bootstrap) -->
-  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+<style>
 
-  <style>
-    :root {
-      --primary-color: #008080; /* Teal Green */
-      --accent-color: #FFC72C;  /* Bright Gold */
-      --text-dark: #2E2E2E;
-      --text-light: #FFFFFF;
-      --background-light: #FFFFFF;
-    }
+:root {
+  --primary-color: #008080;
+  --accent-color: #FFC72C;
+  --text-dark: #2E2E2E;
+}
 
-    /* Navbar & footer — match homepage */
-    .navbar { background-image: url("{{ p.get('hero') or url_for('static', filename='assets/blog/default.jpg') }}");}
-    .navbar-brand img { height: 50px; width: auto; }
-    .navbar-nav .nav-link { color: var(--text-dark); font-weight: bold; transition: color 0.3s ease-in-out; }
-    .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
-    .footer-bg { background-color: var(--primary-color); color: var(--text-light); padding: 30px 0; text-align: center; }
+.navbar-brand img {
+  height: 50px;
+}
 
-    /* Hero */
-    .hero-banner {
-      background-image: url("{{ url_for('static', filename='assets/blog/' ~ (p.get('hero_image') or p.get('image') or 'default.jpg')) }}");
-      background-size: cover; background-position: center; background-attachment: fixed;
-      width: 100%; height: 360px; display: flex; align-items: center; justify-content: center; position: relative;
-    }
-    .hero-overlay { background: rgba(0, 128, 128, 0.65); color: #fff; padding: 36px; text-align: left; border-radius: 8px; max-width: 900px; }
-    .hero-title { font-size: 2.25rem; font-weight: bold; margin-bottom: 10px; }
-    .hero-subtitle { font-size: 1.15rem; margin: 0; }
-    .byline { font-size: .95rem; opacity: .95; }
+.article-container {
+  max-width: 900px;
+  margin: auto;
+}
 
-    /* Read progress */
-    #readProgress { position: fixed; top: 0; left: 0; height: 4px; background: var(--accent-color); width: 0; z-index: 1040; }
+.article-container h2 {
+  margin-top: 30px;
+  border-left: 5px solid var(--accent-color);
+  padding-left: 10px;
+}
 
-    /* Article layout & typography */
-    .article-wrap { max-width: 1100px; margin: 0 auto; }
-    .article-body { max-width: 900px; }
-    .article-body h2 { margin-top: 2rem; border-left: 5px solid var(--accent-color); padding-left: .75rem; }
-    .article-body p { margin-bottom: 1rem; line-height: 1.8; color: var(--text-dark); }
-    .article-body ul { margin: .5rem 0 1rem 1.25rem; }
-    .article-body li { margin-bottom: .5rem; }
-    .article-body img { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-    .callout { border-left: 4px solid var(--primary-color); background: #f6fdfd; padding: 16px; border-radius: 8px; }
+.article-container p {
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
 
-    /* TOC */
-    .toc { position: sticky; top: 100px; }
-    .toc a { display: block; color: #555; text-decoration: none; padding: .25rem 0; }
-    .toc a.active { color: var(--primary-color); font-weight: 700; }
+.footer-bg {
+  background-color: var(--primary-color);
+  color: white;
+}
 
-    /* Share + Prev/Next */
-    .share a { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid #e6e6e6; border-radius: 999px; padding: .45rem .9rem; text-decoration: none; color: #222; }
-    .share a:hover { border-color: var(--primary-color); }
-    .np a { display: block; border: 1px solid #eee; border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; }
-    .np a:hover { border-color: var(--primary-color); }
+</style>
 
-    @media (max-width: 991px) {
-      .toc { position: static; margin-bottom: 1rem; }
-      .hero-title { font-size: 1.9rem; }
-    }
-  </style>
 </head>
 <body>
 
-  <div id="readProgress"></div>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg">
-    <div class="container px-5">
-      <a class="navbar-brand" href="{{ url_for('home') }}">
-        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-      </a>
+<!-- NAVBAR -->
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-              aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+  <div class="container px-5">
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('pantrypost') }}">Back To The Pantry Post</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}">
+    </a>
 
-<!-- Blog Title Card (title/byline only) -->
-<section class="mb-4 p-4 p-md-5 bg-white rounded-4 shadow-sm border">
-  <div class="text-center">
-    <h1 class="display-5 fw-bold mb-3">
-      {{ p.get('title', 'How to Nail Your Cooking Temps (Without Guesswork)') }}
-    </h1>
+    <button class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#nav">
 
-    {% if p.get('subtitle') %}
-      <p class="lead mb-4 text-muted">
-        {{ p.get('subtitle', 'A practical temperature guide plus the hand test for steak done right.') }}
-      </p>
-    {% endif %}
+      <span class="navbar-toggler-icon"></span>
 
-    <!-- Author Info -->
-    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
-      <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
-        <span>•</span>
-        <time datetime="{{ p.get('published_iso', '2026-01-04') }}">
-          {{ p.get('published_text', 'January 04, 2026') }}
-        </time>
-        <span>•</span>
-        <span>{{ p.get('read_time', 6) }} min read</span>
-      </div>
+    </button>
+
+    <div class="collapse navbar-collapse" id="nav">
+
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pantrypost') }}">
+            Back To The Pantry Post
+          </a>
+        </li>
+
+      </ul>
+
     </div>
   </div>
+</nav>
+
+
+
+<!-- TITLE -->
+
+<section class="container mt-4">
+
+<div class="text-center">
+
+<h1 class="fw-bold">
+How to Nail Your Cooking Temps (Without Guesswork)
+</h1>
+
+<p class="text-muted">
+January 04, 2026 • 6 min read
+</p>
+
+</div>
+
 </section>
 
 
-          <p>One of the fastest ways to make food taste better isn’t a new recipe or fancy seasoning — it’s cooking food to the right temperature.</p>
-          <p>Overcook meat and it dries out. Undercook it and it feels unsafe or unpleasant. The difference between a “meh” meal and a great one is usually knowing when to pull food off the heat, not how long to cook it.</p>
-          <p>Here’s how to get it right consistently, without overthinking it.</p>
 
-          <h2>Why temperature beats cook time</h2>
-          <p>Cook times change based on thickness, stove/grill heat, pan vs oven vs grill, and the starting temperature of the meat. Internal temperature tells you what’s happening inside the food. Two steaks cooked for the same time can turn out completely different — but two steaks cooked to the same internal temperature will be nearly identical.</p>
-          <p>That’s why professionals cook by temperature, not the clock.</p>
+<!-- ARTICLE -->
 
-          <h2>Ideal internal temperatures</h2>
-          <p><strong>Steak and beef</strong></p>
-          <ul>
-            <li>Rare: 120–125°F</li>
-            <li>Medium-rare: 130–135°F</li>
-            <li>Medium: 140–145°F</li>
-            <li>Medium-well: 150–155°F</li>
-            <li>Well-done: 160°F+</li>
-          </ul>
-          <p class="callout">Remove steak about <strong>5°F early</strong> — it continues cooking as it rests.</p>
+<section class="container mt-4 mb-5">
 
-          <p><strong>Chicken</strong></p>
-          <ul>
-            <li>Safe and juicy: 165°F</li>
-            <li>Dark meat often tastes better closer to 170–175°F</li>
-          </ul>
+<div class="article-container">
 
-          <p><strong>Pork</strong></p>
-          <ul>
-            <li>145°F + rest</li>
-            <li>Slight pinkness is normal and safe with modern pork</li>
-          </ul>
 
-          <p><strong>Fish</strong></p>
-          <ul>
-            <li>Flaky and tender: 135–145°F</li>
-            <li>Fish overcooks quickly — pull early</li>
-          </ul>
+<p>One of the fastest ways to make food taste better isn’t a new recipe or fancy seasoning — it’s cooking food to the right temperature.</p>
 
-          <h2>The hand test for steak (step-by-step)</h2>
-          <p>If you don’t have a thermometer, there’s a classic method cooks use to estimate steak doneness: the hand test. It works because meat firms up in a predictable way as it cooks — and your hand provides a built-in reference.</p>
+<p>Overcook meat and it dries out. Undercook it and it feels unsafe or unpleasant. The difference between a “meh” meal and a great one is usually knowing when to pull food off the heat, not how long to cook it.</p>
 
-          <h2>How to set it up</h2>
-          <ul>
-            <li>Hold your non-dominant hand open, palm facing up.</li>
-            <li>Find the fleshy pad below your thumb.</li>
-            <li>Press that spot with your other hand — this mimics steak texture.</li>
-          </ul>
+<p>Here’s how to get it right consistently, without overthinking it.</p>
 
-          <h2>Match doneness to your fingers</h2>
-          <ul>
-            <li><strong>Thumb + index finger:</strong> Rare (120–125°F) — very soft, springy, minimal resistance</li>
-            <li><strong>Thumb + middle finger:</strong> Medium-rare (130–135°F) — slight resistance, still bouncy</li>
-            <li><strong>Thumb + ring finger:</strong> Medium (140–145°F) — firm but still gives when pressed</li>
-            <li><strong>Thumb + pinky:</strong> Well-done (160°F+) — very firm, little to no give</li>
-          </ul>
-          <p>Press the thickest part of the steak and compare the firmness. You’re matching feel, not time.</p>
 
-          <h2>Important limitations</h2>
-          <p>The hand test is great for steak and burgers, but it’s not reliable for chicken, pork, or fish. For food safety — especially poultry — use a thermometer. The hand test estimates doneness preference, not safety.</p>
+<h2>Why temperature beats cook time</h2>
 
-          <h2>A few tips that actually help</h2>
-          <ul>
-            <li>Use high heat for steak: you want a hard sear, not slow steaming.</li>
-            <li>Let meat rest: 5–10 minutes lets juices redistribute.</li>
-            <li>Don’t constantly flip: give the surface time to brown.</li>
-            <li>Pull early: carryover cooking finishes the job.</li>
-          </ul>
+<p>Cook times change based on thickness, stove/grill heat, pan vs oven vs grill, and the starting temperature of the meat. Internal temperature tells you what’s happening inside the food. Two steaks cooked for the same time can turn out completely different — but two steaks cooked to the same internal temperature will be nearly identical.</p>
 
-          <h2>The bottom line</h2>
-          <p>You don’t need perfect timing or fancy tools to cook better. If you know target temperatures, learn how meat should feel, and stop cooking by the clock, your meals will improve immediately: better texture, better flavor, less stress.</p>
-          <p><strong>Cooking well isn’t complicated. It’s controlled heat, at the right moment.</strong></p>
+<p>That’s why professionals cook by temperature, not the clock.</p>
 
-        </article>
 
-        <!-- Share -->
-        <div class="mt-4">
-          <a target="_blank" rel="noopener"
-            class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2"
-            href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}">
-            <i class="bi bi-facebook"></i> Share on Facebook
-          </a>
-        </div>
-      </div>
+<h2>Ideal internal temperatures</h2>
 
-      <!-- TOC -->
-      <aside class="col-lg-3">
-        <div id="toc" class="toc border rounded-3 p-3 bg-white shadow-sm"></div>
-      </aside>
-    </div>
-  </main>
+<p><strong>Steak and beef</strong></p>
 
-  <!-- Footer -->
-  <footer class="footer-bg text-white text-xs mt-5">
-    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p class="m-0 leading-none">&copy; 2026 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
-        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
-      </a>
-    </div>
-  </footer>
+<ul>
+<li>Rare: 120–125°F</li>
+<li>Medium-rare: 130–135°F</li>
+<li>Medium: 140–145°F</li>
+<li>Medium-well: 150–155°F</li>
+<li>Well-done: 160°F+</li>
+</ul>
 
-  <style> a:hover img { transform: scale(1.1); filter: brightness(1.2); } </style>
+<p><strong>Chicken</strong></p>
 
-  <!-- Bootstrap Bundle JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<ul>
+<li>Safe and juicy: 165°F</li>
+<li>Dark meat often tastes better closer to 170–175°F</li>
+</ul>
 
-  <!-- Tiny JS: read progress + auto TOC + active section highlight -->
-  <script>
-    document.addEventListener('scroll', function(){
-      const d=document.documentElement;
-      const p=(d.scrollTop)/(d.scrollHeight-d.clientHeight)*100;
-      document.getElementById('readProgress').style.width=p+'%';
-    });
+<p><strong>Pork</strong></p>
 
-    (function(){
-      const content=document.getElementById('articleContent'); if(!content) return;
-      const headings=[...content.querySelectorAll('h2, h3')];
-      const toc=document.getElementById('toc'); const ids=new Set();
-      function slugify(t){return (t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-')}
-      headings.forEach(h=>{
-        if(!h.id){
-          let base=slugify(h.textContent||h.innerText);
-          let unique=base; let i=2;
-          while(ids.has(unique)||!unique){ unique=base+'-'+i++; }
-          h.id=unique; ids.add(unique);
-        }
-        const a=document.createElement('a');
-        a.href='#'+h.id; a.textContent=h.textContent||h.innerText;
-        a.className=h.tagName==='H3'?'ms-3':'';
-        toc.appendChild(a);
-      });
-      const opts={root:null, rootMargin:'0px 0px -70% 0px', threshold:0};
-      const map=new Map(); toc.querySelectorAll('a').forEach(a=>map.set(a.getAttribute('href').slice(1), a));
-      const io=new IntersectionObserver(entries=>{
-        entries.forEach(e=>{
-          const a=map.get(e.target.id); if(!a) return;
-          if(e.isIntersecting){
-            toc.querySelectorAll('a').forEach(x=>x.classList.remove('active'));
-            a.classList.add('active');
-          }
-        })
-      }, opts);
-      headings.forEach(h=>io.observe(h));
-    })();
-  </script>
+<ul>
+<li>145°F + rest</li>
+<li>Slight pinkness is normal and safe with modern pork</li>
+</ul>
+
+<p><strong>Fish</strong></p>
+
+<ul>
+<li>Flaky and tender: 135–145°F</li>
+<li>Fish overcooks quickly — pull early</li>
+</ul>
+
+
+<h2>The hand test for steak (step-by-step)</h2>
+
+<p>If you don’t have a thermometer, there’s a classic method cooks use to estimate steak doneness: the hand test.</p>
+
+<ul>
+<li>Thumb + index finger = Rare</li>
+<li>Thumb + middle finger = Medium-rare</li>
+<li>Thumb + ring finger = Medium</li>
+<li>Thumb + pinky = Well done</li>
+</ul>
+
+
+<h2>Important limitations</h2>
+
+<p>The hand test works best for steak and burgers. For poultry, always use a thermometer.</p>
+
+
+<h2>A few tips that actually help</h2>
+
+<ul>
+<li>Use high heat for steak</li>
+<li>Let meat rest</li>
+<li>Don’t constantly flip</li>
+<li>Pull early</li>
+</ul>
+
+
+<h2>The bottom line</h2>
+
+<p>You don’t need fancy tools to cook better. Control heat, know your temps, and stop cooking by the clock.</p>
+
+<p><strong>Cooking well isn’t complicated. It’s controlled heat, at the right moment.</strong></p>
+
+
+</div>
+</section>
+
+
+
+<!-- FOOTER -->
+
+<footer class="footer-bg text-center py-3">
+
+© 2026 The Happy Pantry
+
+</footer>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

@@ -1,282 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% set p = post|default({}) %}
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="{{ p.get('summary', 'The Pantry Post — Evidence-based nutrition insights') }}">
 
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  
-  <title>{{ p.get('title', 'Processed Oils, Seed Oils, and What the Evidence Actually Says') }} | The Pantry Post</title>
+<title>Processed Oils, Seed Oils, and What the Evidence Actually Says | The Pantry Post</title>
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 
-  <!-- Core theme CSS (includes Bootstrap) -->
-  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+<style>
 
-  <style>
-    :root {
-      --primary-color: #008080; /* Teal Green */
-      --accent-color: #FFC72C;  /* Bright Gold */
-      --text-dark: #2E2E2E;
-      --text-light: #FFFFFF;
-      --background-light: #FFFFFF;
-    }
+:root {
+  --primary-color: #008080;
+  --accent-color: #FFC72C;
+  --text-dark: #2E2E2E;
+}
 
-    /* Navbar & footer — match homepage */
-    .navbar { background-image: url("{{ p.get('hero') or url_for('static', filename='assets/blog/default.jpg') }}");}
-    .navbar-brand img { height: 50px; width: auto; }
-    .navbar-nav .nav-link { color: var(--text-dark); font-weight: bold; transition: color 0.3s ease-in-out; }
-    .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
-    .footer-bg { background-color: var(--primary-color); color: var(--text-light); padding: 30px 0; text-align: center; }
+.navbar-brand img {
+  height: 50px;
+}
 
-    /* Hero */
-    .hero-banner {
-      background-image: url("{{ url_for('static', filename='assets/blog/' ~ (p.get('hero_image') or p.get('image') or 'default.jpg')) }}");
-      background-size: cover; background-position: center; background-attachment: fixed;
-      width: 100%; height: 360px; display: flex; align-items: center; justify-content: center; position: relative;
-    }
-    .hero-overlay { background: rgba(0, 128, 128, 0.65); color: #fff; padding: 36px; text-align: left; border-radius: 8px; max-width: 900px; }
-    .hero-title { font-size: 2.25rem; font-weight: bold; margin-bottom: 10px; }
-    .hero-subtitle { font-size: 1.15rem; margin: 0; }
-    .byline { font-size: .95rem; opacity: .95; }
+.article-container {
+  max-width: 900px;
+  margin: auto;
+}
 
-    /* Read progress */
-    #readProgress { position: fixed; top: 0; left: 0; height: 4px; background: var(--accent-color); width: 0; z-index: 1040; }
+.article-container h2 {
+  margin-top: 30px;
+  border-left: 5px solid var(--accent-color);
+  padding-left: 10px;
+}
 
-    /* Article layout & typography */
-    .article-wrap { max-width: 1100px; margin: 0 auto; }
-    .article-body { max-width: 900px; }
-    .article-body h2 { margin-top: 2rem; border-left: 5px solid var(--accent-color); padding-left: .75rem; }
-    .article-body p { margin-bottom: 1rem; line-height: 1.8; color: var(--text-dark); }
-    .article-body ul { margin: .5rem 0 1rem 1.25rem; }
-    .article-body li { margin-bottom: .5rem; }
-    .article-body img { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-    .callout { border-left: 4px solid var(--primary-color); background: #f6fdfd; padding: 16px; border-radius: 8px; }
+.article-container p {
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
 
-    /* TOC */
-    .toc { position: sticky; top: 100px; }
-    .toc a { display: block; color: #555; text-decoration: none; padding: .25rem 0; }
-    .toc a.active { color: var(--primary-color); font-weight: 700; }
+.footer-bg {
+  background-color: var(--primary-color);
+  color: white;
+}
 
-    /* Share + Prev/Next */
-    .share a { display: inline-flex; align-items: center; gap: .5rem; border: 1px solid #e6e6e6; border-radius: 999px; padding: .45rem .9rem; text-decoration: none; color: #222; }
-    .share a:hover { border-color: var(--primary-color); }
-    .np a { display: block; border: 1px solid #eee; border-radius: 12px; padding: 16px; text-decoration: none; color: inherit; }
-    .np a:hover { border-color: var(--primary-color); }
+</style>
 
-    @media (max-width: 991px) {
-      .toc { position: static; margin-bottom: 1rem; }
-      .hero-title { font-size: 1.9rem; }
-    }
-  </style>
 </head>
 <body>
 
-  <div id="readProgress"></div>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg">
-    <div class="container px-5">
-      <a class="navbar-brand" href="{{ url_for('home') }}">
-        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-      </a>
+<!-- NAVBAR -->
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-              aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+  <div class="container px-5">
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('pantrypost') }}">Back To The Pantry Post</a>
-          </li>
-        </ul>
-      </div>
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}">
+    </a>
+
+    <button class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#nav">
+
+      <span class="navbar-toggler-icon"></span>
+
+    </button>
+
+    <div class="collapse navbar-collapse" id="nav">
+
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pantrypost') }}">
+            Back To The Pantry Post
+          </a>
+        </li>
+
+      </ul>
+
     </div>
-  </nav>
+  </div>
+</nav>
 
-  <!-- Blog Title Card (title/byline only) -->
-  <section class="mb-4 p-4 p-md-5 bg-white rounded-4 shadow-sm border">
-    <div class="text-center">
-      <h1 class="display-5 fw-bold mb-3">{{ p.get('title', 'Macro-Friendly Eating') }}</h1>
 
-      {% if p.get('subtitle') %}
-        <p class="lead mb-4 text-muted">{{ p.get('subtitle') }}</p>
-      {% endif %}
 
-      <!-- Author Info -->
-      <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
-                <div class="small text-muted d-flex flex-wrap align-items-center gap-2">
-                    <span>•</span>
-          <time datetime="{{ p.get('published_iso', '2025-12-21') }}">{{ p.get('published_text', 'Dec 21, 2025') }}</time>
-          <span>•</span>
-          <span>{{ p.get('read_time', 10) }} min read</span>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- TITLE -->
 
-  <!-- Article + TOC layout -->
-  <main class="article-wrap container px-4 px-md-5">
-    <div class="row g-5">
-      <!-- Article Body -->
-      <div class="col-lg-9">
-        <article id="articleContent" class="article-body">
+<section class="container mt-4">
 
-    <p>Oils—especially so-called “seed oils”—have become one of the most polarizing topics in nutrition. Some voices label them toxic, others defend them as essential. Much of the confusion comes from treating all oils—and all processing—the same.</p>
+<div class="text-center">
+
+<h1 class="fw-bold">
+
+Processed Oils, Seed Oils, and What the Evidence Actually Says
+
+</h1>
+
+<p class="text-muted">
+
+Dec 21, 2025 • 10 min read
+
+</p>
+
+</div>
+
+</section>
+
+
+
+<!-- ARTICLE -->
+
+<section class="container mt-4 mb-5">
+
+<div class="article-container">
+
+
+<p>Oils—especially so-called “seed oils”—have become one of the most polarizing topics in nutrition. Some voices label them toxic, others defend them as essential. Much of the confusion comes from treating all oils—and all processing—the same.</p>
 
 <p>To understand where concerns are justified (and where they aren’t), we need to ask better questions: what actually differentiates one oil from another, how does processing change oils, and what does the evidence suggest we should prioritize?</p>
 
+
 <h2>Why Oils Have Such a Confusing Reputation</h2>
+
 <p>Dietary fat has cycled through decades of conflicting advice. As recommendations evolved, vegetable oils became a staple of modern food systems because they’re inexpensive, shelf-stable, and versatile.</p>
 
 <p>At the same time, ultra-processed foods expanded rapidly—and refined oils became one of their most common ingredients. That overlap has made oils an easy target, even though oils are ingredients, not diets.</p>
 
+
 <h2>Understanding Fats: What Actually Differentiates Oils</h2>
+
 <p>All oils are made of fatty acids, but their structure affects how they behave during cooking and processing.</p>
 
 <ul>
-  <li><strong>Saturated fats:</strong> Structurally stable and resistant to oxidation, especially at higher temperatures.</li>
-  <li><strong>Monounsaturated fats:</strong> Found in olive and avocado oil; balance stability with flexibility.</li>
-  <li><strong>Polyunsaturated fats:</strong> Common in many seed oils; include omega-6 and omega-3 fats that are essential but more sensitive to heat and processing.</li>
+<li><strong>Saturated fats:</strong> Structurally stable and resistant to oxidation, especially at higher temperatures.</li>
+<li><strong>Monounsaturated fats:</strong> Found in olive and avocado oil; balance stability with flexibility.</li>
+<li><strong>Polyunsaturated fats:</strong> Common in many seed oils; include omega-6 and omega-3 fats that are essential but more sensitive to heat and processing.</li>
 </ul>
 
 <p>Omega-6 fats are often portrayed as inflammatory, yet human data does not clearly support that claim at typical intakes. What matters more than fat category alone is how the oil is processed and used.</p>
 
+
 <h2>How Vegetable Oils Are Made — and Why Processing Matters</h2>
+
 <p>Most industrial vegetable oils are extracted using chemical solvents, commonly <strong>n-hexane</strong>, and then refined through steps known as degumming, bleaching, and deodorizing. These processes remove odors, pigments, and impurities, leaving a neutral, shelf-stable oil.</p>
 
 <p>This makes oils functional for large-scale food production—but it comes with nutritional trade-offs.</p>
 
 <ul>
-  <li>Removes naturally occurring antioxidants</li>
-  <li>Reduces vitamin E and polyphenol content</li>
-  <li>Can create small amounts of <strong>trans fats</strong></li>
-  <li>Can generate processing byproducts such as <strong>glycidyl esters</strong> and <strong>3-MCPD esters</strong></li>
+<li>Removes naturally occurring antioxidants</li>
+<li>Reduces vitamin E and polyphenol content</li>
+<li>Can create small amounts of <strong>trans fats</strong></li>
+<li>Can generate processing byproducts such as <strong>glycidyl esters</strong> and <strong>3-MCPD esters</strong></li>
 </ul>
 
-<p>These compounds are regulated and typically present at low levels, but their formation highlights that processing meaningfully alters oils.</p>
 
 <h2>Processed Oils and Health: What the Evidence Suggests</h2>
+
 <p>Human studies do not clearly show that refined vegetable oils, when used occasionally or in moderation, are inherently harmful. In controlled dietary settings, unsaturated oils often show neutral or favorable cardiometabolic outcomes.</p>
 
 <p>However, most oil consumption doesn’t occur in controlled settings.</p>
 
 <p>It occurs through ultra-processed foods and commercial frying, where oils are repeatedly heated, exposed to oxygen, and used beyond optimal stability. Under these conditions, oils degrade and form oxidation byproducts that are associated with inflammation and cardiovascular risk.</p>
 
+
 <h2>Home Cooking vs. Ultra-Processed Foods</h2>
+
 <p>Cooking with oil at home is not the same as consuming oil from industrial food systems.</p>
 
 <p>Occasional sautéing or roasting bears little resemblance to oils embedded in packaged snacks, fast food, or repeatedly reheated fryers. Across studies, overall diet quality and processing level consistently outweigh the impact of any single oil choice.</p>
 
+
 <h2>Choosing Oils Based on Evidence, Not Fear</h2>
+
 <p>Rather than asking which oils are “good” or “bad,” a more useful question is which oils make sense for how you actually cook and eat.</p>
 
 <ul>
-  <li>Degree of processing</li>
-  <li>Heat stability</li>
-  <li>Presence of naturally occurring antioxidants</li>
-  <li>Frequency of use</li>
+<li>Degree of processing</li>
+<li>Heat stability</li>
+<li>Presence of naturally occurring antioxidants</li>
+<li>Frequency of use</li>
 </ul>
 
 <p>Less-refined options like <strong>extra-virgin olive oil</strong>, <strong>avocado oil</strong>, and other cold-pressed oils retain more protective compounds and work well for everyday use. Refined oils can still serve a purpose—particularly for higher-heat cooking—but relying on them primarily through packaged foods is where concerns accumulate.</p>
 
+
 <h2>The Bottom Line</h2>
+
 <p>Oils aren’t the problem—highly processed diets are.</p>
 
 <p>The evidence does not support fear around a tablespoon of oil used at home. It does support caution around diets dominated by ultra-processed foods where refined oils are repeatedly heated and combined with sugar, salt, and refined carbohydrates.</p>
 
-<p>Focus less on demonizing individual ingredients and more on overall dietary patterns. The clearest signal in the data is simple:</p>
-
 <p><strong>Less processing. More whole foods. Better outcomes.</strong></p>
 
-          <!-- Optional extra HTML from CMS -->
-          <section>
-            {{ p.get('html', '')|safe }}
-          </section>
-        </article>
 
-        <!-- Share -->
-        <div class="mt-4">
-          <a target="_blank" rel="noopener"
-            class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2"
-            href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}">
-            <i class="bi bi-facebook"></i> Share on Facebook
-          </a>
-        </div>
-      </div>
+</div>
+</section>
 
-      <!-- TOC (auto-built by script) -->
-      <aside class="col-lg-3">
-        <div id="toc" class="toc border rounded-3 p-3 bg-white shadow-sm"></div>
-      </aside>
-    </div>
-  </main>
 
-  <!-- Footer -->
-  <footer class="footer-bg text-white text-xs mt-5">
-    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-      <p class="m-0 leading-none">&copy; 2026 The Happy Pantry</p>
-      <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
-        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
-      </a>
-    </div>
-  </footer>
 
-  <style> a:hover img { transform: scale(1.1); filter: brightness(1.2); } </style>
+<!-- FOOTER -->
 
-  <!-- Bootstrap Bundle JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<footer class="footer-bg text-center py-3">
 
-  <!-- Tiny JS: read progress + auto TOC + active section highlight -->
-  <script>
-    // read progress
-    document.addEventListener('scroll', function(){
-      const d=document.documentElement;
-      const p=(d.scrollTop)/(d.scrollHeight-d.clientHeight)*100;
-      document.getElementById('readProgress').style.width=p+'%';
-    });
+© 2026 The Happy Pantry
 
-    // build TOC from h2/h3
-    (function(){
-      const content=document.getElementById('articleContent'); if(!content) return;
-      const headings=[...content.querySelectorAll('h2, h3')];
-      const toc=document.getElementById('toc'); const ids=new Set();
-      function slugify(t){return (t||'').toLowerCase().replace(/[^a-z0-9\s-]/g,'').trim().replace(/\s+/g,'-')}
-      headings.forEach(h=>{
-        if(!h.id){
-          let base=slugify(h.textContent||h.innerText);
-          let unique=base; let i=2;
-          while(ids.has(unique)||!unique){ unique=base+'-'+i++; }
-          h.id=unique; ids.add(unique);
-        }
-        const a=document.createElement('a');
-        a.href='#'+h.id; a.textContent=h.textContent||h.innerText;
-        a.className=h.tagName==='H3'?'ms-3':'';
-        toc.appendChild(a);
-      });
-      // highlight active section
-      const opts={root:null, rootMargin:'0px 0px -70% 0px', threshold:0};
-      const map=new Map(); toc.querySelectorAll('a').forEach(a=>map.set(a.getAttribute('href').slice(1), a));
-      const io=new IntersectionObserver(entries=>{
-        entries.forEach(e=>{
-          const a=map.get(e.target.id); if(!a) return;
-          if(e.isIntersecting){
-            toc.querySelectorAll('a').forEach(x=>x.classList.remove('active'));
-            a.classList.add('active');
-          }
-        })
-      }, opts);
-      headings.forEach(h=>io.observe(h));
-    })();
-  </script>
+</footer>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
