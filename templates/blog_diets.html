@@ -290,30 +290,39 @@
 
   <div id="readProgress"></div>
 
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg sticky-top">
-    <div class="container px-4 px-lg-5">
-      <a class="navbar-brand" href="{{ url_for('home') }}">
-        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
-      </a>
+<!-- NAVBAR -->
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-              aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+  <div class="container px-5">
 
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav ms-auto align-items-lg-center mb-2 mb-lg-0">
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">Blog</a></li>
-          <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
-            <a class="btn btn-brand" href="{{ url_for('donate') }}">Donate / Pantry Project</a>
-          </li>
-        </ul>
-      </div>
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}">
+    </a>
+
+    <button class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#nav">
+
+      <span class="navbar-toggler-icon"></span>
+
+    </button>
+
+    <div class="collapse navbar-collapse" id="nav">
+
+      <ul class="navbar-nav ms-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pantrypost') }}">
+            Back To The Pantry Post
+          </a>
+        </li>
+
+      </ul>
+
     </div>
-  </nav>
+  </div>
+</nav
 
   <!-- Hero -->
   <section class="hero-shell">

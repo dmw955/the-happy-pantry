@@ -114,31 +114,37 @@ z-index:9999;
 
 <!-- NAVBAR -->
 
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg bg-white border-bottom">
+  <div class="container px-5">
 
-<div class="container">
+    <a class="navbar-brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='assets/logo.png') }}">
+    </a>
 
-<a class="navbar-brand"
-href="{{ url_for('home') }}">
+    <button class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#nav">
 
-<img src="{{ url_for('static', filename='assets/logo.png') }}">
+      <span class="navbar-toggler-icon"></span>
 
-</a>
+    </button>
 
-<div class="ms-auto">
+    <div class="collapse navbar-collapse" id="nav">
 
-<a class="nav-link"
-href="{{ url_for('pantrypost') }}">
+      <ul class="navbar-nav ms-auto">
 
-Back To The Pantry Post
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('pantrypost') }}">
+            Back To The Pantry Post
+          </a>
+        </li>
 
-</a>
+      </ul>
 
-</div>
-
-</div>
-
-</nav>
+    </div>
+  </div>
+</nav
 
 
 
