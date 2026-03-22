@@ -1,189 +1,800 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The Pantry Project | The Happy Pantry</title>
 
-  <!-- Favicon (match Dashboard) -->
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}" />
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PG41EN917B"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PG41EN917B');
+    </script>
 
-  <!-- Bootstrap & Icons (match Dashboard versions) -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The Pantry Project is a community initiative of The Happy Pantry focused on helping local food pantries across New Hampshire and Vermont by filling practical gaps with food, supplies, equipment, and support.">
+    <meta name="keywords" content="Pantry Project, food pantry support, New Hampshire food pantries, Vermont food pantries, pantry supplies, food access">
+    <meta name="author" content="The Happy Pantry Team">
+    <title>The Pantry Project | The Happy Pantry</title>
 
-  <style>
-    :root {
-      --primary-color: #008080;   /* Teal */
-      --accent-color:  #FFC72C;   /* Bright Gold */
-      --text-dark:     #2E2E2E;
-      --text-light:    #FFFFFF;
-      --background-light: #FFFFFF;
-    }
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      color: var(--text-dark);
-      background-color: #f9f9f9;
-    }
-    h1, h2, h3 { color: var(--primary-color); }
+    <style>
+        :root {
+            --primary-color: #008080;
+            --accent-color: #FFC72C;
+            --text-dark: #1f2937;
+            --text-muted: #5f6b7a;
+            --text-light: #ffffff;
+            --background-light: #ffffff;
+            --background-soft: #f8fbfb;
+            --border-soft: rgba(0, 128, 128, 0.12);
+            --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 18px 38px rgba(0, 0, 0, 0.12);
+            --radius-xl: 24px;
+            --radius-lg: 18px;
+        }
 
-    /* Navbar */
-    .navbar {
-      background-color: var(--background-light);
-      border-bottom: 2px solid var(--accent-color);
-      padding: 10px 0;
-    }
-    .navbar-brand img { height: 50px; width: auto; }
-    .navbar-nav .nav-link {
-      color: var(--text-dark);
-      font-weight: 600;
-      transition: color 0.2s ease;
-    }
-    .navbar-nav .nav-link:hover { color: var(--accent-color); text-decoration: underline; }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    /* Buttons */
-    .btn-accent { background-color: var(--accent-color); color: #000; font-weight: 700; }
-    .btn-accent:hover { background-color: #e6b800; color: #000; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--text-dark);
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbfb 100%);
+            margin: 0;
+            padding: 0;
+        }
 
-    /* Sections */
-    .section-light { background-color: #f4f4f4; }
-    .section-white { background-color: #ffffff; }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255, 199, 44, 0.35);
+            padding: 12px 0;
+        }
 
-    /* Cards / images */
-    .rounded-shadow { border-radius: 12px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .navbar-brand img {
+            height: 52px;
+            width: auto;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--text-dark);
+            font-weight: 600;
+            margin-left: 0.25rem;
+            margin-right: 0.25rem;
+            transition: color 0.25s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .btn-brand {
+            background-color: var(--accent-color);
+            color: #1f2937;
+            font-weight: 700;
+            border: none;
+            border-radius: 999px;
+            padding: 0.8rem 1.35rem;
+            box-shadow: 0 10px 22px rgba(255, 199, 44, 0.28);
+            transition: all 0.25s ease;
+        }
+
+        .btn-brand:hover {
+            background-color: #f4bb11;
+            color: #1f2937;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline-light-brand {
+            border: 2px solid rgba(255,255,255,0.9);
+            color: #fff;
+            background: transparent;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0.8rem 1.35rem;
+            transition: all 0.25s ease;
+        }
+
+        .btn-outline-light-brand:hover {
+            background: #fff;
+            color: var(--primary-color);
+        }
+
+        .btn-outline-teal {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0.8rem 1.35rem;
+            transition: all 0.25s ease;
+        }
+
+        .btn-outline-teal:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .section-padding {
+            padding: 88px 0;
+        }
+
+        .section-soft {
+            background: var(--background-soft);
+        }
+
+        .section-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .section-title .accent {
+            color: var(--primary-color);
+        }
+
+        .section-subtitle {
+            font-size: 1.06rem;
+            line-height: 1.85;
+            color: var(--text-muted);
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .hero-section {
+            position: relative;
+            min-height: 700px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            background:
+                linear-gradient(115deg, rgba(0, 128, 128, 0.92) 0%, rgba(0, 96, 96, 0.86) 42%, rgba(12, 26, 32, 0.72) 100%),
+                url("{{ url_for('static', filename='assets/pantry_project_hero.jpg') }}") center center / cover no-repeat;
+        }
+
+        .hero-section::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top right, rgba(255, 199, 44, 0.18), transparent 30%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            margin-bottom: 1rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: rgba(255,255,255,0.92);
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .hero-title {
+            color: #fff;
+            font-size: clamp(2.5rem, 5vw, 4.7rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.15rem;
+            max-width: 820px;
+        }
+
+        .hero-text {
+            color: rgba(255,255,255,0.92);
+            font-size: 1.1rem;
+            line-height: 1.9;
+            max-width: 760px;
+            margin-bottom: 2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-card {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem 1.4rem;
+            color: #fff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+            max-width: 520px;
+        }
+
+        .hero-card h5 {
+            font-weight: 800;
+            margin-bottom: 0.65rem;
+        }
+
+        .hero-card p {
+            margin: 0;
+            color: rgba(255,255,255,0.92);
+            line-height: 1.75;
+        }
+
+        .content-card,
+        .mission-card,
+        .gap-card,
+        .step-card,
+        .impact-card,
+        .allocation-card,
+        .about-card {
+            background: #fff;
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            height: 100%;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .content-card:hover,
+        .mission-card:hover,
+        .gap-card:hover,
+        .step-card:hover,
+        .impact-card:hover,
+        .allocation-card:hover,
+        .about-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .mission-card,
+        .allocation-card,
+        .about-card,
+        .content-card {
+            padding: 2rem;
+        }
+
+        .gap-card,
+        .step-card,
+        .impact-card {
+            padding: 1.8rem 1.5rem;
+        }
+
+        .icon-wrap {
+            width: 62px;
+            height: 62px;
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 128, 128, 0.1);
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .gap-card h3,
+        .step-card h3,
+        .impact-card h3 {
+            font-size: 1.24rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+        }
+
+        .gap-card p,
+        .step-card p,
+        .impact-card p,
+        .mission-card p,
+        .allocation-card p,
+        .about-card p,
+        .content-card p {
+            color: var(--text-muted);
+            line-height: 1.85;
+            margin-bottom: 0;
+        }
+
+        .photo-wrap {
+            position: relative;
+        }
+
+        .feature-photo {
+            width: 100%;
+            border-radius: 28px;
+            box-shadow: var(--shadow-soft);
+            object-fit: cover;
+            min-height: 520px;
+        }
+
+        .floating-note {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 18px;
+            padding: 1.1rem 1.15rem;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.12);
+        }
+
+        .floating-note strong {
+            display: block;
+            color: var(--primary-color);
+            margin-bottom: 0.35rem;
+        }
+
+        .highlight-panel {
+            background: linear-gradient(135deg, rgba(255,199,44,0.15), rgba(0,128,128,0.08));
+            border-radius: 28px;
+            padding: 2.5rem;
+            border: 1px solid rgba(0,128,128,0.10);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .highlight-panel h2,
+        .highlight-panel p {
+            margin-bottom: 0;
+        }
+
+        .highlight-panel p {
+            color: var(--text-dark);
+            line-height: 1.9;
+        }
+
+        .allocation-card strong,
+        .about-card strong,
+        .mission-card strong {
+            color: var(--primary-color);
+        }
 
         .footer-bg {
-            background-color: var(--primary-color);
-            color: var(--text-light);
-            padding: 30px 0;
+            background-color: #008080;
+            color: #ffffff;
+            padding: 28px 0;
+        }
+
+        .footer-note {
+            font-size: 0.92rem;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.9);
+            max-width: 420px;
+            margin: 0 auto;
             text-align: center;
         }
 
-    /* Small print */
-    .smallprint { color: #6b7280; font-size: .9rem; }
-  </style>
+        .footer-bg a:hover img {
+            transform: scale(1.08);
+            filter: brightness(1.12);
+        }
+
+        @media (max-width: 991px) {
+            .hero-section {
+                min-height: auto;
+                padding: 110px 0 80px;
+            }
+
+            .feature-photo {
+                min-height: 380px;
+                margin-top: 2rem;
+            }
+
+            .highlight-panel {
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .section-padding {
+                padding: 70px 0;
+            }
+
+            .hero-title {
+                font-size: 2.45rem;
+            }
+
+            .hero-text {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.9rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .hero-actions .btn-brand,
+            .hero-actions .btn-outline-light-brand {
+                width: 100%;
+                text-align: center;
+            }
+
+            .floating-note {
+                position: static;
+                margin-top: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
- <!-- ✅ Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container px-5">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container px-4 px-lg-5">
             <a class="navbar-brand" href="{{ url_for('home') }}">
                 <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="The Happy Pantry Logo">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('shopping_list') }}">Shopping List</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantry_project') }}">Pantry Project</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">The Pantry Post</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('about') }}">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('contact') }}">Contact</a></li>
-                <li class="nav-item">
-                    <a class="btn btn-warning text-dark fw-bold ms-3" href="{{ url_for('donate') }}">Support the Project</a>
-                </li>
-                    </ul>
+                <ul class="navbar-nav ms-auto align-items-lg-center mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('recipes') }}">Recipes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('pantrypost') }}">Blog</a></li>
+                    <li class="nav-item ms-lg-3 mt-3 mt-lg-0">
+                        <a class="btn btn-brand" href="{{ url_for('donate') }}">Donate / Pantry Project</a>
                     </li>
-                </ul>                              
+                </ul>
             </div>
         </div>
     </nav>
 
-  <!-- HERO -->
-  <section class="py-5 text-center section-light">
-    <div class="container">
-      <h1 class="display-5 fw-bold">The Pantry Project</h1>
-      <p class="lead">A giving mission powered by The Happy Pantry community.</p>
-      <p class="fs-5">
-        A portion of every subscription goes directly to <strong>The Pantry Project</strong> — funding fresh, high-protein foods for local pantries.
-        Members can also choose to add a little extra each month to make an even bigger impact.
-      </p>
-      </div>
-  </section>
+    <!-- Hero -->
+    <section class="hero-section">
+        <div class="container px-4 px-lg-5 hero-content">
+            <span class="eyebrow">The Pantry Project</span>
+            <h1 class="hero-title">Helping local pantries fill the gaps that food donations alone do not solve.</h1>
+            <p class="hero-text">
+                The Pantry Project is a mission of The Happy Pantry focused on helping local food pantries and community food efforts across New Hampshire and Vermont. Support can help fund food, supplies, equipment, transportation, and practical improvements that make it easier for communities to access nourishment with dignity and consistency.
+            </p>
 
-  <!-- MISSION -->
-  <section class="py-5 section-white border-top">
-    <div class="container">
-      <div class="row align-items-center g-4">
-        <div class="col-md-6">
-          <h2 class="fw-bold">Filling the Gaps Left Behind</h2>
-          <p class="fs-5">Canned goods are helpful, but they’re not enough. Fresh produce, meats, high-protein options, and culturally inclusive staples are what families actually need — but rarely receive.</p>
-          <p class="fs-5">Together with our Pantry Fam, we direct a portion of every subscription to source these exact items and partner directly with food pantries to distribute them where they’ll make the most impact.</p>
+            <div class="hero-actions">
+                <a href="{{ url_for('donate') }}" class="btn btn-brand">Support the Project</a>
+                <a href="#how-it-works" class="btn btn-outline-light-brand">How It Works</a>
+            </div>
+
+            <div class="hero-card">
+                <h5>More than food delivery</h5>
+                <p>
+                    Sometimes the biggest need is food. Other times it is shelving, storage, refrigeration support, pantry supplies, transportation, or practical upgrades that help a pantry serve more people more effectively. The goal is simple: help communities close the gaps that stand in the way of access.
+                </p>
+            </div>
         </div>
-        <div class="col-md-6">
-          <img src="{{ url_for('static', filename='assets/volunteerfood.jpg') }}" class="img-fluid rounded-shadow" alt="Pantry delivery of fresh staples">
+    </section>
+
+    <!-- Mission -->
+    <section class="section-padding">
+        <div class="container px-4 px-lg-5">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <span class="eyebrow" style="background: rgba(0,128,128,0.1); border-color: rgba(0,128,128,0.12); color: var(--primary-color);">
+                        Filling the gaps
+                    </span>
+                    <h2 class="section-title">Local support should solve <span class="accent">real pantry needs</span></h2>
+
+                    <div class="mission-card">
+                        <p>
+                            The Pantry Project is not only about bringing food to food banks in New Hampshire and Vermont. It is about identifying the practical needs that help food pantries fulfill their mission more effectively. That can mean helping with food purchases, but it can also mean helping fund equipment, supplies, shelving, storage tools, transportation, or other small improvements that help food move more efficiently to the people who need it.
+                        </p>
+                        <br>
+                        <p>
+                            Every pantry and every community has different gaps. In some places the need may be staples or fresh protein. In others, it may be the equipment or organization needed to safely store, sort, and distribute food at a better scale. The Pantry Project is designed to stay flexible enough to support what actually matters most.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="photo-wrap">
+                        <img src="{{ url_for('static', filename='assets/volunteers-food.jpg') }}" alt="Volunteers organizing food donations" class="feature-photo">
+                        <div class="floating-note">
+                            <strong>What support can really do</strong>
+                            Support can help strengthen the whole process — from purchasing food to improving the space, tools, and logistics that help pantries serve their communities better.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-<!-- HOW IT WORKS -->
-<section class="py-5 section-light border-top">
-  <div class="container">
-    <h2 class="text-center fw-bold mb-5">How It Works</h2>
-    <div class="row text-center g-4">
-      <div class="col-md-4">
-        <div class="p-4 bg-white rounded-shadow h-100">
-          <h3 class="fs-4 fw-bold">Step 1</h3>
-          <p>Every subscription includes a built-in donation to The Pantry Project.</p>
+    <!-- What support can fund -->
+    <section class="section-padding section-soft">
+        <div class="container px-4 px-lg-5">
+            <div class="text-center mb-5">
+                <h2 class="section-title">What support can <span class="accent">help fund</span></h2>
+                <p class="section-subtitle">
+                    The Pantry Project is built to support the practical side of community food access — not just what gets donated, but what helps those donations work better.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-xl-4">
+                    <div class="gap-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-basket2"></i>
+                        </div>
+                        <h3>Food and pantry staples</h3>
+                        <p>
+                            Fresh produce, protein, shelf-stable items, and practical food purchases that help pantries respond to current community needs.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+                    <div class="gap-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <h3>Supplies and storage tools</h3>
+                        <p>
+                            Bins, shelving, organizational materials, and pantry supplies that improve how food is sorted, stored, and distributed.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+                    <div class="gap-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-snow"></i>
+                        </div>
+                        <h3>Equipment and improvements</h3>
+                        <p>
+                            Refrigeration support, basic equipment, and other practical upgrades that improve fulfillment and strengthen pantry operations.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+                    <div class="gap-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <h3>Transportation and coordination</h3>
+                        <p>
+                            The planning, travel, pickup, and delivery support needed to purchase and move food or supplies through the project.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+                    <div class="gap-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-house-heart"></i>
+                        </div>
+                        <h3>Local pantry support</h3>
+                        <p>
+                            Flexible support for the practical needs of individual communities, so efforts can match the realities of each pantry’s situation.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-4">
+                    <div class="gap-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3>Community access</h3>
+                        <p>
+                            The real goal is not just moving items, but improving how well local pantries can reach and serve people in their community.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="col-md-4">
-        <div class="p-4 bg-white rounded-shadow h-100">
-          <h3 class="fs-4 fw-bold">Step 2</h3>
-          <p>We pool a portion of all subscriptions into The Pantry Project fund each month.</p>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section-padding" id="how-it-works">
+        <div class="container px-4 px-lg-5">
+            <div class="text-center mb-5">
+                <h2 class="section-title">How the <span class="accent">Pantry Project</span> works</h2>
+                <p class="section-subtitle">
+                    The process is meant to stay simple, visible, and focused on practical results at the local level.
+                </p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-xl-3">
+                    <div class="step-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+                        <h3>1. Choose a community</h3>
+                        <p>
+                            We focus on local food access efforts across New Hampshire and Vermont, one community at a time.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-3">
+                    <div class="step-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h3>2. Identify the gap</h3>
+                        <p>
+                            We look at the practical need — whether that is food, supplies, equipment, transportation, or a small operational improvement.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-3">
+                    <div class="step-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-bag-check"></i>
+                        </div>
+                        <h3>3. Put support to work</h3>
+                        <p>
+                            Funds are directed toward the items or support needed to help that pantry or community food effort function better.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-xl-3">
+                    <div class="step-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-camera2"></i>
+                        </div>
+                        <h3>4. Share the impact</h3>
+                        <p>
+                            As the project grows, we will continue sharing updates and examples of where support is going and why it matters.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="col-md-4">
-        <div class="p-4 bg-white rounded-shadow h-100">
-          <h3 class="fs-4 fw-bold">Step 3</h3>
-          <p>With our partners, we purchase and deliver essentials — fresh produce, proteins, and staple items — directly to local pantries.</p>
+    </section>
+
+    <!-- Allocation -->
+    <section class="section-padding section-soft">
+        <div class="container px-4 px-lg-5">
+            <div class="highlight-panel">
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-5">
+                        <h2 class="section-title mb-0">How support is <span class="accent">allocated</span></h2>
+                    </div>
+                    <div class="col-lg-7">
+                        <p>
+                            <strong>100% of donations support The Pantry Project.</strong> About 90% of funds raised go toward food purchases and supplies for local food banks, while the remainder helps cover administrative costs and the transportation and coordination needed to purchase and deliver food through the project.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-  <!-- IMPACT -->
-  <section class="py-5 section-white border-top">
-    <div class="container text-center">
-      <h2 class="fw-bold mb-3">See the Difference You Make</h2>
-      <p class="fs-5">Each month, we’ll share updates on how a portion of proceeds and member add-ons were used — what foods were delivered, which pantries were served, and how your support created real change.</p>
-      <img src="{{ url_for('static', filename='assets/volunteerproduce.jpg') }}" 
-     class="img-fluid rounded shadow mt-4 w-100 w-md-50" 
-     alt="Donation impact examples">
-    </div>
-  </section>
+    <!-- Why this matters -->
+    <section class="section-padding">
+        <div class="container px-4 px-lg-5">
+            <div class="text-center mb-5">
+                <h2 class="section-title">Why this mission <span class="accent">matters</span></h2>
+                <p class="section-subtitle">
+                    Community food support is strongest when it is practical, local, and focused on the real needs that affect distribution and access.
+                </p>
+            </div>
 
-  <!-- CTA -->
-  <section class="py-5 text-center section-light border-top">
-    <div class="container">
-      <h2 class="fw-bold">Want to Help?</h2>
-      <p class="fs-5">When you subscribe to The Happy Pantry, you’re not just planning better meals — you’re also fueling The Pantry Project and filling shelves at local food pantries.</p>
-      <a href="{{ url_for('planselection') }}" class="btn btn-lg btn-accent mt-2">Subscribe &amp; Give Back</a>
-      </div>
-  </section>
+            <div class="row g-4">
+                <div class="col-md-6 col-xl-4">
+                    <div class="impact-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        <h3>It keeps help flexible</h3>
+                        <p>
+                            Every pantry is different. A flexible model lets support go where it can actually improve fulfillment, not just where assumptions say it should.
+                        </p>
+                    </div>
+                </div>
 
- <!-- Footer -->
-<footer class="footer-bg text-white text-xs">
-    <div class="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <p class="m-0 leading-none">&copy; 2026 The Happy Pantry</p>
-        <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer"
-           class="inline-flex items-center gap-2 hover:text-yellow-400 transition text-xs">
-            <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook" style="width: 30px; height: 30px; transition: transform 0.3s ease;" />
-        </a>
-    </div>
-</footer>
+                <div class="col-md-6 col-xl-4">
+                    <div class="impact-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h3>It improves local capacity</h3>
+                        <p>
+                            Better tools, better storage, and better logistics can strengthen a pantry’s ability to serve people well beyond a single delivery.
+                        </p>
+                    </div>
+                </div>
 
-  <!-- Bootstrap Bundle (JS) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="{{ url_for('static', filename='js/ios-guard.js') }}"></script>
+                <div class="col-md-6 col-xl-4">
+                    <div class="impact-card">
+                        <div class="icon-wrap">
+                            <i class="bi bi-heart"></i>
+                        </div>
+                        <h3>It keeps community first</h3>
+                        <p>
+                            The goal is not to overcomplicate support. It is to direct practical resources where they can create meaningful, local impact.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-  <!-- Site Script -->
-  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+    <!-- About the project -->
+    <section class="section-padding section-soft">
+        <div class="container px-4 px-lg-5">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="about-card">
+                        <h2 class="section-title">About <span class="accent">The Pantry Project</span></h2>
+                        <p>
+                            The Pantry Project is a mission of The Happy Pantry focused on helping local food banks across New Hampshire and Vermont. Each month, we choose a specific community and direct support toward food, supplies, or other practical pantry needs that help improve local access. Community support helps keep The Happy Pantry free to use while allowing us to provide simple meal planning tools, recipes, and up-to-date nutrition information that is easy to find, practical, and accessible for everyone.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="about-card">
+                        <h2 class="section-title">How it is <span class="accent">operated</span></h2>
+                        <p>
+                            The Pantry Project is operated through The Happy Pantry LLC by a small group of people passionate about improving access to food and nutrition. Keeping the project simple allows more of the funds raised to go toward food purchases, supplies, and practical pantry support without the added administrative cost and complexity of maintaining a formal nonprofit organization. Contributions are voluntary and are not tax-deductible.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section-padding">
+        <div class="container px-4 px-lg-5">
+            <div class="content-card text-center">
+                <h2 class="section-title mb-3">Support a project focused on <span class="accent">real local needs</span></h2>
+                <p class="section-subtitle mb-4" style="max-width: 780px;">
+                    The Pantry Project exists to help communities close the practical gaps that stand between available food and accessible food. Support helps us stay flexible, local, and focused on what actually improves fulfillment.
+                </p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+                    <a href="{{ url_for('donate') }}" class="btn btn-brand">Visit the Donate Page</a>
+                    <a href="{{ url_for('recipes') }}" class="btn btn-outline-teal">Explore The Happy Pantry</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-bg">
+        <div class="container px-4 px-lg-5">
+            <div class="row align-items-center text-center text-md-start gy-3">
+                <div class="col-md-4">
+                    <p class="m-0">&copy; 2026 The Happy Pantry</p>
+                </div>
+
+                <div class="col-md-4">
+                    <p class="footer-note m-0">
+                        The Pantry Project is a community initiative operated through The Happy Pantry LLC.
+                        Contributions are voluntary and are not tax-deductible.
+                    </p>
+                </div>
+
+                <div class="col-md-4 text-center text-md-end">
+                    <a href="https://www.facebook.com/profile.php?id=61576743170575" target="_blank" rel="noopener noreferrer">
+                        <img src="/static/assets/facebook-icon-gold.svg" alt="Facebook"
+                             style="width: 30px; height: 30px; transition: transform 0.3s ease;">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
